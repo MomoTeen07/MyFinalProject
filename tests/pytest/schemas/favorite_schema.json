@@ -1,0 +1,1 @@
+{"type":"object","required":["id","team_id","team_name","created_at"],"properties":{"id":{"type":"integer"},"team_id":{"type":"integer"},"team_name":{"type":"string"},"team_crest":{"type":["string","null"]},"created_at":{"type":"string"}}}

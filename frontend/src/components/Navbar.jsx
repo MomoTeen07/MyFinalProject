@@ -1,0 +1,2 @@
+import {Link} from 'react-router-dom'; import {useAuth} from '../context/AuthContext';
+export default function Navbar(){const {user,logout}=useAuth();return <nav><Link className="brand" to="/">⚽ Football QA</Link><div className="navlinks"><Link to="/championships">Championnats</Link>{user&&<Link data-testid="favorites-link" to="/favorites">Mes favoris</Link>}{user?<><span>👤 {user.name}</span><button onClick={logout}>Déconnexion</button></>:<Link data-testid="login-button" className="primary small" to="/login">Connexion</Link>}</div></nav>}

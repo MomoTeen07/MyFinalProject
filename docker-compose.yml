@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: footballqa
+      POSTGRES_USER: football
+      POSTGRES_PASSWORD: football
+    ports:
+      - "5433:5432"
+    volumes:
+      - "postgres_data:/var/lib/postgresql/data"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U football -d footballqa"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://football:football@db:5432/footballqa
+      JWT_SECRET: change-me-in-production
+      FOOTBALL_API_TOKEN: ${FOOTBALL_API_TOKEN:-}
+      MOCK_FOOTBALL_API: ${MOCK_FOOTBALL_API:-false}
+      CORS_ORIGINS: http://localhost:5174
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5174:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

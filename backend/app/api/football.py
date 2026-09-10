@@ -1,0 +1,11 @@
+from fastapi import APIRouter
+from app.services.football_service import leagues, get_standings, get_team, get_matches
+router = APIRouter(prefix="/api/football", tags=["football"])
+@router.get("/leagues")
+def get_leagues(): return leagues()
+@router.get("/leagues/{code}/standings")
+def standings(code: str): return get_standings(code)
+@router.get("/leagues/{code}/matches")
+def matches(code: str): return get_matches(code)
+@router.get("/leagues/{code}/teams/{team_id}")
+def team(code: str, team_id: int): return get_team(code, team_id)
