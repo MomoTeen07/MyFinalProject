@@ -8,6 +8,7 @@ LEAGUES = {
     "PD": {"name": "La Liga", "country": "Spain"},
     "SA": {"name": "Serie A", "country": "Italy"},
     "BL1": {"name": "Bundesliga", "country": "Germany"},
+    "CL": {"name": "Ligue des champions", "country": "Europe"},
 }
 MOCK_TEAMS = {
     "PL": [(57,"Arsenal"),(61,"Chelsea"),(64,"Liverpool"),(65,"Manchester City")],
@@ -15,6 +16,7 @@ MOCK_TEAMS = {
     "PD": [(81,"Barcelona"),(86,"Real Madrid"),(78,"Atlético de Madrid"),(90,"Real Valladolid")],
     "SA": [(98,"AC Milan"),(108,"Inter Milan"),(100,"Juventus"),(102,"Atalanta")],
     "BL1": [(5,"Bayern München"),(4,"Borussia Dortmund"),(18,"Hamburger SV"),(3,"Bayer Leverkusen")],
+    "CL": [(81,"FC Barcelona"),(86,"Real Madrid"),(64,"Liverpool"),(5,"Bayern München")],
 }
 
 def leagues():

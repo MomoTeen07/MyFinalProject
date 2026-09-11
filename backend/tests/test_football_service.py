@@ -2,7 +2,7 @@ import pytest
 from fastapi import HTTPException
 
 from app.core.config import settings
-from app.services.football_service import get_standings
+from app.services.football_service import get_standings, leagues
 
 
 def test_real_data_mode_requires_a_token(monkeypatch):
@@ -22,3 +22,7 @@ def test_mock_mode_remains_available_for_local_development(monkeypatch):
 
     assert len(standings) == 4
     assert standings[0]["team"]["name"] == "Arsenal"
+
+
+def test_champions_league_is_available():
+    assert "CL" in {league["code"] for league in leagues()}
