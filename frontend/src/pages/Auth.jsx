@@ -36,7 +36,7 @@ export default function Auth({ register = false }) {
         <form onSubmit={submit}>
           {register && <label>Nom<input autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} required minLength="2" maxLength="100" /></label>}
           <label>Adresse e-mail<input data-testid="email-input" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
-          <label>Mot de passe<input data-testid="password-input" type="password" autoComplete={register ? 'new-password' : 'current-password'} value={password} onChange={(event) => setPassword(event.target.value)} required minLength="8" /></label>
+          <label>Mot de passe<input data-testid="password-input" type="password" autoComplete={register ? 'new-password' : 'current-password'} value={password} onChange={(event) => setPassword(event.target.value)} required minLength="8" maxLength={register ? 128 : 1024} /></label>
           <button data-testid="submit-login" className="primary" type="submit" disabled={submitting}>
             {submitting ? 'Connexion…' : register ? 'Créer mon compte' : 'Se connecter'}
           </button>

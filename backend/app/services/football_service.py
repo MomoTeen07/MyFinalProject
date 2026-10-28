@@ -1,81 +1,160 @@
 from datetime import datetime, timedelta, timezone
+from copy import deepcopy
+from threading import Lock
+from time import monotonic
 
 import httpx
 from fastapi import HTTPException
+
 from app.core.config import settings
 
 LEAGUES = {
-    "PL": {"name": "Premier League", "country": "England"},
+    "PL": {"name": "Premier League", "country": "Angleterre"},
     "FL1": {"name": "Ligue 1", "country": "France"},
-    "PD": {"name": "La Liga", "country": "Spain"},
-    "SA": {"name": "Serie A", "country": "Italy"},
-    "BL1": {"name": "Bundesliga", "country": "Germany"},
+    "PD": {"name": "La Liga", "country": "Espagne"},
+    "SA": {"name": "Serie A", "country": "Italie"},
+    "BL1": {"name": "Bundesliga", "country": "Allemagne"},
     "CL": {"name": "Ligue des champions", "country": "Europe"},
 }
+
 MOCK_TEAMS = {
-    "PL": [(57,"Arsenal"),(61,"Chelsea"),(64,"Liverpool"),(65,"Manchester City")],
-    "FL1": [(524,"Paris Saint-Germain"),(516,"Olympique Lyonnais"),(522,"Olympique de Marseille"),(548,"AS Monaco")],
-    "PD": [(81,"Barcelona"),(86,"Real Madrid"),(78,"Atlético de Madrid"),(90,"Real Valladolid")],
-    "SA": [(98,"AC Milan"),(108,"Inter Milan"),(100,"Juventus"),(102,"Atalanta")],
-    "BL1": [(5,"Bayern München"),(4,"Borussia Dortmund"),(18,"Hamburger SV"),(3,"Bayer Leverkusen")],
-    "CL": [(81,"FC Barcelona"),(86,"Real Madrid"),(64,"Liverpool"),(5,"Bayern München")],
+    "PL": [(57, "Arsenal"), (61, "Chelsea"), (64, "Liverpool"), (65, "Manchester City")],
+    "FL1": [
+        (524, "Paris Saint-Germain"),
+        (516, "Olympique Lyonnais"),
+        (522, "Olympique de Marseille"),
+        (548, "AS Monaco"),
+    ],
+    "PD": [
+        (81, "Barcelona"),
+        (86, "Real Madrid"),
+        (78, "Atlético de Madrid"),
+        (90, "Real Valladolid"),
+    ],
+    "SA": [(98, "AC Milan"), (108, "Inter Milan"), (100, "Juventus"), (102, "Atalanta")],
+    "BL1": [
+        (5, "Bayern München"),
+        (4, "Borussia Dortmund"),
+        (18, "Hamburger SV"),
+        (3, "Bayer Leverkusen"),
+    ],
+    "CL": [(81, "FC Barcelona"), (86, "Real Madrid"), (64, "Liverpool"), (5, "Bayern München")],
 }
+_RESPONSE_CACHE: dict[str, tuple[float, object]] = {}
+_CACHE_LOCK = Lock()
+
 
 def leagues():
-    return [{"code": k, **v} for k,v in LEAGUES.items()]
+    return [{"code": code, **league} for code, league in LEAGUES.items()]
+
 
 def _headers():
     return {"X-Auth-Token": settings.football_api_token}
 
+
 def _require_api_token():
     if not settings.football_api_token:
-        raise HTTPException(503, "FOOTBALL_API_TOKEN is required when MOCK_FOOTBALL_API is disabled")
+        raise HTTPException(
+            status_code=503,
+            detail="FOOTBALL_API_TOKEN is required when MOCK_FOOTBALL_API is disabled",
+        )
 
 
 def _fetch(path: str):
     _require_api_token()
+    url = f"{settings.football_api_base_url}{path}"
+    now = monotonic()
+    ttl = settings.football_cache_ttl_seconds
+    if ttl > 0:
+        with _CACHE_LOCK:
+            cached = _RESPONSE_CACHE.get(url)
+            if cached and now - cached[0] < ttl:
+                return deepcopy(cached[1])
+
     try:
         response = httpx.get(
-            f"{settings.football_api_base_url}{path}",
+            url,
             headers=_headers(),
             timeout=10,
         )
         response.raise_for_status()
-        return response.json()
+        payload = response.json()
     except httpx.HTTPStatusError as exc:
-        raise HTTPException(502, f"Football data API returned HTTP {exc.response.status_code}") from exc
+        if exc.response.status_code == 429:
+            retry_after = exc.response.headers.get("Retry-After", "60")
+            raise HTTPException(
+                status_code=503,
+                detail="Football data provider rate limit reached. Please retry later.",
+                headers={"Retry-After": retry_after},
+            ) from exc
+        raise HTTPException(
+            status_code=502,
+            detail=f"Football data API returned HTTP {exc.response.status_code}",
+        ) from exc
     except httpx.RequestError as exc:
-        raise HTTPException(502, "Could not reach the football data API") from exc
+        raise HTTPException(status_code=502, detail="Could not reach the football data API") from exc
     except ValueError as exc:
-        raise HTTPException(502, "Football data API returned invalid JSON") from exc
+        raise HTTPException(status_code=502, detail="Football data API returned invalid JSON") from exc
+
+    if ttl > 0:
+        with _CACHE_LOCK:
+            expired_urls = [key for key, (stored_at, _) in _RESPONSE_CACHE.items() if now - stored_at >= ttl]
+            for expired_url in expired_urls:
+                _RESPONSE_CACHE.pop(expired_url, None)
+            if len(_RESPONSE_CACHE) >= 128:
+                _RESPONSE_CACHE.pop(next(iter(_RESPONSE_CACHE)))
+            _RESPONSE_CACHE[url] = (monotonic(), deepcopy(payload))
+    return payload
+
 
 def get_standings(code: str):
     if code not in LEAGUES:
-        raise HTTPException(404, "Championship not found")
+        raise HTTPException(status_code=404, detail="Championship not found")
+
     if settings.mock_football_api:
         return [
-            {"position": i + 1, "team": {"id": team_id, "name": name, "crest": ""},
-             "playedGames": 10, "won": 7 - i, "draw": 2, "lost": 1 + i, "points": 23 - 2 * i}
-            for i, (team_id, name) in enumerate(MOCK_TEAMS[code])
+            {
+                "position": index + 1,
+                "team": {"id": team_id, "name": name, "crest": ""},
+                "playedGames": 10,
+                "won": 7 - index,
+                "draw": 2,
+                "lost": 1 + index,
+                "points": 23 - 2 * index,
+            }
+            for index, (team_id, name) in enumerate(MOCK_TEAMS[code])
         ]
+
     payload = _fetch(f"/competitions/{code}/standings")
     tables = payload.get("standings", [])
-    overall = next((table for table in tables if table.get("type") == "TOTAL"), None)
-    return (overall or (tables[0] if tables else {})).get("table", [])
+    overall_table = next((table for table in tables if table.get("type") == "TOTAL"), None)
+    selected_table = overall_table or (tables[0] if tables else {})
+    return selected_table.get("table", [])
+
 
 def get_team(code: str, team_id: int):
     if code not in LEAGUES:
-        raise HTTPException(404, "Championship not found")
+        raise HTTPException(status_code=404, detail="Championship not found")
+
     if settings.mock_football_api:
-        team = next((x for x in MOCK_TEAMS.get(code, []) if x[0] == team_id), None)
-        if not team:
-            raise HTTPException(404, "Team not found")
-        return {"id": team[0], "name": team[1], "crest": "", "venue": "Football QA Stadium", "website": None}
+        team = next((item for item in MOCK_TEAMS[code] if item[0] == team_id), None)
+        if team is None:
+            raise HTTPException(status_code=404, detail="Team not found")
+        return {
+            "id": team[0],
+            "name": team[1],
+            "crest": "",
+            "venue": "Football QA Stadium",
+            "website": None,
+        }
+
     return _fetch(f"/teams/{team_id}")
+
 
 def get_matches(code: str):
     if code not in LEAGUES:
-        raise HTTPException(404, "Championship not found")
+        raise HTTPException(status_code=404, detail="Championship not found")
+
     if settings.mock_football_api:
         teams = MOCK_TEAMS[code]
         now = datetime.now(timezone.utc)
@@ -89,4 +168,5 @@ def get_matches(code: str):
             }
             for index in range(3)
         ]
+
     return _fetch(f"/competitions/{code}/matches").get("matches", [])

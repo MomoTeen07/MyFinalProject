@@ -2,9 +2,56 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client';
 
+const matchStatuses = {
+  FINISHED: 'Terminé',
+  IN_PLAY: 'En cours',
+  PAUSED: 'Mi-temps',
+  SCHEDULED: 'À venir',
+  TIMED: 'À venir',
+  POSTPONED: 'Reporté',
+  CANCELLED: 'Annulé',
+  AWARDED: 'Décision officielle',
+};
+
+function formatMatchDate(value) {
+  if (!value) return 'Date à confirmer';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Date à confirmer';
+  return new Intl.DateTimeFormat('fr-BE', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Europe/Brussels',
+  }).format(date);
+}
+
+function MatchCard({ match, leagueCode }) {
+  const score = match.score?.fullTime;
+  const hasScore = score?.home != null && score?.away != null;
+  const status = matchStatuses[match.status] || match.status || 'Statut inconnu';
+
+  const teamLink = (team) => team.id
+    ? <Link className="fixture-team" to={`/teams/${leagueCode}/${team.id}`}>{team.name}</Link>
+    : <span className="fixture-team">{team.name}</span>;
+
+  return (
+    <article className="card match">
+      <div className="match-meta">
+        <time dateTime={match.utcDate || undefined}>{formatMatchDate(match.utcDate)}</time>
+        <span>{status}</span>
+      </div>
+      <div className="matchup">
+        {teamLink(match.homeTeam)}
+        <strong className="match-score">{hasScore ? `${score.home} – ${score.away}` : 'vs'}</strong>
+        {teamLink(match.awayTeam)}
+      </div>
+    </article>
+  );
+}
+
 export default function Championship() {
   const { code } = useParams();
   const [tab, setTab] = useState('standings');
+  const [league, setLeague] = useState(null);
   const [standings, setStandings] = useState([]);
   const [matches, setMatches] = useState([]);
   const [status, setStatus] = useState('loading');
@@ -15,13 +62,17 @@ export default function Championship() {
     const controller = new AbortController();
     setStatus('loading');
     setError('');
+    setLeague(null);
+
     Promise.all([
       api(`/api/football/leagues/${code}/standings`, { signal: controller.signal }),
       api(`/api/football/leagues/${code}/matches`, { signal: controller.signal }),
+      api('/api/football/leagues', { signal: controller.signal }).catch(() => []),
     ])
-      .then(([table, fixtures]) => {
+      .then(([table, fixtures, leagues]) => {
         setStandings(Array.isArray(table) ? table : []);
         setMatches(Array.isArray(fixtures) ? fixtures : []);
+        setLeague(leagues.find((item) => item.code === code) || { code, name: code });
         setStatus('success');
       })
       .catch((requestError) => {
@@ -29,13 +80,15 @@ export default function Championship() {
         setError(requestError.message);
         setStatus('error');
       });
+
     return () => controller.abort();
   }, [code, attempt]);
 
   return (
     <section>
       <Link to="/championships" className="back">← Tous les championnats</Link>
-      <h1>{code} : classement et matchs</h1>
+      <span className="eyebrow">{league?.country || 'CHAMPIONNAT'}</span>
+      <h1>{league?.name || code}</h1>
       <div className="tabs" role="tablist" aria-label="Données du championnat">
         <button role="tab" aria-selected={tab === 'standings'} className={tab === 'standings' ? 'active' : ''} onClick={() => setTab('standings')}>Classement</button>
         <button role="tab" aria-selected={tab === 'matches'} className={tab === 'matches' ? 'active' : ''} onClick={() => setTab('matches')}>Matchs</button>
@@ -51,10 +104,7 @@ export default function Championship() {
       )}
       {status === 'success' && tab === 'matches' && matches.length === 0 && <p className="empty">Aucun match disponible.</p>}
       {status === 'success' && tab === 'matches' && matches.length > 0 && (
-        <div className="grid">{matches.map((match) => <div className="card match" key={match.id}>
-          <span>{match.utcDate ? new Date(match.utcDate).toLocaleDateString() : 'Date à confirmer'}</span>
-          <strong>{match.homeTeam.name}</strong><span>vs</span><strong>{match.awayTeam.name}</strong>
-        </div>)}</div>
+        <div className="grid">{matches.map((match) => <MatchCard key={match.id} match={match} leagueCode={code} />)}</div>
       )}
     </section>
   );

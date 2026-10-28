@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.models import User
 from app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse
-from app.core.security import hash_password, verify_password, create_access_token
+from app.core.security import hash_password, password_needs_rehash, verify_password, create_access_token
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -31,4 +31,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(func.lower(User.email) == str(data.email).lower()).first()
     if not user or not verify_password(data.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Adresse e-mail ou mot de passe incorrect.")
+    if password_needs_rehash(user.password_hash):
+        user.password_hash = hash_password(data.password)
+        db.commit()
     return {"access_token": create_access_token(user.id), "token_type": "bearer"}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
+import TeamCrest from '../components/TeamCrest';
 
 export default function Favorites() {
   const [favorites, setFavorites] = useState([]);
@@ -56,7 +57,12 @@ export default function Favorites() {
         <div className="grid">
           {favorites.map((favorite) => (
             <div className="card fav" key={favorite.id}>
-              <div><span className="crest small" aria-hidden="true">⚽</span><h2>{favorite.team_name}</h2></div>
+              <div>
+                <TeamCrest src={favorite.team_crest} name={favorite.team_name} small />
+                {favorite.league_code
+                  ? <Link className="favorite-team" to={`/teams/${favorite.league_code}/${favorite.team_id}`}><h2>{favorite.team_name}</h2></Link>
+                  : <h2>{favorite.team_name}</h2>}
+              </div>
               <button disabled={deleting === favorite.id} onClick={() => remove(favorite.id)}>
                 {deleting === favorite.id ? 'Suppression…' : 'Supprimer'}
               </button>

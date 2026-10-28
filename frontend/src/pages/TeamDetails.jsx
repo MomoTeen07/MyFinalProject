@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client';
+import TeamCrest from '../components/TeamCrest';
 import { useAuth } from '../context/AuthContext';
 
 export default function TeamDetails() {
@@ -53,7 +54,7 @@ export default function TeamDetails() {
       } else {
         const created = await api('/api/favorites', {
           method: 'POST',
-          body: JSON.stringify({ team_id: team.id, team_name: team.name, team_crest: team.crest || null }),
+          body: JSON.stringify({ team_id: team.id, league_code: code, team_name: team.name, team_crest: team.crest || null }),
         });
         setFavorite(created);
       }
@@ -71,7 +72,7 @@ export default function TeamDetails() {
     <section>
       <Link to={`/championships/${code}`} className="back">← Retour au championnat</Link>
       <div className="team-header card">
-        <div className="crest" aria-hidden="true">⚽</div>
+        <TeamCrest src={team.crest} name={team.name} />
         <div><span className="eyebrow">ÉQUIPE</span><h1>{team.name}</h1><p>{team.venue || 'Stade non renseigné'}</p></div>
         {user && <button data-testid="favorite-button" disabled={saving} className={favorite ? 'favorite active' : 'favorite'} onClick={toggleFavorite}>
           {saving ? 'Mise à jour…' : favorite ? '★ Dans mes favoris' : '☆ Ajouter aux favoris'}

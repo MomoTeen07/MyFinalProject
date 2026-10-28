@@ -3,7 +3,7 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 class RegisterRequest(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8)
+    password: str = Field(min_length=8, max_length=128)
     name: str = Field(min_length=2, max_length=100)
 
     @field_validator("email", mode="before")
@@ -22,7 +22,7 @@ class RegisterRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(max_length=1024)
 
     @field_validator("email", mode="before")
     @classmethod
