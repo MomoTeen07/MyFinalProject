@@ -19,12 +19,12 @@ services:
     build: ./backend
     environment:
       DATABASE_URL: postgresql+psycopg://football:football@db:5432/footballqa
-      JWT_SECRET: change-me-in-production
+      JWT_SECRET: ${JWT_SECRET:?Set a unique JWT_SECRET in .env}
       FOOTBALL_API_TOKEN: ${FOOTBALL_API_TOKEN:-}
       MOCK_FOOTBALL_API: ${MOCK_FOOTBALL_API:-false}
       CORS_ORIGINS: http://localhost:5174
     ports:
-      - "8000:8000"
+      - "8001:8000"
     depends_on:
       db:
         condition: service_healthy

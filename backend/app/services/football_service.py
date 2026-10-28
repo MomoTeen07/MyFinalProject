@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 import httpx
 from fastapi import HTTPException
 from app.core.config import settings
@@ -29,37 +31,62 @@ def _require_api_token():
     if not settings.football_api_token:
         raise HTTPException(503, "FOOTBALL_API_TOKEN is required when MOCK_FOOTBALL_API is disabled")
 
-def get_standings(code: str):
-    if code not in LEAGUES: raise HTTPException(404, "Championship not found")
-    if settings.mock_football_api:
-        return [{"position": i+1, "team": {"id": tid, "name": name, "crest": ""}, "playedGames": 10, "won": 7-i, "draw": 2, "lost": 1+i, "points": 23-2*i} for i,(tid,name) in enumerate(MOCK_TEAMS[code])]
+
+def _fetch(path: str):
     _require_api_token()
     try:
-        r = httpx.get(f"{settings.football_api_base_url}/competitions/{code}/standings", headers=_headers(), timeout=10)
-        r.raise_for_status(); return r.json()["standings"][0]["table"]
-    except Exception as exc:
-        raise HTTPException(502, f"Football API error: {exc}")
+        response = httpx.get(
+            f"{settings.football_api_base_url}{path}",
+            headers=_headers(),
+            timeout=10,
+        )
+        response.raise_for_status()
+        return response.json()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(502, f"Football data API returned HTTP {exc.response.status_code}") from exc
+    except httpx.RequestError as exc:
+        raise HTTPException(502, "Could not reach the football data API") from exc
+    except ValueError as exc:
+        raise HTTPException(502, "Football data API returned invalid JSON") from exc
+
+def get_standings(code: str):
+    if code not in LEAGUES:
+        raise HTTPException(404, "Championship not found")
+    if settings.mock_football_api:
+        return [
+            {"position": i + 1, "team": {"id": team_id, "name": name, "crest": ""},
+             "playedGames": 10, "won": 7 - i, "draw": 2, "lost": 1 + i, "points": 23 - 2 * i}
+            for i, (team_id, name) in enumerate(MOCK_TEAMS[code])
+        ]
+    payload = _fetch(f"/competitions/{code}/standings")
+    tables = payload.get("standings", [])
+    overall = next((table for table in tables if table.get("type") == "TOTAL"), None)
+    return (overall or (tables[0] if tables else {})).get("table", [])
 
 def get_team(code: str, team_id: int):
+    if code not in LEAGUES:
+        raise HTTPException(404, "Championship not found")
     if settings.mock_football_api:
         team = next((x for x in MOCK_TEAMS.get(code, []) if x[0] == team_id), None)
-        if not team: raise HTTPException(404, "Team not found")
+        if not team:
+            raise HTTPException(404, "Team not found")
         return {"id": team[0], "name": team[1], "crest": "", "venue": "Football QA Stadium", "website": None}
-    _require_api_token()
-    try:
-        r = httpx.get(f"{settings.football_api_base_url}/teams/{team_id}", headers=_headers(), timeout=10)
-        r.raise_for_status(); return r.json()
-    except Exception as exc:
-        raise HTTPException(502, f"Football API error: {exc}")
+    return _fetch(f"/teams/{team_id}")
 
 def get_matches(code: str):
-    if code not in LEAGUES: raise HTTPException(404, "Championship not found")
+    if code not in LEAGUES:
+        raise HTTPException(404, "Championship not found")
     if settings.mock_football_api:
         teams = MOCK_TEAMS[code]
-        return [{"id": i+1, "utcDate": "2026-09-12T15:00:00Z", "status":"SCHEDULED", "homeTeam":{"id":teams[0][0],"name":teams[0][1]}, "awayTeam":{"id":teams[1][0],"name":teams[1][1]}} for i in range(3)]
-    _require_api_token()
-    try:
-        r = httpx.get(f"{settings.football_api_base_url}/competitions/{code}/matches", headers=_headers(), timeout=10)
-        r.raise_for_status(); return r.json()["matches"]
-    except Exception as exc:
-        raise HTTPException(502, f"Football API error: {exc}")
+        now = datetime.now(timezone.utc)
+        return [
+            {
+                "id": index + 1,
+                "utcDate": (now + timedelta(days=7 * (index + 1))).isoformat(),
+                "status": "SCHEDULED",
+                "homeTeam": {"id": teams[0][0], "name": teams[0][1]},
+                "awayTeam": {"id": teams[1][0], "name": teams[1][1]},
+            }
+            for index in range(3)
+        ]
+    return _fetch(f"/competitions/{code}/matches").get("matches", [])

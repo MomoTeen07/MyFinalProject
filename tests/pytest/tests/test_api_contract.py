@@ -1,6 +1,6 @@
 import os, requests
 from jsonschema import validate
-BASE=os.getenv("API_URL","http://localhost:8000")
+BASE=os.getenv("API_URL","http://localhost:8001")
 
 def test_health():
     r=requests.get(f"{BASE}/health",timeout=5); assert r.status_code==200; assert r.json()["status"]=="ok"
