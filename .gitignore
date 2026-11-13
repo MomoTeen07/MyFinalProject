@@ -4,3 +4,8 @@ __pycache__/
 node_modules/
 dist/
 playwright-report/
+allure-results/
+allure-report/
+test-results/
+.venv*/
+allure-results*/
