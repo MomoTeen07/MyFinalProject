@@ -1,0 +1,64 @@
+[
+  {
+    "id": "email-invalide",
+    "payload": {
+      "email": "not-an-email",
+      "password": "Password123!",
+      "name": "QA User"
+    },
+    "champ": "email"
+  },
+  {
+    "id": "email-vide",
+    "payload": {
+      "email": "",
+      "password": "Password123!",
+      "name": "QA User"
+    },
+    "champ": "email"
+  },
+  {
+    "id": "mot-de-passe-court",
+    "payload": {
+      "email": "qa.court@example.com",
+      "password": "short",
+      "name": "QA User"
+    },
+    "champ": "password"
+  },
+  {
+    "id": "mot-de-passe-absent",
+    "payload": {
+      "email": "qa.absent@example.com",
+      "name": "QA User"
+    },
+    "champ": "password"
+  },
+  {
+    "id": "nom-d-un-caractere",
+    "payload": {
+      "email": "qa.nom1@example.com",
+      "password": "Password123!",
+      "name": "A"
+    },
+    "champ": "name"
+  },
+  {
+    "id": "nom-uniquement-des-espaces",
+    "payload": {
+      "email": "qa.nom2@example.com",
+      "password": "Password123!",
+      "name": "   "
+    },
+    "champ": "name"
+  },
+  {
+    "id": "nom-de-plus-de-100-caracteres",
+    "payload": {
+      "email": "qa.nom3@example.com",
+      "password": "Password123!",
+      "name": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    },
+    "champ": "name"
+  }
+]
