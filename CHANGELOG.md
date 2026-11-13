@@ -30,6 +30,10 @@ versionnage sémantique.
 - **Artefacts d'échec UI** : traces, captures et vidéos conservées dans
   `tests/playwright/test-results/` (`trace: retain-on-failure`) pour rendre
   chaque anomalie reproductible.
+- **Suite UI Playwright en Page Object Model** : 6 page objects, fixtures de
+  comptes uniques, **17 tests** couvrant l'authentification, les championnats,
+  le classement, le calendrier, la fiche équipe, le parcours critique des
+  favoris et le cloisonnement entre deux comptes.
 
 ### Supprimé
 

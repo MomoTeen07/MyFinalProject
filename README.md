@@ -95,6 +95,21 @@ npm test
 
 Pour viser une autre adresse frontend, définissez `BASE_URL` avant `npm test`.
 
+La suite UI suit le patron **Page Object Model** :
+
+```
+tests/playwright/
+├── pages/        AuthPage, Navbar, ChampionshipsPage, ChampionshipPage, TeamPage, FavoritesPage
+├── fixtures/     comptes uniques par l'API et session injectée
+└── tests/        auth.spec.js, championships.spec.js, favorites.spec.js, smoke.spec.js
+```
+
+Chaque test crée son propre compte : aucun état partagé entre exécutions, donc
+la suite est rejouable sans nettoyage de base. Les scénarios couvrent
+l’authentification, les six championnats, le classement, le calendrier, la fiche
+équipe, le parcours critique des favoris (ajout → consultation → suppression) et
+le cloisonnement entre deux comptes.
+
 ### Rapports Allure
 
 Les deux suites produisent le format standard Allure 2 :
