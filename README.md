@@ -72,7 +72,7 @@ Tests de contrat API, avec l’application démarrée par Docker :
 
 ```bash
 python -m pip install -r tests/pytest/requirements.txt
-python -m pytest tests/pytest/tests
+python -m pytest tests/pytest/tests --alluredir=allure-results-api
 ```
 
 Tests Playwright, avec l’application accessible sur `http://localhost:5174` :
@@ -86,9 +86,28 @@ npm test
 
 Pour viser une autre adresse frontend, définissez `BASE_URL` avant `npm test`.
 
+### Rapports Allure
+
+Les deux suites produisent le format standard Allure 2 :
+
+- PyTest : `allure-results-api/` (option `--alluredir`).
+- Playwright : `tests/playwright/allure-results/` (reporter `allure-playwright`).
+- Backend : `allure-results-backend/` en CI.
+
+Agrégation locale en un rapport HTML unique (nécessite Java 17) :
+
+```bash
+npm install --global allure-commandline
+allure generate allure-results-api tests/playwright/allure-results --clean --output allure-report
+allure open allure-report
+```
+
+En cas d’échec Playwright, `tests/playwright/test-results/` conserve la trace, la capture et la vidéo de chaque tentative : c’est la preuve à joindre à un rapport d’anomalie.
+
 ## Intégration continue
 
-Le workflow `.github/workflows/ci.yml` s’exécute sur les push et les pull requests. Il prépare une base PostgreSQL éphémère, lance les suites déjà présentes et publie le rapport HTML Playwright comme artefact. Les identifiants configurés dans ce workflow sont réservés à cette base temporaire.
+Le workflow `.github/workflows/ci.yml` s’exécute sur chaque push, pull request et lancement manuel. Il prépare une base PostgreSQL éphémère, lance les tests unitaires backend puis les suites API et UI, agrège les résultats Allure et publie trois artefacts : `allure-report`, `playwright-report` et, en cas d’échec, `playwright-test-results` (traces, captures, vidéos). Les identifiants configurés dans ce workflow sont réservés à cette base temporaire.
+
 
 ## Configuration
 

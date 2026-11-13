@@ -3,9 +3,14 @@ name: QA CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+env:
+  JWT_SECRET: ci-only-secret-do-not-use-outside-github-actions
+  MOCK_FOOTBALL_API: "true"
 
 jobs:
   backend:
@@ -16,8 +21,6 @@ jobs:
         working-directory: backend
     env:
       DATABASE_URL: postgresql+psycopg://football:football@localhost:5432/footballqa
-      JWT_SECRET: ci-only-secret-do-not-use-outside-github-actions
-      MOCK_FOOTBALL_API: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,15 +28,21 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: backend/requirements.txt
-      - run: python -m pip install -r requirements.txt
-      - run: python -m pytest tests
+      - run: python -m pip install -r requirements.txt pytest==8.4.1 allure-pytest==2.16.2
+      - name: Run backend unit tests
+        run: python -m pytest tests --alluredir="../allure-results-backend"
+      - name: Upload backend Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-backend
+          path: allure-results-backend/
+          if-no-files-found: ignore
+          retention-days: 14
 
   api-and-ui:
     name: API and UI checks
     runs-on: ubuntu-latest
-    env:
-      JWT_SECRET: ci-only-secret-do-not-use-outside-github-actions
-      MOCK_FOOTBALL_API: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -46,21 +55,40 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: tests/playwright/package-lock.json
+
       - name: Start application
-        run: docker compose up --build --detach --wait --wait-timeout 180
-      - name: Run API contract checks
-        run: |
-          python -m pip install -r tests/pytest/requirements.txt
-          python -m pytest tests/pytest/tests
+        run: docker compose up --build --detach --wait --wait-timeout 240
+
+      - name: Install API test dependencies
+        run: python -m pip install -r tests/pytest/requirements.txt
+
+      - name: Run API checks
+        run: python -m pytest tests/pytest/tests --alluredir=allure-results-api
+
       - name: Install Playwright browser
         working-directory: tests/playwright
         run: |
           npm ci
           npx playwright install --with-deps chromium
+
       - name: Run UI checks
         working-directory: tests/playwright
         run: npm test
-      - name: Save Playwright report
+
+      - name: Generate Allure report
+        if: always()
+        run: |
+          npm install --global allure-commandline@2.46.1
+          mkdir -p allure-results
+          cp -r allure-results-api/. allure-results/ 2>/dev/null || true
+          cp -r tests/playwright/allure-results/. allure-results/ 2>/dev/null || true
+          if [ -n "$(ls -A allure-results 2>/dev/null)" ]; then
+            allure generate allure-results --clean --output allure-report
+          else
+            echo "Aucun résultat Allure à agréger."
+          fi
+
+      - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -68,6 +96,27 @@ jobs:
           path: tests/playwright/playwright-report/
           if-no-files-found: ignore
           retention-days: 14
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: |
+            allure-report/
+            allure-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: tests/playwright/test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Stop application
         if: always()
         run: docker compose down --volumes --remove-orphans
