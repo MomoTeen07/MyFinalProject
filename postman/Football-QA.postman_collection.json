@@ -1,0 +1,502 @@
+{
+  "info": {
+    "_postman_id": "f0b7c1a2-6d4e-4c1a-9c3e-7a1b2c3d4e5f",
+    "name": "Football QA - API",
+    "description": "Collection de tests d'API du projet final QA.\n\nParcours couvert : inscription, connexion, session, contrats football, scénario chaîné des favoris et contrôles de sécurité.\n\nExécution : `newman run postman/Football-QA.postman_collection.json -e postman/Football-QA.postman_environment.json` après `docker compose up -d --wait`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8001" },
+    { "key": "token", "value": "" },
+    { "key": "favoriteId", "value": "" },
+    { "key": "uniqueEmail", "value": "" },
+    { "key": "password", "value": "Password123!" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.collectionVariables.set('baseUrl', pm.collectionVariables.get('baseUrl') || 'http://localhost:8001');"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Authentification",
+      "item": [
+        {
+          "name": "Inscription (compte unique)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const stamp = Date.now();",
+                  "pm.collectionVariables.set('uniqueEmail', `qa.postman.${stamp}@example.com`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('Jeton exploitable', () => { pm.expect(body.access_token).to.be.a('string').and.have.length.above(20); });",
+                  "pm.test('Type de jeton bearer', () => pm.expect(body.token_type).to.eql('bearer'));",
+                  "pm.test('Mot de passe jamais renvoyé', () => { pm.expect(pm.response.text()).to.not.include('Password123!'); });",
+                  "pm.collectionVariables.set('token', body.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{uniqueEmail}}\",\n  \"password\": \"{{password}}\",\n  \"name\": \"Postman QA\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Inscription en doublon (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409 Conflict', () => pm.response.to.have.status(409));",
+                  "pm.test('Message explicite', () => pm.expect(pm.response.json().detail).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{uniqueEmail}}\",\n  \"password\": \"{{password}}\",\n  \"name\": \"Postman QA\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Connexion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Jeton renouvelé', () => pm.expect(body.access_token).to.be.a('string'));",
+                  "pm.collectionVariables.set('token', body.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{uniqueEmail}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Connexion refusée (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));",
+                  "pm.test('Aucune énumération de compte', () => pm.expect(pm.response.json().detail).to.eql('Adresse e-mail ou mot de passe incorrect.'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{uniqueEmail}}\",\n  \"password\": \"MauvaisMotDePasse1!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Profil courant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Bon compte', () => pm.expect(body.email).to.eql(pm.collectionVariables.get('uniqueEmail')));",
+                  "pm.test('Pas de secret exposé', () => { pm.expect(Object.keys(body)).to.not.include('password_hash'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/users/me", "host": ["{{baseUrl}}"], "path": ["api", "users", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Football",
+      "item": [
+        {
+          "name": "Championnats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Six championnats', () => pm.expect(body).to.be.an('array').with.lengthOf(6));",
+                  "pm.test('Contrat de chaque championnat', () => {",
+                  "  body.forEach((league) => {",
+                  "    pm.expect(league.code).to.be.a('string');",
+                  "    pm.expect(league.name).to.be.a('string').and.not.empty;",
+                  "    pm.expect(league.country).to.be.a('string').and.not.empty;",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/leagues", "host": ["{{baseUrl}}"], "path": ["api", "football", "leagues"] }
+          }
+        },
+        {
+          "name": "Classement Premier League",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json();",
+                  "pm.test('Classement non vide', () => pm.expect(rows).to.be.an('array').and.not.empty);",
+                  "pm.test('Positions ordonnées', () => {",
+                  "  const positions = rows.map((row) => row.position);",
+                  "  pm.expect(positions).to.eql([...positions].sort((a, b) => a - b));",
+                  "});",
+                  "pm.test('Équipe complète', () => {",
+                  "  rows.forEach((row) => {",
+                  "    pm.expect(row.team.id).to.be.a('number');",
+                  "    pm.expect(row.team.name).to.be.a('string').and.not.empty;",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/leagues/PL/standings", "host": ["{{baseUrl}}"], "path": ["api", "football", "leagues", "PL", "standings"] }
+          }
+        },
+        {
+          "name": "Calendrier Premier League",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const matches = pm.response.json();",
+                  "pm.test('Matchs présents', () => pm.expect(matches).to.be.an('array').and.not.empty);",
+                  "pm.test('Structure d’un match', () => {",
+                  "  matches.forEach((match) => {",
+                  "    pm.expect(match.id).to.be.a('number');",
+                  "    pm.expect(match.utcDate).to.be.a('string');",
+                  "    pm.expect(match.homeTeam.name).to.be.a('string');",
+                  "    pm.expect(match.awayTeam.name).to.be.a('string');",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/leagues/PL/matches", "host": ["{{baseUrl}}"], "path": ["api", "football", "leagues", "PL", "matches"] }
+          }
+        },
+        {
+          "name": "Équipe Arsenal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const team = pm.response.json();",
+                  "pm.test('Identité de l’équipe', () => {",
+                  "  pm.expect(team.id).to.eql(57);",
+                  "  pm.expect(team.name).to.eql('Arsenal');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/leagues/PL/teams/57", "host": ["{{baseUrl}}"], "path": ["api", "football", "leagues", "PL", "teams", "57"] }
+          }
+        },
+        {
+          "name": "Championnat inconnu (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/leagues/XX/standings", "host": ["{{baseUrl}}"], "path": ["api", "football", "leagues", "XX", "standings"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Favoris (scénario chaîné)",
+      "item": [
+        {
+          "name": "Ajouter Arsenal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const favorite = pm.response.json();",
+                  "pm.test('Contrat du favori', () => {",
+                  "  pm.expect(favorite.id).to.be.a('number');",
+                  "  pm.expect(favorite.team_id).to.eql(57);",
+                  "  pm.expect(favorite.team_name).to.eql('Arsenal');",
+                  "  pm.expect(favorite.created_at).to.be.a('string');",
+                  "});",
+                  "pm.collectionVariables.set('favoriteId', favorite.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"team_id\": 57,\n  \"league_code\": \"PL\",\n  \"team_name\": \"Arsenal\",\n  \"team_crest\": \"\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/favorites", "host": ["{{baseUrl}}"], "path": ["api", "favorites"] }
+          }
+        },
+        {
+          "name": "Lister les favoris",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const favorites = pm.response.json();",
+                  "pm.test('Favori créé présent', () => {",
+                  "  const ids = favorites.map((item) => String(item.id));",
+                  "  pm.expect(ids).to.include(String(pm.collectionVariables.get('favoriteId')));",
+                  "});",
+                  "pm.test('Aucun favori d’un autre compte', () => pm.expect(favorites).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/favorites", "host": ["{{baseUrl}}"], "path": ["api", "favorites"] }
+          }
+        },
+        {
+          "name": "Doublon refusé (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409 Conflict', () => pm.response.to.have.status(409));",
+                  "pm.test('Message métier', () => pm.expect(pm.response.json().detail).to.eql('Team already in favorites'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"team_id\": 57,\n  \"league_code\": \"PL\",\n  \"team_name\": \"Arsenal\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/favorites", "host": ["{{baseUrl}}"], "path": ["api", "favorites"] }
+          }
+        },
+        {
+          "name": "Supprimer le favori",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/favorites/{{favoriteId}}", "host": ["{{baseUrl}}"], "path": ["api", "favorites", "{{favoriteId}}"] }
+          }
+        },
+        {
+          "name": "Suppression déjà effectuée (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/favorites/{{favoriteId}}", "host": ["{{baseUrl}}"], "path": ["api", "favorites", "{{favoriteId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Sécurité",
+      "item": [
+        {
+          "name": "Favoris sans jeton (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));",
+                  "pm.test('Message générique', () => pm.expect(pm.response.json().detail).to.eql('Authentication required'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/favorites", "host": ["{{baseUrl}}"], "path": ["api", "favorites"] }
+          }
+        },
+        {
+          "name": "Jeton invalide (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));",
+                  "pm.test('Jeton refusé', () => pm.expect(pm.response.json().detail).to.eql('Invalid or expired token'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer jeton.invalide.signature" }],
+            "url": { "raw": "{{baseUrl}}/api/users/me", "host": ["{{baseUrl}}"], "path": ["api", "users", "me"] }
+          }
+        },
+        {
+          "name": "Jeton sans signature (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));",
+                  "pm.test('Algorithme none refusé', () => pm.expect(pm.response.code).to.eql(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxIiwiZXhwIjo5OTk5OTk5OTk5fQ."
+              }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/users/me", "host": ["{{baseUrl}}"], "path": ["api", "users", "me"] }
+          }
+        }
+      ]
+    }
+  ]
+}

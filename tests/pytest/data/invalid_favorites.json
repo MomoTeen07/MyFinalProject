@@ -1,0 +1,79 @@
+[
+  {
+    "id": "team-id-nul",
+    "payload": {
+      "team_id": 0,
+      "team_name": "Arsenal"
+    },
+    "champ": "team_id"
+  },
+  {
+    "id": "team-id-negatif",
+    "payload": {
+      "team_id": -7,
+      "team_name": "Arsenal"
+    },
+    "champ": "team_id"
+  },
+  {
+    "id": "team-id-texte",
+    "payload": {
+      "team_id": "abc",
+      "team_name": "Arsenal"
+    },
+    "champ": "team_id"
+  },
+  {
+    "id": "nom-vide",
+    "payload": {
+      "team_id": 57,
+      "team_name": ""
+    },
+    "champ": "team_name"
+  },
+  {
+    "id": "nom-espaces",
+    "payload": {
+      "team_id": 57,
+      "team_name": "   "
+    },
+    "champ": "team_name"
+  },
+  {
+    "id": "nom-trop-long",
+    "payload": {
+      "team_id": 57,
+      "team_name": "X"
+    },
+    "champ": "team_name",
+    "length": 151
+  },
+  {
+    "id": "code-championnat-minuscule",
+    "payload": {
+      "team_id": 57,
+      "team_name": "Arsenal",
+      "league_code": "pl"
+    },
+    "champ": "league_code"
+  },
+  {
+    "id": "code-championnat-trop-long",
+    "payload": {
+      "team_id": 57,
+      "team_name": "Arsenal",
+      "league_code": "PREMIERLEAGUE"
+    },
+    "champ": "league_code"
+  },
+  {
+    "id": "ecusson-trop-long",
+    "payload": {
+      "team_id": 57,
+      "team_name": "Arsenal",
+      "team_crest": "X"
+    },
+    "champ": "team_crest",
+    "length": 501
+  }
+]

@@ -10,7 +10,7 @@ Application web de consultation du football, conçue comme support d’un projet
 - Base de données : PostgreSQL avec migrations Alembic
 - Données de football : football-data.org ou données simulées
 - Conteneurs : Docker Compose
-- Tests : PyTest, Playwright et tests API
+- Tests : PyTest, Playwright, collection Postman
 
 ## Démarrage local avec Docker
 
@@ -67,6 +67,15 @@ cd backend
 python -m pip install -r requirements.txt
 python -m pytest tests
 ```
+
+Collection Postman (scénario chaîné et contrôles de sécurité), avec l’application démarrée par Docker :
+
+```bash
+npx --yes newman@6 run postman/Football-QA.postman_collection.json \
+  -e postman/Football-QA.postman_environment.json
+```
+
+La collection est également importable dans Postman : dossier `postman/`, variable `baseUrl` à adapter. Elle couvre l’inscription, la connexion, la session, les contrats football, le parcours favori complet et quatre contrôles de sécurité (41 assertions). Le détail est documenté dans `postman/README.md`.
 
 Tests de contrat API, avec l’application démarrée par Docker :
 
