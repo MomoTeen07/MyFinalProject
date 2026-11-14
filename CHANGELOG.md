@@ -34,6 +34,19 @@ versionnage sémantique.
   comptes uniques, **17 tests** couvrant l'authentification, les championnats,
   le classement, le calendrier, la fiche équipe, le parcours critique des
   favoris et le cloisonnement entre deux comptes.
+- **Livrables QA documentaires** (`docs/`) :
+  - `TEST_PLAN.md` : périmètre, hypothèses, analyse de risques (probabilité ×
+    impact), critères d'entrée et de sortie, organisation ;
+  - `TEST_CASES.md` : 36 cas manuels (partitions d'équivalence, valeurs
+    limites, tables de décision) avec résultats d'exécution ;
+  - `ANOMALIES.md` : rapports ANO-001 à ANO-004 avec procédure de reproduction,
+    preuve, gravité, priorité et correction proposée ;
+  - `TRACEABILITY.md` : matrice exigence → cas → exécution → anomalie et
+    couverture des 11 endpoints ;
+  - `CAMPAIGN_REPORT.md` : métriques, bilan des anomalies, risques résiduels et
+    recommandations priorisées ;
+  - `DEFENSE.md` : trame de soutenance, script de démonstration et questions
+    probables.
 
 ### Supprimé
 

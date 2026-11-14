@@ -130,7 +130,24 @@ En cas d’échec Playwright, `tests/playwright/test-results/` conserve la trace
 
 ## Intégration continue
 
-Le workflow `.github/workflows/ci.yml` s’exécute sur chaque push, pull request et lancement manuel. Il prépare une base PostgreSQL éphémère, lance les tests unitaires backend puis les suites API et UI, agrège les résultats Allure et publie trois artefacts : `allure-report`, `playwright-report` et, en cas d’échec, `playwright-test-results` (traces, captures, vidéos). Les identifiants configurés dans ce workflow sont réservés à cette base temporaire.
+Le workflow `.github/workflows/ci.yml` s’exécute sur chaque push, pull request et lancement manuel. Il prépare une base PostgreSQL éphémère, lance les tests unitaires backend puis les suites API, Postman et UI, agrège les résultats Allure et publie quatre artefacts : `allure-report`, `playwright-report`, `postman-report` et, en cas d’échec, `playwright-test-results` (traces, captures, vidéos). Les identifiants configurés dans ce workflow sont réservés à cette base temporaire.
+
+## Documentation QA
+
+| Document | Contenu |
+|---|---|
+| [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md) | Périmètre, hypothèses, analyse de risques (P × I), critères d’entrée et de sortie, organisation |
+| [`docs/TEST_CASES.md`](docs/TEST_CASES.md) | 36 cas manuels avec technique de conception, étapes, attendu, obtenu et statut |
+| [`docs/ANOMALIES.md`](docs/ANOMALIES.md) | Rapports ANO-001 à ANO-004 : contexte, reproduction, preuve, gravité, priorité, correction proposée |
+| [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md) | Matrice exigence → cas → exécution → anomalie et couverture des endpoints |
+| [`docs/CAMPAIGN_REPORT.md`](docs/CAMPAIGN_REPORT.md) | Métriques, bilan des anomalies, risques résiduels, recommandations |
+| [`docs/DEFENSE.md`](docs/DEFENSE.md) | Trame de soutenance, script de démonstration, questions probables |
+| [`docs/CONCEPTION.md`](docs/CONCEPTION.md) | Conception technique de l’application |
+
+Synthèse de la campagne V1 : **115 vérifications automatisées** (4 backend,
+53 API, 17 UI, 41 assertions Postman) et 3 `xfail` documentés, **36 cas
+manuels**, **4 anomalies** reproductibles, **11/11 endpoints** couverts,
+pipeline vert.
 
 
 ## Configuration
