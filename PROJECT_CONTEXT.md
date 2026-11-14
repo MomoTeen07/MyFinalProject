@@ -3,7 +3,7 @@
 | Élément | Valeur |
 |---|---|
 | Dernière mise à jour | 14/11/2026 |
-| Commit de référence | `748150c` (`main`) |
+| Commit de référence | `main` — `748150c` au moment de la rédaction ; voir `git log -1` pour le dernier commit |
 | Branches ouvertes | aucune (seul `main` local et distant) |
 | État | Livrables du projet final QA complets, CI verte, campagne Squash TM créée |
 | Reste à faire | Manuel uniquement : préparation des slides, captures d'écran, soutenance |
@@ -38,6 +38,8 @@ réel du dépôt et des environnements locaux, pas seulement l'intention.
 | #5 | `b4c3e1e` | Campagne Squash TM versionnée + scripts de seed REST |
 | #6 | `396ffda` | Lien campagne Squash dans le rapport et la soutenance |
 | #7 | `748150c` | Traçabilité du choix de l'application et de sa validation |
+
+La PR #8 ajoute ce document ; `git log -1` en donne le commit.
 
 La campagne Squash cible le commit `a0ea6e6` ; les PR #6 et #7 ne changent que
 de la documentation.
