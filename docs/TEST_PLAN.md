@@ -72,8 +72,11 @@ le [`README.md`](../README.md#choix-de-lapplication). L'application est testée
   (rôles, libellés) sont effectués.
 - Sécurité offensive complète (pentest), conformité RGPD, audit
   d'infrastructure.
-- Intégration réelle avec l'API football-data.org (jeton payant/limité) : le
-  mode simulé est utilisé, conformément au budget 0 €.
+- Intégration réelle avec l'API football-data.org dans le périmètre de la
+  campagne : le plan gratuit existe (10 requêtes/minute), mais les résultats V1
+  ont été obtenus en mode simulé, conformément au budget 0 €. Le passage en
+  réel est documenté dans le README (§ *Données réelles*) et reste une
+  configuration locale, hors CI et hors campagne.
 
 ## 3. Hypothèses et contraintes
 
@@ -82,7 +85,7 @@ le [`README.md`](../README.md#choix-de-lapplication). L'application est testée
 | H1 | L'application a été soumise au formateur et validée avant le début des travaux (voir § 1.1 et le README). |
 | H2 | Toutes les exécutions se font en local via Docker Compose ; aucun environnement de recette distant. |
 | H3 | Le budget est de 0 € : outils open source uniquement (Playwright, PyTest, Postman/Newman, Allure, Squash TM). |
-| H4 | Le mode `MOCK_FOOTBALL_API=true` fournit un jeu de données stable (6 championnats, 4 équipes par classement, 3 matchs). |
+| H4 | Le mode `MOCK_FOOTBALL_API=true` fournit un jeu de données stable (6 championnats, 4 équipes par classement, 3 matchs) : c'est le référentiel de la campagne. Le mode réel (`MOCK_FOOTBALL_API=false`) change les données affichées, pas les règles ni les anomalies testées. |
 | H5 | Les tests créent leurs propres comptes : aucun jeu de données de production n'est utilisé. |
 | H6 | Les défauts applicatifs constatés sont documentés et non corrigés : ils constituent une preuve QA attendue par le jury. |
 | H7 | Un seul testeur, une seule machine : les tests sont séquentiels côté API, parallélisés (2 workers) côté UI. |

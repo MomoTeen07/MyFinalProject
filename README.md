@@ -199,6 +199,71 @@ Les ports, le bind local, les paramètres PostgreSQL, le secret JWT, les origine
 
 Le port et les identifiants PostgreSQL par défaut sont réservés au développement local. Pour un déploiement, changez les secrets, limitez les origines CORS et utilisez un gestionnaire de secrets adapté à l’environnement.
 
+## Données réelles (football-data.org)
+
+Par défaut, l’application utilise un jeu de données simulé
+(`MOCK_FOOTBALL_API=true`) : 6 championnats, 4 équipes par classement et
+3 matchs, sans clé ni quota. C’est le mode utilisé en CI et pour toute la
+campagne V1.
+
+Pour afficher les classements réels (20 équipes en Premier League, calendrier
+complet) :
+
+1. Créer un compte gratuit sur [football-data.org](https://www.football-data.org/client/register)
+   (aucune carte bancaire) et récupérer le jeton API.
+2. Renseigner **localement** dans `.env` — jamais dans Git :
+
+   ```dotenv
+   FOOTBALL_API_TOKEN=votre-jeton
+   MOCK_FOOTBALL_API=false
+   ```
+
+3. Recréer le backend pour qu’il relise l’environnement :
+
+   ```bash
+   docker compose up -d --force-recreate backend
+   ```
+
+4. Vérifier :
+
+   ```bash
+   curl -s http://localhost:8001/api/football/leagues/PL/standings
+   ```
+
+   La réponse contient le classement complet ; l’interface
+   `http://localhost:5174/championships/PL` affiche toutes les lignes.
+
+### Quotas et cache
+
+Le plan gratuit de football-data.org autorise **10 requêtes par minute**. Le
+backend met les réponses en cache pendant `FOOTBALL_CACHE_TTL_SECONDS`
+(300 s par défaut, `0` pour désactiver), ce qui couvre largement la
+consultation des 6 championnats. En cas de quota dépassé, l’API renvoie une
+erreur et l’interface affiche son écran d’erreur récupérable.
+
+### Impact sur les tests et la campagne
+
+- **CI et suites automatisées restent en mode simulé** : la CI force
+  `MOCK_FOOTBALL_API=true`, et les assertions (4 équipes, Arsenal en tête,
+  3 matchs) décrivent ce référentiel stable. Ne pas exécuter ces suites contre
+  une instance en mode réel : elles échoueraient sur le nombre de lignes.
+- Pour tester pendant que l’application de travail est en réel, utiliser la
+  stack isolée des agents (`http://localhost:8002` / `5175`, mode simulé) :
+
+  ```bash
+  # API
+  API_URL=http://localhost:8002 pytest tests/pytest/tests
+  # UI
+  BASE_URL=http://localhost:5175 npx playwright test
+  ```
+
+- Les résultats de la campagne V1 (36 cas, 32 conformes) ont été obtenus en
+  mode simulé. Le passage en réel ne les invalide pas : il change le
+  référentiel affiché, pas les règles métier ni les anomalies.
+- Les identifiants d’équipes du mode simulé reprennent ceux de
+  football-data.org (Arsenal 57, Chelsea 61…) : les favoris existants restent
+  cohérents. En revanche, les données réelles évoluent avec la saison.
+
 ## Parcours métier
 
 Accueil → Connexion → Championnat → Classement → Équipe → Ajouter aux favoris → Mes favoris → Suppression → Vérification.
