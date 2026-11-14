@@ -2,6 +2,26 @@
 
 Application web de consultation du football, conçue comme support d’un projet final QA.
 
+## Choix de l’application
+
+Football QA a été retenue comme application support du projet final. Le choix a
+été **soumis au formateur et validé avant le début des travaux**, afin de
+garantir un niveau de difficulté comparable entre stagiaires.
+
+| Critère de l’énoncé | Réponse de Football QA | Preuve dans le dépôt |
+|---|---|---|
+| Application web avec interface utilisateur | Frontend React/Vite servi par Nginx : connexion, inscription, championnats, classement, calendrier, fiche équipe, favoris | `frontend/src/pages/`, `tests/playwright/` |
+| API testable avec authentification | API REST FastAPI, 11 endpoints, jeton JWT `Bearer` sur les routes personnelles | `backend/app/api/`, `postman/` |
+| Persistance et règles métier | PostgreSQL 16 avec migrations Alembic : comptes, favoris uniques par utilisateur, cloisonnement des données | `backend/app/db/`, `docs/CONCEPTION.md` |
+| Exécutable localement | Docker Compose (3 conteneurs), mode de données simulé sans clé ni service payant | `docker-compose.yml`, section « Démarrage local » |
+| Complexité suffisante | Parcours visiteur et authentifié, états de chargement et d’erreur, données d’une API externe, pages dédiées (accueil, championnats, championnat, équipe, favoris, authentification) | `docs/TEST_PLAN.md` § 4 |
+| Accès licite | Dépôt applicatif du projet, code source accessible, aucune restriction de test | ce dépôt |
+
+La validation est antérieure à la campagne V1 (13/11/2026). Les anomalies
+relevées portent sur cette application **non modifiée** : aucun correctif
+applicatif n’a été appliqué, les défauts sont documentés et rejoués par les
+tests marqués `xfail` (voir `docs/ANOMALIES.md`).
+
 ## Stack
 
 - Frontend : React, Vite et CSS

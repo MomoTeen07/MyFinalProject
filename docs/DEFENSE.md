@@ -12,7 +12,7 @@
 
 | Temps | Séquence | Message clé |
 |---|---|---|
-| 0–2 min | Contexte et application | Application web réelle, API REST, base PostgreSQL, rôles et règles métier |
+| 0–2 min | Contexte et application | Application web réelle, choix validé par le formateur, API REST, base PostgreSQL, règles métier |
 | 2–7 min | Stratégie et analyse de risques | Approche risk-based : 10 risques notés, 6 risques critiques couverts à 100 % |
 | 7–12 min | Démonstration : tests automatisés | Exécution d'une suite ciblée, rapport Allure, artefacts d'échec |
 | 12–16 min | Démonstration : anomalie rejouée | ANO-001 en direct, comparaison attendu/obtenu, preuve |
@@ -163,6 +163,14 @@ reste à corriger ; ANO-004 est de gravité moyenne mais de priorité haute
 (risque d'usurpation).
 
 ### 4.2 Questions sur le projet
+
+**Pourquoi cette application ?**
+Football QA est une application web réelle, dotée d'une interface, d'une API REST
+authentifiée, d'une base PostgreSQL et de règles métier (favoris uniques,
+cloisonnement des comptes). Elle est exécutable localement via Docker, sans clé
+payante, et son accès aux tests est licite. Le choix a été soumis au formateur
+et validé avant le début des travaux ; la correspondance critère par critère est
+dans le `README.md` et `docs/TEST_PLAN.md` § 1.1.
 
 **Pourquoi seulement Chromium ?**
 Coût d'exécution et budget 0 €. Playwright supporte Firefox et WebKit : les
