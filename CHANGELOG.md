@@ -47,6 +47,14 @@ versionnage sémantique.
     recommandations priorisées ;
   - `DEFENSE.md` : trame de soutenance, script de démonstration et questions
     probables.
+- **Campagne Squash TM** (`infra/squash/`) : Squash TM 15.0.3 et PostgreSQL 17
+  isolés dans un compose dédié (port `8090`). Le script `seed_campaign.py`
+  (bibliothèque standard uniquement) crée par API REST le projet *Football QA*,
+  4 dossiers, **16 exigences**, **36 cas de test** avec pas et couvertures, la
+  campagne `CAMP-V1`, son itération, la suite des 36 cas et les 36 exécutions
+  (**32 `SUCCESS`**, **4 `FAILURE`** rattachées à ANO-001 à ANO-004). Le jeu de
+  données `campaign_data.json` est dérivé des documents QA. Procédure complète :
+  `docs/SQUASH.md`.
 
 ### Supprimé
 

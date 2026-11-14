@@ -142,12 +142,30 @@ Le workflow `.github/workflows/ci.yml` s’exécute sur chaque push, pull reques
 | [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md) | Matrice exigence → cas → exécution → anomalie et couverture des endpoints |
 | [`docs/CAMPAIGN_REPORT.md`](docs/CAMPAIGN_REPORT.md) | Métriques, bilan des anomalies, risques résiduels, recommandations |
 | [`docs/DEFENSE.md`](docs/DEFENSE.md) | Trame de soutenance, script de démonstration, questions probables |
+| [`docs/SQUASH.md`](docs/SQUASH.md) | Campagne Squash TM : démarrage, création par script REST, vérification, limites |
 | [`docs/CONCEPTION.md`](docs/CONCEPTION.md) | Conception technique de l’application |
 
 Synthèse de la campagne V1 : **115 vérifications automatisées** (4 backend,
 53 API, 17 UI, 41 assertions Postman) et 3 `xfail` documentés, **36 cas
 manuels**, **4 anomalies** reproductibles, **11/11 endpoints** couverts,
 pipeline vert.
+
+## Gestion de campagne (Squash TM)
+
+La campagne V1 est également portée par **Squash TM 15.0.3**
+(`infra/squash/docker-compose.yml`, `http://localhost:8090/squash`).
+
+```bash
+docker compose -f infra/squash/docker-compose.yml up -d
+python infra/squash/seed_campaign.py
+```
+
+Le script crée le projet *Football QA*, ses 16 exigences, ses 4 dossiers,
+ses 36 cas de test avec pas et couvertures, la campagne `CAMP-V1`, son
+itération, la suite complète et les 36 exécutions (**32 `SUCCESS`**, **4
+`FAILURE`** pour ANO-001 à ANO-004). Squash TM est un outil de gestion, pas une
+dépendance des tests : il n’est pas démarré en CI. Procédure complète et limites
+dans [`docs/SQUASH.md`](docs/SQUASH.md).
 
 
 ## Configuration
