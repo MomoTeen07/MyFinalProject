@@ -65,7 +65,8 @@ versionnage sémantique.
   environnements, historique des PR, commandes de redémarrage en 5 minutes,
   vérifications attendues, deux copies du dépôt, règles de travail, pièges
   connus, actions manuelles restantes, index des documents). Référencé en tête
-  du README.
+  du README. Complété par une section « Changer de PC » (ce qui se synchronise
+  ou non, procédure d'arrivée, précautions).
 
 ### Supprimé
 
