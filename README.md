@@ -2,6 +2,11 @@
 
 Application web de consultation du football, conçue comme support d’un projet final QA.
 
+> **Reprise du travail** : l’état d’avancement, les environnements locaux, les
+> commandes de vérification et les pièges connus sont consignés dans
+> [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md). C’est le point d’entrée pour
+> reprendre le projet là où il s’est arrêté.
+
 ## Choix de l’application
 
 Football QA a été retenue comme application support du projet final. Le choix a

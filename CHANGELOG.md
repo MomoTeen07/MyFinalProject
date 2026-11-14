@@ -61,6 +61,11 @@ versionnage sémantique.
   locale, complexité, accès licite) et la mention de la validation par le
   formateur avant le début des travaux. Hypothèse H1 mise à jour et question
   « Pourquoi cette application ? » ajoutée au support de soutenance.
+- **`PROJECT_CONTEXT.md`** : point de reprise du projet (état du dépôt et des
+  environnements, historique des PR, commandes de redémarrage en 5 minutes,
+  vérifications attendues, deux copies du dépôt, règles de travail, pièges
+  connus, actions manuelles restantes, index des documents). Référencé en tête
+  du README.
 
 ### Supprimé
 
