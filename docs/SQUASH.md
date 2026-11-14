@@ -151,29 +151,32 @@ python infra/squash/seed_campaign.py
 
 ### 4.2 En ligne de commande
 
-```bash
-python - <<'PY'
-import base64, json, urllib.request
-api = "http://localhost:8090/squash/api/rest/latest"
-auth = "Basic " + base64.b64encode(b"admin:admin").decode()
+Sous PowerShell (Windows) :
 
-def get(path):
-    req = urllib.request.Request(api + path)
-    req.add_header("Authorization", auth)
-    req.add_header("Accept", "application/json")
-    return json.loads(urllib.request.urlopen(req, timeout=30).read())
+```powershell
+$auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes('admin:admin'))
+$headers = @{ Authorization = "Basic $auth" }
+$plan = (Invoke-RestMethod -Headers $headers `
+  'http://localhost:8090/squash/api/rest/latest/iterations/1/test-plan?size=100')._embedded.'test-plan'
 
-plan = get("/iterations/1/test-plan?size=100")["_embedded"]["test-plan"]
-statuses = {}
-for item in plan:
-    statuses[item["execution_status"]] = statuses.get(item["execution_status"], 0) + 1
-print(len(plan), statuses)
-print([i["referenced_test_case"].get("reference") for i in plan if i["execution_status"] == "FAILURE"])
-PY
+$plan | Group-Object execution_status | Select-Object Name, Count
+$plan | Where-Object execution_status -eq 'FAILURE' |
+  ForEach-Object { $_.referenced_test_case.reference }
 ```
 
-Sortie attendue : `36 {'SUCCESS': 32, 'FAILURE': 4}` puis
-`['TC-SEC-05', 'TC-SEC-08', 'TC-SEC-09', 'TC-SEC-10']`.
+Sortie attendue :
+
+```text
+Name    Count
+----    -----
+SUCCESS    32
+FAILURE     4
+
+TC-SEC-05
+TC-SEC-08
+TC-SEC-09
+TC-SEC-10
+```
 
 ## 5. API REST utilisée
 
