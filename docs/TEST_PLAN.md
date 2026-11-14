@@ -29,6 +29,25 @@ Le plan couvre l'ensemble de la chaîne qualité attendue : cadrage, tests
 manuels, tests d'API, automatisation UI, intégration continue, rapport de
 campagne et soutenance.
 
+### 1.1 Choix de l'application
+
+Le choix de l'application fait partie de l'épreuve. **Football QA a été soumise
+au formateur et validée avant le début des travaux**, ce qui garantit un niveau
+de difficulté comparable entre stagiaires.
+
+| Critère de l'énoncé | Réponse de Football QA |
+|---|---|
+| Application web avec interface utilisateur | Frontend React/Vite : connexion, inscription, championnats, classement, calendrier, fiche équipe et favoris |
+| API testable avec authentification | API REST FastAPI, 11 endpoints, JWT `Bearer` sur les routes personnelles |
+| Persistance et règles métier | PostgreSQL 16, migrations Alembic, favoris uniques par utilisateur, cloisonnement des comptes |
+| Exécutable localement | Docker Compose, 3 conteneurs, mode simulé sans clé payante |
+| Complexité suffisante | Parcours visiteur et authentifié, états de chargement et d'erreur, données externes, pages dédiées (accueil, championnats, championnat, équipe, favoris, authentification) |
+| Accès licite | Dépôt applicatif du projet, code source accessible, aucune restriction de test |
+
+La correspondance détaillée, avec les fichiers de preuve, est tenue à jour dans
+le [`README.md`](../README.md#choix-de-lapplication). L'application est testée
+**non modifiée** : les anomalies constatées sont documentées et non corrigées.
+
 ## 2. Périmètre
 
 ### 2.1 Dans le périmètre
@@ -60,7 +79,7 @@ campagne et soutenance.
 
 | # | Hypothèse / contrainte |
 |---|---|
-| H1 | L'application est validée par le formateur avant le début des travaux. |
+| H1 | L'application a été soumise au formateur et validée avant le début des travaux (voir § 1.1 et le README). |
 | H2 | Toutes les exécutions se font en local via Docker Compose ; aucun environnement de recette distant. |
 | H3 | Le budget est de 0 € : outils open source uniquement (Playwright, PyTest, Postman/Newman, Allure, Squash TM). |
 | H4 | Le mode `MOCK_FOOTBALL_API=true` fournit un jeu de données stable (6 championnats, 4 équipes par classement, 3 matchs). |

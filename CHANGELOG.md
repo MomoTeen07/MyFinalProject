@@ -55,6 +55,12 @@ versionnage sémantique.
   (**32 `SUCCESS`**, **4 `FAILURE`** rattachées à ANO-001 à ANO-004). Le jeu de
   données `campaign_data.json` est dérivé des documents QA. Procédure complète :
   `docs/SQUASH.md`.
+- **Traçabilité du choix de l'application** : section « Choix de l'application »
+  dans le README et § 1.1 du plan de test, avec la correspondance critère par
+  critère de l'énoncé (interface, API authentifiée, persistance, exécution
+  locale, complexité, accès licite) et la mention de la validation par le
+  formateur avant le début des travaux. Hypothèse H1 mise à jour et question
+  « Pourquoi cette application ? » ajoutée au support de soutenance.
 
 ### Supprimé
 
