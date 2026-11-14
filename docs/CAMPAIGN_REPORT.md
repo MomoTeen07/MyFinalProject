@@ -1,0 +1,150 @@
+# Rapport de campagne — Football QA
+
+| Élément | Valeur |
+|---|---|
+| Campagne | Campagne V1 |
+| Version testée | commit `a0ea6e6` (`main`), API 1.0.0 |
+| Période | 13/11/2026 |
+| Testeur | Mohamed Abdo |
+| Environnement | Docker local : API `:8001`, UI `:5174`, PostgreSQL 16, mode simulé |
+| Outils | PyTest, Playwright (POM), Postman/Newman, Allure, GitHub Actions, Squash TM |
+| Statut | **Campagne conforme aux critères de sortie**, 4 anomalies ouvertes documentées |
+
+## 1. Résumé exécutif
+
+La campagne V1 a couvert l'ensemble du périmètre défini dans le plan de test :
+authentification, consultation football, gestion des favoris, sécurité des
+jetons et supervision. **113 exécutions** ont été réalisées (77 automatisées,
+36 manuelles). **Aucun test automatisé n'échoue** : 74 passent, 3 sont marqués
+`xfail` car ils révèlent des défauts réels et reproductibles.
+
+Quatre anomalies ont été identifiées, dont **deux majeures** : l'acceptation
+d'une équipe inexistante en favori (ANO-001) et un point de santé qui masque
+l'indisponibilité de la base (ANO-003). Aucune anomalie bloquante n'a été
+relevée sur le parcours critique : ajouter, consulter et supprimer un favori
+fonctionne de bout en bout, y compris après redémarrage.
+
+Le pipeline GitHub Actions est vert sur `main` et publie un rapport Allure
+agrégé (backend, API, UI), un rapport Playwright et, en cas d'échec, les traces
+et vidéos.
+
+## 2. Métriques d'exécution
+
+### 2.1 Suites automatisées
+
+| Suite | Exécutés | Réussis | Échecs | xfail | Durée | Taux de réussite |
+|---|---|---|---|---|---|---|
+| Backend (PyTest) | 4 | 4 | 0 | 0 | 3,3 s | 100 % |
+| API (PyTest) | 56 | 53 | 0 | 3 | 124 s | 100 % (hors xfail) |
+| UI (Playwright, 2 workers) | 17 | 17 | 0 | 0 | 19 s | 100 % |
+| Postman (Newman) | 41 assertions | 41 | 0 | 0 | 2,2 s | 100 % |
+| **Total** | **118 vérifications** | **115** | **0** | **3** | **≈ 2 min 30** | **100 %** |
+
+Le taux de réussite est calculé hors `xfail` : un `xfail` strict qui passe
+deviendrait un échec, ce qui garantit que ces tests restent représentatifs des
+défauts constatés.
+
+### 2.2 Cas manuels
+
+| Domaine | Cas | Réussis | Anomalies |
+|---|---|---|---|
+| Authentification | 11 | 11 | 0 |
+| Football | 6 | 6 | 0 |
+| Favoris | 9 | 9 | 0 |
+| Sécurité / robustesse | 10 | 7 | 3 |
+| **Total** | **36** | **33 (91,7 %)** | **3 cas → 3 anomalies** |
+
+### 2.3 Couverture
+
+| Indicateur | Valeur |
+|---|---|
+| Endpoints API couverts | 11 / 11 (100 %) |
+| Exigences tracées et couvertes | 16 / 16 (100 %) |
+| Risques de criticité ≥ 6 couverts | 6 / 6 (100 %) |
+| Parcours critique UI couvert | 1 / 1 (100 %) |
+| Navigateurs | 1 / 3 (Chromium uniquement) |
+| Champs de formulaire avec validation testée | 6 / 6 |
+
+## 3. Bilan des anomalies
+
+| ID | Titre | Gravité | Priorité | Impact | Décision |
+|---|---|---|---|---|---|
+| ANO-001 | Équipe inexistante acceptée en favori | Majeure | Haute | Données incohérentes, liens morts | À corriger avant mise en production |
+| ANO-002 | `team_crest` sans restriction de schéma | Moyenne | Moyenne | Hygiène de sécurité, pas d'XSS constatée (`<img src>`) | À corriger au prochain cycle |
+| ANO-003 | `/health` mensonger base arrêtée | Majeure | Haute | Panne non détectée par la supervision et la CI | À corriger avant mise en production |
+| ANO-004 | Pas de limitation des tentatives de connexion | Moyenne | Haute | Force brute facilitée | À corriger au prochain cycle |
+
+Détail, preuves et procédures de reproduction : `docs/ANOMALIES.md`.
+
+### 3.1 Répartition par gravité
+
+| Gravité | Nombre | Part |
+|---|---|---|
+| Bloquante | 0 | 0 % |
+| Majeure | 2 | 50 % |
+| Moyenne | 2 | 50 % |
+| Mineure | 0 | 0 % |
+
+### 3.2 Densité et efficacité
+
+- **4 anomalies** pour **36 cas manuels**, soit une densité de 0,11 anomalie
+  par cas.
+- **3 anomalies sur 4** sont détectées par des tests automatisés rejouables
+  (`xfail` strict), donc protégées contre toute régression silencieuse.
+- **0 anomalie bloquante** : le parcours critique reste utilisable.
+
+## 4. Analyse des risques résiduels
+
+| Risque résiduel | Niveau | Justification | Mesure d'atténuation |
+|---|---|---|---|
+| Favoris incohérents (ANO-001) | **Élevé** | Aucun contrôle référentiel ; un client peut créer des données fausses | Corriger avant production ; sinon purge périodique des favoris orphelins |
+| Panne de base non détectée (ANO-003) | **Élevé** | La supervision et `docker compose --wait` font confiance à `/health` | Ajouter un contrôle `SELECT 1` et une sonde de liveness distincte |
+| Force brute sur la connexion (ANO-004) | Moyen | Aucun quota ; dépend de la robustesse des mots de passe | Limitation par IP et par compte, MFA à terme |
+| Écusson non validé (ANO-002) | Faible | Pas d'exécution constatée, contexte `<img>` | Validation d'URL avant réutilisation dans un autre contexte |
+| Couverture mono-navigateur | Moyen | Chromium seulement ; Safari/Firefox non vérifiés | Ajouter les projets Playwright Firefox/WebKit en CI (coût : temps de calcul) |
+| Absence de tests de charge | Moyen | Aucun profil de performance validé | Test de montée en charge k6/Locust sur un environnement dédié |
+| API football réelle non testée | Faible | Mode simulé uniquement ; contrat externe non vérifié | Test de contrat consommateur sur un environnement à jeton |
+| Tests UI dépendants d'un backend réel | Faible | Les fixtures créent des comptes via l'API | Conserver le mode simulé et des comptes uniques (déjà en place) |
+
+## 5. Recommandations
+
+### 5.1 Priorité 1 — avant toute mise en production
+
+1. **Corriger ANO-003** : `/health` doit interroger la base et renvoyer `503`
+   en cas d'échec. Impact direct sur la supervision et l'orchestration.
+2. **Corriger ANO-001** : valider l'existence de l'équipe avant l'insertion du
+   favori, avec un test de non-régression qui passera de `xfail` à `pass`.
+3. **Corriger ANO-004** : limiter les tentatives de connexion (5 échecs /
+   15 min) et journaliser les échecs.
+
+### 5.2 Priorité 2 — prochain cycle
+
+4. **Corriger ANO-002** : restreindre `team_crest` aux schémas `http`/`https`.
+5. **Étendre la CI** : projets Playwright Firefox et WebKit, publication du
+   rapport Allure sur GitHub Pages (gratuit pour un dépôt public).
+6. **Compléter la couverture manuelle** : cas de test sur les erreurs réseau
+   (timeout, 500) et sur les limites de pagination si le référentiel grandit.
+
+### 5.3 Priorité 3 — industrialisation
+
+7. Ajouter un **test de contrat consommateur** avec l'API football-data.org
+   (schéma OpenAPI ou Pact) pour anticiper les ruptures de contrat.
+8. Mettre en place un **environnement de recette** éphémère par branche
+   (Docker Compose + runner GitHub) afin de tester avant fusion.
+9. Ajouter un **contrôle d'accessibilité automatisé** (axe-core) sur les pages
+   principales.
+10. **Nettoyer l'historique Git** : les commits antérieurs au projet QA
+    (« BASE CORRECT », « Correction de code ») ne respectent pas la convention
+    Conventional Commits appliquée depuis le début de la campagne.
+
+## 6. Conclusion
+
+La campagne V1 atteint ses critères de sortie : suites automatisées vertes,
+traçabilité complète, anomalies documentées et reproductibles, pipeline
+visible. La démarche a permis de détecter quatre défauts réels, dont deux
+majeurs, sur une application volontairement non modifiée.
+
+La principale limite est la couverture mono-navigateur et l'absence de tests de
+performance, assumées dans le cadre d'un budget 0 €. Les anomalies ouvertes
+constituent une preuve de la valeur du travail QA et un support direct pour la
+démonstration de soutenance.
