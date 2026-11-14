@@ -1,0 +1,57 @@
+# Squash TM — outil de gestion de campagne du projet final QA.
+#
+# Démarrage :
+#   docker compose -f infra/squash/docker-compose.yml up -d
+#   puis http://localhost:8090/squash  (admin / admin à la première connexion)
+#
+# Arrêt :
+#   docker compose -f infra/squash/docker-compose.yml down
+#
+# Les données persistent dans le volume `squashtm-db`. Pour repartir de zéro :
+#   docker compose -f infra/squash/docker-compose.yml down --volumes
+#
+# Ce fichier est indépendant du `docker-compose.yml` de l'application : Squash TM
+# n'est pas nécessaire pour exécuter les tests, seulement pour organiser la
+# campagne et sa traçabilité.
+
+services:
+  squashtm-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: squashtm
+      POSTGRES_USER: squashtm
+      # Mot de passe de développement local uniquement. Ne pas réutiliser.
+      POSTGRES_PASSWORD: ${SQUASH_DB_PASSWORD:-squashtm-local-only}
+    volumes:
+      - squashtm-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U squashtm -d squashtm"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  squashtm:
+    image: squashtest/squash:15.0.3
+    restart: unless-stopped
+    depends_on:
+      squashtm-db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: postgresql
+      SPRING_DATASOURCE_URL: jdbc:postgresql://squashtm-db:5432/squashtm
+      SPRING_DATASOURCE_USERNAME: squashtm
+      SPRING_DATASOURCE_PASSWORD: ${SQUASH_DB_PASSWORD:-squashtm-local-only}
+      TZ: Europe/Paris
+      # Autorise l'authentification Basic sur l'API REST pour permettre le
+      # script de seed (`infra/squash/seed_campaign.py`). Usage local uniquement :
+      # sur un serveur partagé, utiliser un jeton d'API et laisser la valeur true.
+      JAVA_TOOL_OPTIONS: "-Djava.awt.headless=true -Dsquash.rest-api.disallow-basic-authentication=false"
+    ports:
+      - "127.0.0.1:8090:8080"
+    volumes:
+      - squashtm-logs:/opt/squash-tm/logs
+
+volumes:
+  squashtm-db:
+  squashtm-logs:

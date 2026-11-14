@@ -1,0 +1,958 @@
+{
+  "project": {
+    "name": "Football QA",
+    "label": "Projet final QA — BStorm 2026",
+    "description": "<p>Campagne de test de l'application Football QA : plan de test, 36 cas manuels, traçabilité exigence → cas → exécution → anomalie.</p>"
+  },
+  "campaign": {
+    "name": "Campagne V1 — Football QA",
+    "reference": "CAMP-V1",
+    "status": "PLANNED",
+    "description": "<p>Campagne V1 du 13/11/2026 sur le commit a0ea6e6. 32 cas conformes, 4 cas en anomalie (ANO-001 à ANO-004).</p>"
+  },
+  "iteration": {
+    "name": "Itération 1 — exécution manuelle et automatisée",
+    "reference": "IT-V1",
+    "status": "PLANNED",
+    "description": "<p>Exécution des 36 cas de la campagne V1.</p>"
+  },
+  "test_suite_name": "Suite complète — 36 cas",
+  "requirements": [
+    {
+      "id": "R-01",
+      "name": "R-01 — Un visiteur peut créer un compte avec un e-mail valide, un mot de passe de 8 à 128 caractères et un nom de 2 à 100 caractères",
+      "description": "<p>Un visiteur peut créer un compte avec un e-mail valide, un mot de passe de 8 à 128 caractères et un nom de 2 à 100 caractères</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-02",
+      "name": "R-02 — Un utilisateur peut se connecter et reçoit un jeton JWT exploitable",
+      "description": "<p>Un utilisateur peut se connecter et reçoit un jeton JWT exploitable</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-03",
+      "name": "R-03 — Un utilisateur peut se déconnecter ; une session expirée ou absente redirige vers la connexion",
+      "description": "<p>Un utilisateur peut se déconnecter ; une session expirée ou absente redirige vers la connexion</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-04",
+      "name": "R-04 — La liste des championnats affiche les 6 compétitions du référentiel",
+      "description": "<p>La liste des championnats affiche les 6 compétitions du référentiel</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-05",
+      "name": "R-05 — Le classement d'un championnat affiche les équipes triées par position",
+      "description": "<p>Le classement d&#x27;un championnat affiche les équipes triées par position</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-06",
+      "name": "R-06 — Le calendrier d'un championnat affiche les matchs et leur statut",
+      "description": "<p>Le calendrier d&#x27;un championnat affiche les matchs et leur statut</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-07",
+      "name": "R-07 — La fiche équipe affiche le nom, le stade et l'écusson",
+      "description": "<p>La fiche équipe affiche le nom, le stade et l&#x27;écusson</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-08",
+      "name": "R-08 — Un utilisateur authentifié peut ajouter une équipe à ses favoris",
+      "description": "<p>Un utilisateur authentifié peut ajouter une équipe à ses favoris</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-09",
+      "name": "R-09 — Un utilisateur voit uniquement ses favoris, du plus récent au plus ancien",
+      "description": "<p>Un utilisateur voit uniquement ses favoris, du plus récent au plus ancien</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-10",
+      "name": "R-10 — Un utilisateur peut supprimer un de ses favoris",
+      "description": "<p>Un utilisateur peut supprimer un de ses favoris</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-11",
+      "name": "R-11 — Une même équipe ne peut pas être ajoutée deux fois",
+      "description": "<p>Une même équipe ne peut pas être ajoutée deux fois</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-12",
+      "name": "R-12 — Les données d'un compte ne sont ni lisibles ni supprimables par un autre compte",
+      "description": "<p>Les données d&#x27;un compte ne sont ni lisibles ni supprimables par un autre compte</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-13",
+      "name": "R-13 — Les données favorites survivent à un rechargement et à un redémarrage",
+      "description": "<p>Les données favorites survivent à un rechargement et à un redémarrage</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-14",
+      "name": "R-14 — Seuls les jetons signés et non expirés donnent accès aux ressources personnelles",
+      "description": "<p>Seuls les jetons signés et non expirés donnent accès aux ressources personnelles</p>",
+      "criticality": "CRITICAL",
+      "category": "CAT_NON_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-15",
+      "name": "R-15 — Les entrées invalides sont refusées avec un code 4xx explicite",
+      "description": "<p>Les entrées invalides sont refusées avec un code 4xx explicite</p>",
+      "criticality": "CRITICAL",
+      "category": "CAT_NON_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-16",
+      "name": "R-16 — Le service expose un état de santé fiable et une CI qui exécute les suites",
+      "description": "<p>Le service expose un état de santé fiable et une CI qui exécute les suites</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_NON_FUNCTIONAL",
+      "status": "APPROVED"
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "TC-AUTH-01",
+      "name": "TC-AUTH-01 — Inscription valide (mot de passe de 8 caractères)",
+      "reference": "TC-AUTH-01",
+      "folder": "Authentification",
+      "technique": "VL (limite basse)",
+      "steps": [
+        {
+          "action": "Ouvrir `/register`, saisir nom « QA User », e-mail neuf, mot de passe `Passw0rd` (8 car.), valider",
+          "expected": "201, jeton renvoyé, redirection vers `/championships`, nom affiché dans la barre"
+        }
+      ],
+      "obtained": "201, jeton, redirection, nom affiché",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-01"
+      ],
+      "description": "<p><strong>Technique :</strong> VL (limite basse)</p><p><strong>Résultat obtenu :</strong> 201, jeton, redirection, nom affiché</p><p><strong>Exigences :</strong> R-01</p>"
+    },
+    {
+      "id": "TC-AUTH-02",
+      "name": "TC-AUTH-02 — Inscription avec un e-mail déjà utilisé",
+      "reference": "TC-AUTH-02",
+      "folder": "Authentification",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "Inscrire deux fois la même adresse, la seconde en majuscules",
+          "expected": "409 « Un compte existe déjà avec cette adresse e-mail. »"
+        }
+      ],
+      "obtained": "409, message conforme (comparaison insensible à la casse)",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-01"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> 409, message conforme (comparaison insensible à la casse)</p><p><strong>Exigences :</strong> R-01</p>"
+    },
+    {
+      "id": "TC-AUTH-03",
+      "name": "TC-AUTH-03 — Inscription avec un e-mail invalide",
+      "reference": "TC-AUTH-03",
+      "folder": "Authentification",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "`not-an-email` dans le champ e-mail",
+          "expected": "422, champ `email` en erreur"
+        }
+      ],
+      "obtained": "422, champ `email` en erreur",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-01",
+        "R-15"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> 422, champ `email` en erreur</p><p><strong>Exigences :</strong> R-01, R-15</p>"
+    },
+    {
+      "id": "TC-AUTH-04",
+      "name": "TC-AUTH-04 — Mot de passe de 7 caractères",
+      "reference": "TC-AUTH-04",
+      "folder": "Authentification",
+      "technique": "VL (8 − 1)",
+      "steps": [
+        {
+          "action": "Mot de passe `Passw0r`",
+          "expected": "422, champ `password` en erreur"
+        }
+      ],
+      "obtained": "422",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-01",
+        "R-15"
+      ],
+      "description": "<p><strong>Technique :</strong> VL (8 − 1)</p><p><strong>Résultat obtenu :</strong> 422</p><p><strong>Exigences :</strong> R-01, R-15</p>"
+    },
+    {
+      "id": "TC-AUTH-05",
+      "name": "TC-AUTH-05 — Mot de passe de 129 caractères",
+      "reference": "TC-AUTH-05",
+      "folder": "Authentification",
+      "technique": "VL (128 + 1)",
+      "steps": [
+        {
+          "action": "Mot de passe de 129 caractères",
+          "expected": "422, champ `password` en erreur"
+        }
+      ],
+      "obtained": "422",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-01",
+        "R-15"
+      ],
+      "description": "<p><strong>Technique :</strong> VL (128 + 1)</p><p><strong>Résultat obtenu :</strong> 422</p><p><strong>Exigences :</strong> R-01, R-15</p>"
+    },
+    {
+      "id": "TC-AUTH-06",
+      "name": "TC-AUTH-06 — Nom d'un caractère",
+      "reference": "TC-AUTH-06",
+      "folder": "Authentification",
+      "technique": "VL (2 − 1)",
+      "steps": [
+        {
+          "action": "Nom `A`",
+          "expected": "422, champ `name` en erreur"
+        }
+      ],
+      "obtained": "422",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-01",
+        "R-15"
+      ],
+      "description": "<p><strong>Technique :</strong> VL (2 − 1)</p><p><strong>Résultat obtenu :</strong> 422</p><p><strong>Exigences :</strong> R-01, R-15</p>"
+    },
+    {
+      "id": "TC-AUTH-07",
+      "name": "TC-AUTH-07 — Nom de 2 caractères",
+      "reference": "TC-AUTH-07",
+      "folder": "Authentification",
+      "technique": "VL (limite basse)",
+      "steps": [
+        {
+          "action": "Nom `Al`",
+          "expected": "201"
+        }
+      ],
+      "obtained": "201",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-01",
+        "R-15"
+      ],
+      "description": "<p><strong>Technique :</strong> VL (limite basse)</p><p><strong>Résultat obtenu :</strong> 201</p><p><strong>Exigences :</strong> R-01, R-15</p>"
+    },
+    {
+      "id": "TC-AUTH-08",
+      "name": "TC-AUTH-08 — Nom de 101 caractères",
+      "reference": "TC-AUTH-08",
+      "folder": "Authentification",
+      "technique": "VL (100 + 1)",
+      "steps": [
+        {
+          "action": "Nom de 101 caractères",
+          "expected": "422, champ `name` en erreur"
+        }
+      ],
+      "obtained": "422",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-01",
+        "R-15"
+      ],
+      "description": "<p><strong>Technique :</strong> VL (100 + 1)</p><p><strong>Résultat obtenu :</strong> 422</p><p><strong>Exigences :</strong> R-01, R-15</p>"
+    },
+    {
+      "id": "TC-AUTH-09",
+      "name": "TC-AUTH-09 — Connexion valide",
+      "reference": "TC-AUTH-09",
+      "folder": "Authentification",
+      "technique": "PE (valide)",
+      "steps": [
+        {
+          "action": "Compte existant, mot de passe correct",
+          "expected": "200, jeton, accès aux favoris"
+        }
+      ],
+      "obtained": "200, jeton, session UI persistante",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-02"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (valide)</p><p><strong>Résultat obtenu :</strong> 200, jeton, session UI persistante</p><p><strong>Exigences :</strong> R-02</p>"
+    },
+    {
+      "id": "TC-AUTH-10",
+      "name": "TC-AUTH-10 — Connexion avec un mauvais mot de passe",
+      "reference": "TC-AUTH-10",
+      "folder": "Authentification",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "E-mail connu, mot de passe erroné",
+          "expected": "401, message générique"
+        }
+      ],
+      "obtained": "401 « Adresse e-mail ou mot de passe incorrect. »",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-02"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> 401 « Adresse e-mail ou mot de passe incorrect. »</p><p><strong>Exigences :</strong> R-02</p>"
+    },
+    {
+      "id": "TC-AUTH-11",
+      "name": "TC-AUTH-11 — Déconnexion",
+      "reference": "TC-AUTH-11",
+      "folder": "Authentification",
+      "technique": "—",
+      "steps": [
+        {
+          "action": "Se connecter, cliquer « Déconnexion », ouvrir `/favorites`",
+          "expected": "Retour à l'état visiteur, redirection vers `/login`"
+        }
+      ],
+      "obtained": "Bouton « Connexion » réaffiché, redirection vers `/login`",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-03"
+      ],
+      "description": "<p><strong>Technique :</strong> —</p><p><strong>Résultat obtenu :</strong> Bouton « Connexion » réaffiché, redirection vers `/login`</p><p><strong>Exigences :</strong> R-03</p>"
+    },
+    {
+      "id": "TC-FOOT-01",
+      "name": "TC-FOOT-01 — Liste des championnats",
+      "reference": "TC-FOOT-01",
+      "folder": "Football",
+      "technique": "PE (valide)",
+      "steps": [
+        {
+          "action": "Ouvrir `/championships`",
+          "expected": "6 cartes : Premier League, Ligue 1, La Liga, Serie A, Bundesliga, Ligue des champions"
+        }
+      ],
+      "obtained": "6 cartes conformes",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-04"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (valide)</p><p><strong>Résultat obtenu :</strong> 6 cartes conformes</p><p><strong>Exigences :</strong> R-04</p>"
+    },
+    {
+      "id": "TC-FOOT-02",
+      "name": "TC-FOOT-02 — Classement de la Premier League",
+      "reference": "TC-FOOT-02",
+      "folder": "Football",
+      "technique": "CT",
+      "steps": [
+        {
+          "action": "Ouvrir `/championships/PL`",
+          "expected": "4 lignes, positions croissantes de 1 à 4, Arsenal visible"
+        }
+      ],
+      "obtained": "4 lignes ordonnées, Arsenal en tête",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-05"
+      ],
+      "description": "<p><strong>Technique :</strong> CT</p><p><strong>Résultat obtenu :</strong> 4 lignes ordonnées, Arsenal en tête</p><p><strong>Exigences :</strong> R-05</p>"
+    },
+    {
+      "id": "TC-FOOT-03",
+      "name": "TC-FOOT-03 — Calendrier dans l'onglet « Matchs »",
+      "reference": "TC-FOOT-03",
+      "folder": "Football",
+      "technique": "CT",
+      "steps": [
+        {
+          "action": "Ouvrir `/championships/PL`, cliquer l'onglet « Matchs »",
+          "expected": "3 matchs, statut « À venir », équipes domicile/extérieur"
+        }
+      ],
+      "obtained": "3 matchs « À venir », Arsenal vs Chelsea",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-06"
+      ],
+      "description": "<p><strong>Technique :</strong> CT</p><p><strong>Résultat obtenu :</strong> 3 matchs « À venir », Arsenal vs Chelsea</p><p><strong>Exigences :</strong> R-06</p>"
+    },
+    {
+      "id": "TC-FOOT-04",
+      "name": "TC-FOOT-04 — Fiche équipe",
+      "reference": "TC-FOOT-04",
+      "folder": "Football",
+      "technique": "CT",
+      "steps": [
+        {
+          "action": "Cliquer « Arsenal » dans le classement",
+          "expected": "URL `/teams/PL/57`, titre « Arsenal », stade affiché, bouton favori si connecté"
+        }
+      ],
+      "obtained": "URL, titre, stade et bouton conformes",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-07"
+      ],
+      "description": "<p><strong>Technique :</strong> CT</p><p><strong>Résultat obtenu :</strong> URL, titre, stade et bouton conformes</p><p><strong>Exigences :</strong> R-07</p>"
+    },
+    {
+      "id": "TC-FOOT-05",
+      "name": "TC-FOOT-05 — Championnat inconnu",
+      "reference": "TC-FOOT-05",
+      "folder": "Football",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "Ouvrir `/championships/XX`",
+          "expected": "Message d'erreur récupérable et bouton « Réessayer »"
+        }
+      ],
+      "obtained": "`Impossible de charger…` + bouton « Réessayer »",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-04"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> `Impossible de charger…` + bouton « Réessayer »</p><p><strong>Exigences :</strong> R-04</p>"
+    },
+    {
+      "id": "TC-FOOT-06",
+      "name": "TC-FOOT-06 — Équipe inconnue",
+      "reference": "TC-FOOT-06",
+      "folder": "Football",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "`GET /api/football/leagues/PL/teams/999999`",
+          "expected": "404 avec message"
+        }
+      ],
+      "obtained": "404",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-07"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> 404</p><p><strong>Exigences :</strong> R-07</p>"
+    },
+    {
+      "id": "TC-FAV-01",
+      "name": "TC-FAV-01 — Ajout d'un favori",
+      "reference": "TC-FAV-01",
+      "folder": "Favoris",
+      "technique": "PE (valide)",
+      "steps": [
+        {
+          "action": "Se connecter, ouvrir la fiche Arsenal, cliquer « Ajouter aux favoris »",
+          "expected": "Bouton « Dans mes favoris », favori listé dans `/favorites`"
+        }
+      ],
+      "obtained": "Bouton actif, carte Arsenal listée",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-08"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (valide)</p><p><strong>Résultat obtenu :</strong> Bouton actif, carte Arsenal listée</p><p><strong>Exigences :</strong> R-08</p>"
+    },
+    {
+      "id": "TC-FAV-02",
+      "name": "TC-FAV-02 — Doublon refusé",
+      "reference": "TC-FAV-02",
+      "folder": "Favoris",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "Ajouter deux fois la même équipe",
+          "expected": "409 « Team already in favorites », un seul favori"
+        }
+      ],
+      "obtained": "409, aucun doublon",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-11"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> 409, aucun doublon</p><p><strong>Exigences :</strong> R-11</p>"
+    },
+    {
+      "id": "TC-FAV-03",
+      "name": "TC-FAV-03 — Tri de la liste",
+      "reference": "TC-FAV-03",
+      "folder": "Favoris",
+      "technique": "VL / ordre",
+      "steps": [
+        {
+          "action": "Ajouter Arsenal puis Chelsea",
+          "expected": "Chelsea puis Arsenal (plus récent en premier)"
+        }
+      ],
+      "obtained": "Ordre décroissant conforme",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-09"
+      ],
+      "description": "<p><strong>Technique :</strong> VL / ordre</p><p><strong>Résultat obtenu :</strong> Ordre décroissant conforme</p><p><strong>Exigences :</strong> R-09</p>"
+    },
+    {
+      "id": "TC-FAV-04",
+      "name": "TC-FAV-04 — Suppression d'un favori",
+      "reference": "TC-FAV-04",
+      "folder": "Favoris",
+      "technique": "—",
+      "steps": [
+        {
+          "action": "Supprimer la carte Arsenal depuis `/favorites`",
+          "expected": "204, carte retirée, état vide affiché"
+        }
+      ],
+      "obtained": "204, état « Aucune équipe favorite »",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-10"
+      ],
+      "description": "<p><strong>Technique :</strong> —</p><p><strong>Résultat obtenu :</strong> 204, état « Aucune équipe favorite »</p><p><strong>Exigences :</strong> R-10</p>"
+    },
+    {
+      "id": "TC-FAV-05",
+      "name": "TC-FAV-05 — Suppression d'un favori inexistant",
+      "reference": "TC-FAV-05",
+      "folder": "Favoris",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "`DELETE /api/favorites/999999999`",
+          "expected": "404"
+        }
+      ],
+      "obtained": "404",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-10"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> 404</p><p><strong>Exigences :</strong> R-10</p>"
+    },
+    {
+      "id": "TC-FAV-06",
+      "name": "TC-FAV-06 — Isolation entre deux comptes",
+      "reference": "TC-FAV-06",
+      "folder": "Favoris",
+      "technique": "TD",
+      "steps": [
+        {
+          "action": "Compte A ajoute Arsenal ; compte B liste puis tente de supprimer ce favori",
+          "expected": "Liste de B vide ; suppression refusée (404)"
+        }
+      ],
+      "obtained": "Liste vide ; 404",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-12"
+      ],
+      "description": "<p><strong>Technique :</strong> TD</p><p><strong>Résultat obtenu :</strong> Liste vide ; 404</p><p><strong>Exigences :</strong> R-12</p>"
+    },
+    {
+      "id": "TC-FAV-07",
+      "name": "TC-FAV-07 — Persistance après rechargement et redémarrage",
+      "reference": "TC-FAV-07",
+      "folder": "Favoris",
+      "technique": "—",
+      "steps": [
+        {
+          "action": "Ajouter un favori, recharger, `docker compose restart`, rouvrir",
+          "expected": "Favori toujours présent"
+        }
+      ],
+      "obtained": "Favori présent après rechargement et redémarrage",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-13"
+      ],
+      "description": "<p><strong>Technique :</strong> —</p><p><strong>Résultat obtenu :</strong> Favori présent après rechargement et redémarrage</p><p><strong>Exigences :</strong> R-13</p>"
+    },
+    {
+      "id": "TC-FAV-08",
+      "name": "TC-FAV-08 — Nom accentué préservé",
+      "reference": "TC-FAV-08",
+      "folder": "Favoris",
+      "technique": "VL (jeu de caractères)",
+      "steps": [
+        {
+          "action": "Ajouter `Atlético de Madrid`",
+          "expected": "Nom renvoyé et affiché avec accents"
+        }
+      ],
+      "obtained": "Nom conforme",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-08"
+      ],
+      "description": "<p><strong>Technique :</strong> VL (jeu de caractères)</p><p><strong>Résultat obtenu :</strong> Nom conforme</p><p><strong>Exigences :</strong> R-08</p>"
+    },
+    {
+      "id": "TC-FAV-09",
+      "name": "TC-FAV-09 — Visiteur sans droit d'ajout",
+      "reference": "TC-FAV-09",
+      "folder": "Favoris",
+      "technique": "TD",
+      "steps": [
+        {
+          "action": "Ouvrir la fiche Arsenal sans session",
+          "expected": "Aucun bouton favori, message d'invitation à se connecter"
+        }
+      ],
+      "obtained": "Bouton absent, message « Connecte-toi pour gérer tes favoris. »",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-08"
+      ],
+      "description": "<p><strong>Technique :</strong> TD</p><p><strong>Résultat obtenu :</strong> Bouton absent, message « Connecte-toi pour gérer tes favoris. »</p><p><strong>Exigences :</strong> R-08</p>"
+    },
+    {
+      "id": "TC-SEC-01",
+      "name": "TC-SEC-01 — Accès sans jeton",
+      "reference": "TC-SEC-01",
+      "folder": "Sécurité et robustesse",
+      "technique": "TD",
+      "steps": [
+        {
+          "action": "`GET /api/users/me` et `GET /api/favorites` sans en-tête `Authorization`",
+          "expected": "401 « Authentication required »"
+        }
+      ],
+      "obtained": "401",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-14"
+      ],
+      "description": "<p><strong>Technique :</strong> TD</p><p><strong>Résultat obtenu :</strong> 401</p><p><strong>Exigences :</strong> R-14</p>"
+    },
+    {
+      "id": "TC-SEC-02",
+      "name": "TC-SEC-02 — Jeton malformé",
+      "reference": "TC-SEC-02",
+      "folder": "Sécurité et robustesse",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "`Authorization: Bearer abc.def.ghi`",
+          "expected": "401 « Invalid or expired token »"
+        }
+      ],
+      "obtained": "401",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-14"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> 401</p><p><strong>Exigences :</strong> R-14</p>"
+    },
+    {
+      "id": "TC-SEC-03",
+      "name": "TC-SEC-03 — Jeton `alg: none`",
+      "reference": "TC-SEC-03",
+      "folder": "Sécurité et robustesse",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "Jeton forgé sans signature",
+          "expected": "401"
+        }
+      ],
+      "obtained": "401",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-14"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> 401</p><p><strong>Exigences :</strong> R-14</p>"
+    },
+    {
+      "id": "TC-SEC-04",
+      "name": "TC-SEC-04 — Signature falsifiée",
+      "reference": "TC-SEC-04",
+      "folder": "Sécurité et robustesse",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "Modifier `sub` d'un jeton valide sans recalculer la signature",
+          "expected": "401"
+        }
+      ],
+      "obtained": "401",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-14"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> 401</p><p><strong>Exigences :</strong> R-14</p>"
+    },
+    {
+      "id": "TC-SEC-05",
+      "name": "TC-SEC-05 — Limitation des tentatives de connexion",
+      "reference": "TC-SEC-05",
+      "folder": "Sécurité et robustesse",
+      "technique": "VL (12 essais)",
+      "steps": [
+        {
+          "action": "12 connexions avec un mauvais mot de passe",
+          "expected": "Blocage ou 429 attendu"
+        }
+      ],
+      "obtained": "12 × 401, aucun 429",
+      "status": "FAILURE",
+      "anomalies": [
+        "ANO-004"
+      ],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-02"
+      ],
+      "description": "<p><strong>Technique :</strong> VL (12 essais)</p><p><strong>Résultat obtenu :</strong> 12 × 401, aucun 429</p><p><strong>Exigences :</strong> R-02</p>"
+    },
+    {
+      "id": "TC-SEC-06",
+      "name": "TC-SEC-06 — Identifiant d'équipe hors limites",
+      "reference": "TC-SEC-06",
+      "folder": "Sécurité et robustesse",
+      "technique": "VL (0, −1) et PE (texte)",
+      "steps": [
+        {
+          "action": "`team_id` = 0, −1, `\"abc\"`",
+          "expected": "422, champ `team_id` en erreur"
+        }
+      ],
+      "obtained": "422",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-15"
+      ],
+      "description": "<p><strong>Technique :</strong> VL (0, −1) et PE (texte)</p><p><strong>Résultat obtenu :</strong> 422</p><p><strong>Exigences :</strong> R-15</p>"
+    },
+    {
+      "id": "TC-SEC-07",
+      "name": "TC-SEC-07 — Nom d'équipe vide ou espaces",
+      "reference": "TC-SEC-07",
+      "folder": "Sécurité et robustesse",
+      "technique": "VL",
+      "steps": [
+        {
+          "action": "`team_name` = `\"\"`, `\"   \"`, 151 caractères",
+          "expected": "422, champ `team_name` en erreur"
+        }
+      ],
+      "obtained": "422",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-15"
+      ],
+      "description": "<p><strong>Technique :</strong> VL</p><p><strong>Résultat obtenu :</strong> 422</p><p><strong>Exigences :</strong> R-15</p>"
+    },
+    {
+      "id": "TC-SEC-08",
+      "name": "TC-SEC-08 — Équipe inexistante acceptée en favori",
+      "reference": "TC-SEC-08",
+      "folder": "Sécurité et robustesse",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "`POST /api/favorites` avec `team_id = 987654321`, `team_name = \"Ghost FC\"`",
+          "expected": "422 : l'équipe n'existe pas dans le référentiel"
+        }
+      ],
+      "obtained": "**201**, favori créé",
+      "status": "FAILURE",
+      "anomalies": [
+        "ANO-001"
+      ],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-15"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> **201**, favori créé</p><p><strong>Exigences :</strong> R-15</p>"
+    },
+    {
+      "id": "TC-SEC-09",
+      "name": "TC-SEC-09 — Schéma d'URL de l'écusson",
+      "reference": "TC-SEC-09",
+      "folder": "Sécurité et robustesse",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "`team_crest = \"javascript:alert(1)\"`",
+          "expected": "422 : schéma non autorisé"
+        }
+      ],
+      "obtained": "**201**, valeur stockée telle quelle",
+      "status": "FAILURE",
+      "anomalies": [
+        "ANO-002"
+      ],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-15"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> **201**, valeur stockée telle quelle</p><p><strong>Exigences :</strong> R-15</p>"
+    },
+    {
+      "id": "TC-SEC-10",
+      "name": "TC-SEC-10 — Santé du service avec base arrêtée",
+      "reference": "TC-SEC-10",
+      "folder": "Sécurité et robustesse",
+      "technique": "—",
+      "steps": [
+        {
+          "action": "`docker compose stop db`, puis `GET /health` et `POST /api/auth/register`",
+          "expected": "`/health` doit signaler l'indisponibilité"
+        }
+      ],
+      "obtained": "`/health` → 200 `{\"status\":\"ok\"}` ; inscription → 500",
+      "status": "FAILURE",
+      "anomalies": [
+        "ANO-003"
+      ],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-16"
+      ],
+      "description": "<p><strong>Technique :</strong> —</p><p><strong>Résultat obtenu :</strong> `/health` → 200 `{&quot;status&quot;:&quot;ok&quot;}` ; inscription → 500</p><p><strong>Exigences :</strong> R-16</p>"
+    }
+  ]
+}
