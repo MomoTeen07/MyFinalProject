@@ -84,9 +84,9 @@ d'équivalence** (PE), **valeurs limites** (VL), **table de décision** (TD),
 | Authentification | 11 | 11 | 0 |
 | Football | 6 | 6 | 0 |
 | Favoris | 9 | 9 | 0 |
-| Sécurité / robustesse | 10 | 7 | 3 (ANO-001, ANO-002, ANO-004) |
+| Sécurité / robustesse | 10 | 6 | 4 (ANO-001, ANO-002, ANO-003, ANO-004) |
 | Exploratoire | 1 session | — | ANO-003 confirmée |
-| **Total** | **36** | **33** | **4 anomalies distinctes** |
+| **Total** | **36** | **32 (88,9 %)** | **4 anomalies distinctes** |
 
 Les cas marqués « automatisé » sont rejoués à chaque pipeline ; les autres sont
 rejoués manuellement à chaque campagne. Les anomalies ANO-001, ANO-002 et

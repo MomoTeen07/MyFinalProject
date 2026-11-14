@@ -18,7 +18,7 @@ identifiants de cas renvoient à `docs/TEST_CASES.md`, ceux des anomalies à
 | ID | Exigence | Cas manuels | Automatisation | Anomalie | Statut |
 |---|---|---|---|---|---|
 | R-01 | Un visiteur peut créer un compte avec un e-mail valide, un mot de passe de 8 à 128 caractères et un nom de 2 à 100 caractères | TC-AUTH-01, TC-AUTH-02, TC-AUTH-03, TC-AUTH-04, TC-AUTH-05, TC-AUTH-06, TC-AUTH-07, TC-AUTH-08 | `test_auth.py` (7 cas de validation), Postman « Inscription » | — | Conforme |
-| R-02 | Un utilisateur peut se connecter et reçoit un jeton JWT exploitable | TC-AUTH-09, TC-AUTH-10 | `test_auth.py::test_login_returns_a_valid_session`, Postman « Connexion » | — | Conforme |
+| R-02 | Un utilisateur peut se connecter et reçoit un jeton JWT exploitable | TC-AUTH-09, TC-AUTH-10, TC-SEC-05 | `test_auth.py::test_login_returns_a_valid_session`, Postman « Connexion » | ANO-004 (pas de limitation des tentatives) | Conforme avec réserve de robustesse |
 | R-03 | Un utilisateur peut se déconnecter ; une session expirée ou absente redirige vers la connexion | TC-AUTH-11 | `auth.spec.js` (déconnexion, session après rechargement) | — | Conforme |
 | R-04 | La liste des championnats affiche les 6 compétitions du référentiel | TC-FOOT-01, TC-FOOT-05 | `test_football.py`, `championships.spec.js`, Postman « Championnats » | — | Conforme |
 | R-05 | Le classement d'un championnat affiche les équipes triées par position | TC-FOOT-02 | `test_football.py` (6 championnats, JSON Schema), `championships.spec.js`, Postman | — | Conforme |

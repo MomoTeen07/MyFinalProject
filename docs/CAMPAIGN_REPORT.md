@@ -51,8 +51,8 @@ défauts constatés.
 | Authentification | 11 | 11 | 0 |
 | Football | 6 | 6 | 0 |
 | Favoris | 9 | 9 | 0 |
-| Sécurité / robustesse | 10 | 7 | 3 |
-| **Total** | **36** | **33 (91,7 %)** | **3 cas → 3 anomalies** |
+| Sécurité / robustesse | 10 | 6 | 4 |
+| **Total** | **36** | **32 (88,9 %)** | **4 cas → 4 anomalies** |
 
 ### 2.3 Couverture
 
