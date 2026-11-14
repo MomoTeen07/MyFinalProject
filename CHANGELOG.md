@@ -67,3 +67,7 @@ versionnage sémantique.
   `test-results/`, `playwright-report/` et `.venv*/`.
 - Le fichier `tests/playwright/test-results/.last-run.json`, précédemment
   versionné, est retiré du suivi Git.
+- `docs/CAMPAIGN_REPORT.md` et `docs/DEFENSE.md` : référence explicite à la
+  campagne Squash TM (32 `SUCCESS` / 4 `FAILURE`) et séquence de démonstration
+  dédiée. Les métriques du résumé exécutif sont alignées sur le tableau
+  détaillé (118 vérifications, 115 réussies, 3 `xfail`).

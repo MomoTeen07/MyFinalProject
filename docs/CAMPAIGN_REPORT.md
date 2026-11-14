@@ -14,9 +14,10 @@
 
 La campagne V1 a couvert l'ensemble du périmètre défini dans le plan de test :
 authentification, consultation football, gestion des favoris, sécurité des
-jetons et supervision. **113 exécutions** ont été réalisées (77 automatisées,
-36 manuelles). **Aucun test automatisé n'échoue** : 74 passent, 3 sont marqués
-`xfail` car ils révèlent des défauts réels et reproductibles.
+jetons et supervision. **118 vérifications automatisées** ont été exécutées
+(4 backend, 56 API, 17 UI, 41 assertions Postman) et **36 cas manuels**.
+**Aucun test automatisé n'échoue** : 115 passent, 3 sont marqués `xfail` car ils
+révèlent des défauts réels et reproductibles.
 
 Quatre anomalies ont été identifiées, dont **deux majeures** : l'acceptation
 d'une équipe inexistante en favori (ANO-001) et un point de santé qui masque
@@ -27,6 +28,12 @@ fonctionne de bout en bout, y compris après redémarrage.
 Le pipeline GitHub Actions est vert sur `main` et publie un rapport Allure
 agrégé (backend, API, UI), un rapport Playwright et, en cas d'échec, les traces
 et vidéos.
+
+La campagne est également organisée dans **Squash TM 15.0.3** : 16 exigences,
+36 cas de test avec pas et couvertures, une campagne, une itération, une suite
+et 36 exécutions (**32 `SUCCESS`**, **4 `FAILURE`** pour ANO-001 à ANO-004).
+La procédure de démarrage, de création et de vérification est décrite dans
+[`docs/SQUASH.md`](SQUASH.md).
 
 ## 2. Métriques d'exécution
 

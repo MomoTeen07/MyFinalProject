@@ -98,6 +98,20 @@ npx --yes newman@6 run postman/Football-QA.postman_collection.json \
   -e postman/Football-QA.postman_environment.json
 ```
 
+### 2.6 Séquence 5 — campagne Squash TM (1 min, si le temps le permet)
+
+Ouvrir `http://localhost:8090/squash/project/1/campaign-workspace`
+(`admin` / `admin`) et commenter :
+
+- arborescence campagne → itération → suite → 36 cas ;
+- une exécution `FAILURE` (TC-SEC-08) : statut, pas de test, commentaire
+  daté renvoyant à `docs/ANOMALIES.md` ;
+- rapport d'avancement : 32 `SUCCESS`, 4 `FAILURE`, 88,9 % de réussite.
+
+Démarrage si besoin : `docker compose -f infra/squash/docker-compose.yml up -d`
+puis `python infra/squash/seed_campaign.py` (procédure complète :
+`docs/SQUASH.md`).
+
 ## 3. Choix techniques à défendre
 
 | Choix | Justification | Alternative écartée |
@@ -213,6 +227,7 @@ documentées avec un plan d'action chiffré.
 - [ ] Onglet navigateur sur l'application et sur `/docs`
 - [ ] Onglet GitHub Actions sur le dernier run vert
 - [ ] `docs/CAMPAIGN_REPORT.md` ouvert sur les métriques
+- [ ] Squash TM ouvert sur la campagne (32/4) ou prêt à démarrer
 - [ ] Commande ANO-001 copiée dans le presse-papiers
 - [ ] Rapport Allure généré en local (secours hors ligne)
 - [ ] Chronomètre : répétition complète en moins de 20 minutes
