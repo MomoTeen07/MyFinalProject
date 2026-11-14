@@ -183,3 +183,85 @@ Une jonction Windows a déjà été refusée : ne pas supprimer ni déplacer ce 
 | `docs/DEFENSE.md` | Trame, démonstration, questions probables |
 | `docs/CONCEPTION.md` | Conception technique de l'application |
 | `CHANGELOG.md` | Historique des modifications |
+
+## 11. Changer de PC (personnel ↔ professionnel)
+
+Le travail se fait sur deux machines. **Seul Git se synchronise** :
+
+| Se synchronise | Ne se synchronise pas (à recréer localement) |
+|---|---|
+| Les 3 dépôts Git (`main`) | `.env` (clés Gemini, Telegram, `OFFICE_URL`, `REAL_AGENTS_ENABLED`) |
+| Code, tests, documentation | `.venv` / `node_modules` / navigateurs Playwright |
+| Fichiers Compose | Volumes Docker : bases PostgreSQL, campagne Squash |
+| | Rapports locaux : `reports/`, `workspace/`, `allure-results*/`, `test-results/` |
+
+### 11.1 Procédure à l'arrivée sur l'autre PC
+
+```powershell
+# 1. Mettre à jour les dépôts (adapter les chemins au PC)
+git -C C:\Users\stgadmin\Desktop\football-qa-agents switch main
+git -C C:\Users\stgadmin\Desktop\football-qa-agents pull --ff-only
+
+git -C <chemin_MyFinalProject> switch main
+git -C <chemin_MyFinalProject> pull --ff-only
+
+# 2. Resynchroniser le clone cible des agents (voir § 5)
+git -C <chemin_...\football-qa> pull --ff-only
+```
+
+```powershell
+# 3. Vérifier les prérequis locaux, sans afficher les secrets
+Test-Path <chemin_MyFinalProject>\.env
+Test-Path C:\Users\stgadmin\Desktop\football-qa-agents\.env
+
+# 4. Réinstaller les dépendances du projet d'agents
+cd C:\Users\stgadmin\Desktop\football-qa-agents
+.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.venv\Scripts\python.exe -m playwright install chromium
+```
+
+```powershell
+# 5. Reconstruire les stacks (les volumes sont locaux à chaque PC)
+cd <chemin_MyFinalProject>
+docker compose up -d --build --wait
+docker compose -f infra/squash/docker-compose.yml up -d
+
+# 6. Recréer la campagne Squash sur ce PC (volume neuf)
+python infra/squash/build_campaign_data.py
+python infra/squash/seed_campaign.py
+```
+
+```powershell
+# 7. Vérifier avant de travailler
+.venv-qa\Scripts\python.exe -m pytest tests/pytest/tests -q   # 53 passed, 3 xfailed
+Push-Location tests\playwright; npx playwright test; Pop-Location  # 17 passed
+Push-Location backend; ..\.venv-qa\Scripts\python.exe -m pytest tests -q; Pop-Location  # 4 passed
+```
+
+```powershell
+# 8. Relancer l'interface Telegram et le bureau (aucun scheduler)
+cd C:\Users\stgadmin\Desktop\football-qa-agents
+.venv\Scripts\python.exe -m app.telegram.gateway
+.venv\Scripts\python.exe scripts\run_office.py --open
+```
+
+### 11.2 Précautions spécifiques
+
+1. **Ne pas copier les volumes Docker** d'un PC à l'autre : les recréer. La base
+   de test des agents se réensemence avec `scripts\seed_test_data.py`.
+2. **Ne jamais transmettre `.env`** par chat, mail ou commit : les clés sont
+   locales à chaque machine (elles existent déjà sur le PC professionnel).
+3. **Vérifier le chemin du clone cible** : depuis
+   `football-qa-agents/infra`, `..\..\football-qa` doit pointer vers le clone de
+   `MyFinalProject` ; sinon la stack `football-qa-test` ne construit rien.
+4. **Ports attendus** : 8001/5174/5433 (application), 8002/5175/5434 (tests des
+   agents), 8090 (Squash), 5180 (bureau). Libérer tout conflit avant `up`.
+5. **`gh` (GitHub CLI)** n'est pas garanti sur le PC professionnel : vérifier
+   `gh auth status` avant de créer une PR. Ne jamais coller de jeton dans le
+   terminal ni dans un fichier versionné.
+6. **La CI reste la référence** : avant de reprendre, vérifier que le dernier
+   run de `main` est vert ; localement, les résultats attendus sont ceux du
+   § 1.
+7. **Premier message au bot** : vérifier que l'allowlist Telegram autorise bien
+   le compte utilisé, puis créer une mission courte pour valider la chaîne
+   (bot → agents → stack de test → rapports).
