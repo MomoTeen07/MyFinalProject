@@ -28,6 +28,8 @@ versionnage sémantique.
   campagne et l'option « données réelles ». `.env.example` est commenté (mode
   simulé par défaut, marche à suivre pour le mode réel, jamais de jeton
   versionné).
+- **`PROJECT_CONTEXT.md`** : commit de référence, tableau des PR complété
+  jusqu'à la #10, piège « mode réel » ajouté.
 - **Collection Postman complète** (`postman/`) : 18 requêtes et 41 assertions
   couvrant inscription, connexion, session, contrats football, scénario chaîné
   des favoris et contrôles de sécurité (`alg: none`, jeton absent ou malformé).

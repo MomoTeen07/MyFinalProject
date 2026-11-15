@@ -2,8 +2,8 @@
 
 | Élément | Valeur |
 |---|---|
-| Dernière mise à jour | 14/11/2026 |
-| Commit de référence | `main` — `748150c` au moment de la rédaction ; voir `git log -1` pour le dernier commit |
+| Dernière mise à jour | 15/11/2026 |
+| Commit de référence | `main` — `505398e` au moment de la rédaction ; voir `git log -1` pour le dernier commit |
 | Branches ouvertes | aucune (seul `main` local et distant) |
 | État | Livrables du projet final QA complets, CI verte, campagne Squash TM créée |
 | Reste à faire | Manuel uniquement : préparation des slides, captures d'écran, soutenance |
@@ -38,10 +38,14 @@ réel du dépôt et des environnements locaux, pas seulement l'intention.
 | #5 | `b4c3e1e` | Campagne Squash TM versionnée + scripts de seed REST |
 | #6 | `396ffda` | Lien campagne Squash dans le rapport et la soutenance |
 | #7 | `748150c` | Traçabilité du choix de l'application et de sa validation |
+| #8 | `d00656f` | Point de reprise `PROJECT_CONTEXT.md` |
+| #9 | `e178ea5` | Bascule entre les deux PC (§ 11) |
+| #10 | `505398e` | Mode « données réelles » football-data.org documenté |
 
-La PR #8 ajoute ce document ; `git log -1` en donne le commit.
+Après la PR #10, la campagne Squash et les suites restent en mode simulé ;
+seules la documentation et `.env.example` ont changé.
 
-La campagne Squash cible le commit `a0ea6e6` ; les PR #6 et #7 ne changent que
+La campagne Squash cible le commit `a0ea6e6` ; les PR #6 à #10 ne changent que
 de la documentation.
 
 ## 3. Reprise en 5 minutes
@@ -149,6 +153,7 @@ Une jonction Windows a déjà été refusée : ne pas supprimer ni déplacer ce 
 | `xfail` strict | Un `xfail` qui passe devient `XPASS` et fait échouer la CI : c'est voulu |
 | Playwright | Session injectée par `goto('/')` + `localStorage` + `reload` (pas d'`addInitScript`, sinon la déconnexion n'est plus testable) |
 | Libellés UI | Le statut de match s'écrit exactement « À venir » |
+| Mode réel | `MOCK_FOOTBALL_API=false` exige `FOOTBALL_API_TOKEN` (compte gratuit football-data.org, 10 req/min, cache 300 s). Les suites et la campagne décrivent le mock (4 équipes) : les lancer contre `8002`/`5175` via `API_URL`/`BASE_URL`. Voir README § *Données réelles* |
 | CI | Les jobs démarrent leur propre stack et terminent par `docker compose down --volumes` : ne pas compter sur les données de la CI |
 | PowerShell | La console peut mal afficher l'UTF-8 ; les fichiers sont en UTF-8, vérifier avec Python si besoin |
 
