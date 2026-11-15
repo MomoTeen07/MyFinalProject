@@ -29,6 +29,9 @@ réel du dépôt et des environnements locaux, pas seulement l'intention.
 
 ## 2. Historique des PR (toutes fusionnées en squash)
 
+Tableau arrêté à la **#13** ; pour la suite :
+`gh pr list --state merged --limit 20`.
+
 | PR | Commit | Sujet |
 |---|---|---|
 | #1 | `2689178` | CI + rapports Allure + correctif du test d'accueil |
