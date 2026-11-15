@@ -3,7 +3,7 @@
 | Élément | Valeur |
 |---|---|
 | Dernière mise à jour | 15/11/2026 |
-| Commit de référence | `main` — `505398e` au moment de la rédaction ; voir `git log -1` pour le dernier commit |
+| Commit de référence | `main` — `3170350` au moment de la rédaction ; voir `git log -1` pour le dernier commit |
 | Branches ouvertes | aucune (seul `main` local et distant) |
 | État | Livrables du projet final QA complets, CI verte, campagne Squash TM créée |
 | Reste à faire | Manuel uniquement : préparation des slides, captures d'écran, soutenance |
@@ -41,12 +41,16 @@ réel du dépôt et des environnements locaux, pas seulement l'intention.
 | #8 | `d00656f` | Point de reprise `PROJECT_CONTEXT.md` |
 | #9 | `e178ea5` | Bascule entre les deux PC (§ 11) |
 | #10 | `505398e` | Mode « données réelles » football-data.org documenté |
+| #11 | `dcb1a7d` | Point de reprise mis à jour (PR #8 à #10, piège « mode réel ») |
+| #12 | `3170350` | `FOOTBALL_CACHE_TTL_SECONDS` transmis au backend par Compose |
 
-Après la PR #10, la campagne Squash et les suites restent en mode simulé ;
-seules la documentation et `.env.example` ont changé.
+Après la PR #12, la campagne Squash et les suites restent en mode simulé ;
+seules la documentation, `.env.example` et une variable d'environnement du
+service `backend` ont changé.
 
-La campagne Squash cible le commit `a0ea6e6` ; les PR #6 à #10 ne changent que
-de la documentation.
+La campagne Squash cible le commit `a0ea6e6` ; les PR #6 à #12 ne changent que
+de la documentation, sauf la #12 (une ligne de `docker-compose.yml`, sans effet
+sur les tests).
 
 ## 3. Reprise en 5 minutes
 
@@ -270,3 +274,30 @@ cd C:\Users\stgadmin\Desktop\football-qa-agents
 7. **Premier message au bot** : vérifier que l'allowlist Telegram autorise bien
    le compte utilisé, puis créer une mission courte pour valider la chaîne
    (bot → agents → stack de test → rapports).
+
+### 11.3 Mode de données : simulé ou réel (propre à chaque PC)
+
+Le mode est porté par `.env`, donc **il ne se synchronise pas** :
+
+| PC | `.env` | Ce que ça implique |
+|---|---|---|
+| Personnel (état au 15/11/2026) | `MOCK_FOOTBALL_API=false` + jeton renseigné | Classements réels (20 équipes en PL), 10 requêtes/minute, cache 300 s |
+| Professionnel | `MOCK_FOOTBALL_API=true` (défaut) ou jeton local | Laisser en simulé pour lancer les suites et la démo des tests |
+
+Passer en réel sur une machine :
+
+```powershell
+# 1. Renseigner le jeton dans .env (jamais dans Git, jamais dans le chat)
+#    FOOTBALL_API_TOKEN=<jeton>  et  MOCK_FOOTBALL_API=false
+# 2. Recréer le backend pour qu'il relise .env
+docker compose up -d --force-recreate backend
+# 3. Vérifier
+curl.exe -s http://localhost:8001/api/football/leagues/PL/standings
+```
+
+Revenir au simulé : remettre `MOCK_FOOTBALL_API=true`, puis la même recréation
+du backend. Les suites API/UI (assertions à 4 équipes) et la campagne V1 ne
+doivent être exécutées qu'en mode simulé, ou contre la stack isolée
+`8002`/`5175` (`API_URL` / `BASE_URL`). Vérifié le 15/11/2026 en réel :
+6 championnats (20/18/20/20/18/36 équipes), 380 matchs en PL, interface à
+20 lignes, aucune erreur console.
