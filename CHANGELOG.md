@@ -8,6 +8,13 @@ versionnage sémantique.
 
 ### Corrigé
 
+- **`FOOTBALL_CACHE_TTL_SECONDS` ignoré par Compose** : la variable était
+  documentée (README, `.env.example`) mais n'était pas transmise au conteneur
+  backend, qui retombait sur sa valeur par défaut de 300 s. Elle est désormais
+  passée par `docker-compose.yml` (`${FOOTBALL_CACHE_TTL_SECONDS:-300}`), ce qui
+  rend le réglage du cache réellement effectif, en particulier avec l'API
+  football-data.org.
+
 - **CI rouge depuis le 10 novembre 2026** : le test `home displays football QA`
   échouait en mode strict car le libellé « Football QA » apparaît trois fois
   dans la page (navigation, carte de présentation, en-tête du formulaire). Le
