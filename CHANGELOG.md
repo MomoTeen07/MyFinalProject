@@ -16,6 +16,18 @@ versionnage sémantique.
 
 ### Ajouté
 
+- **Documentation du mode « données réelles »** (README § *Données réelles*) :
+  création d'un compte gratuit football-data.org, renseignement local de
+  `FOOTBALL_API_TOKEN` et `MOCK_FOOTBALL_API=false`, recréation du backend,
+  vérification du classement complet. La section précise les quotas du plan
+  gratuit (10 requêtes/minute), le rôle du cache `FOOTBALL_CACHE_TTL_SECONDS`,
+  et le fait que **la CI, les suites automatisées et la campagne V1 restent en
+  mode simulé** (assertions à 4 équipes) : les tests se lancent contre la stack
+  isolée `8002`/`5175` pour rester verts. `docs/TEST_PLAN.md` est aligné : le
+  hors-périmètre et l'hypothèse H4 distinguent désormais le référentiel de la
+  campagne et l'option « données réelles ». `.env.example` est commenté (mode
+  simulé par défaut, marche à suivre pour le mode réel, jamais de jeton
+  versionné).
 - **Collection Postman complète** (`postman/`) : 18 requêtes et 41 assertions
   couvrant inscription, connexion, session, contrats football, scénario chaîné
   des favoris et contrôles de sécurité (`alg: none`, jeton absent ou malformé).
