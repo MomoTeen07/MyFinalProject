@@ -3,7 +3,7 @@
 | Élément | Valeur |
 |---|---|
 | Dernière mise à jour | 15/11/2026 |
-| Commit de référence | `main` — `3170350` au moment de la rédaction ; voir `git log -1` pour le dernier commit |
+| Commit de référence | `main` — **toujours vérifier avec `git log -1`** ; la campagne Squash a été exécutée sur `a0ea6e6` |
 | Branches ouvertes | aucune (seul `main` local et distant) |
 | État | Livrables du projet final QA complets, CI verte, campagne Squash TM créée |
 | Reste à faire | Manuel uniquement : préparation des slides, captures d'écran, soutenance |
@@ -43,6 +43,7 @@ réel du dépôt et des environnements locaux, pas seulement l'intention.
 | #10 | `505398e` | Mode « données réelles » football-data.org documenté |
 | #11 | `dcb1a7d` | Point de reprise mis à jour (PR #8 à #10, piège « mode réel ») |
 | #12 | `3170350` | `FOOTBALL_CACHE_TTL_SECONDS` transmis au backend par Compose |
+| #13 | `13b27ab` | Point de reprise : mode « données réelles » consigné (§ 11.3) |
 
 Après la PR #12, la campagne Squash et les suites restent en mode simulé ;
 seules la documentation, `.env.example` et une variable d'environnement du

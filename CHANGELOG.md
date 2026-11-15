@@ -36,9 +36,11 @@ versionnage sémantique.
   simulé par défaut, marche à suivre pour le mode réel, jamais de jeton
   versionné).
 - **`PROJECT_CONTEXT.md`** : commit de référence et tableau des PR tenus à jour
-  (#8 à #12), piège « mode réel » et **§ 11.3 « Mode de données : simulé ou
+  (#8 à #13), piège « mode réel » et **§ 11.3 « Mode de données : simulé ou
   réel »** (propre à chaque PC, procédure d'activation, retour au simulé,
-  résultats mesurés le 15/11/2026).
+  résultats mesurés le 15/11/2026). La référence de commit est désormais
+  volontairement générique (`git log -1`) pour ne plus se périmer à chaque
+  fusion.
 - **Collection Postman complète** (`postman/`) : 18 requêtes et 41 assertions
   couvrant inscription, connexion, session, contrats football, scénario chaîné
   des favoris et contrôles de sécurité (`alg: none`, jeton absent ou malformé).
