@@ -33,6 +33,39 @@ export const test = base.extend({
     await page.reload();
     await use(account);
   },
+
+  /**
+   * Oracle de données réelles.
+   *
+   * Les attentes de l'interface sont dérivées des réponses de l'API, jamais de
+   * valeurs figées du mode simulé : la suite reste valable quand la saison, le
+   * nombre d'équipes ou les noms changent. Les réponses sont mises en cache par
+   * le backend (`FOOTBALL_CACHE_TTL_SECONDS`), donc les appels répétés ne
+   * consomment pas le quota du fournisseur.
+   */
+  football: async ({ request }, use) => {
+    const leaguesResponse = await request.get('/api/football/leagues');
+    expect(leaguesResponse.status(), await leaguesResponse.text()).toBe(200);
+    const leagues = await leaguesResponse.json();
+
+    const standingsResponse = await request.get('/api/football/leagues/PL/standings');
+    expect(standingsResponse.status(), await standingsResponse.text()).toBe(200);
+    const standings = await standingsResponse.json();
+
+    const matchesResponse = await request.get('/api/football/leagues/PL/matches');
+    expect(matchesResponse.status(), await matchesResponse.text()).toBe(200);
+    const matches = await matchesResponse.json();
+
+    expect(standings.length, 'le classement réel de la Premier League est vide').toBeGreaterThan(0);
+    expect(standings.length, 'au moins deux équipes sont nécessaires').toBeGreaterThan(1);
+
+    await use({
+      leagueName: leagues.find((league) => league.code === 'PL')?.name ?? 'PL',
+      standings,
+      teams: standings.map((row) => row.team),
+      matches,
+    });
+  },
 });
 
 export { expect };

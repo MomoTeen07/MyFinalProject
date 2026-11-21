@@ -4,7 +4,7 @@
 |---|---|
 | Campagne | Campagne V1 — Football QA |
 | Date d'exécution | 13/11/2026 |
-| Environnement | Docker local, API `:8001`, UI `:5174`, mode simulé |
+| Environnement | Docker local, API `:8001`, UI `:5174`, mode simulé (campagne manuelle V1) |
 | Commit testé | `a0ea6e6` (`main`) |
 | Exécutant | Mohamed Abdo |
 | Nombre de cas | 36 cas formels + 1 session exploratoire |

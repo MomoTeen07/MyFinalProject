@@ -73,10 +73,11 @@ le [`README.md`](../README.md#choix-de-lapplication). L'application est testée
 - Sécurité offensive complète (pentest), conformité RGPD, audit
   d'infrastructure.
 - Intégration réelle avec l'API football-data.org dans le périmètre de la
-  campagne : le plan gratuit existe (10 requêtes/minute), mais les résultats V1
-  ont été obtenus en mode simulé, conformément au budget 0 €. Le passage en
-  réel est documenté dans le README (§ *Données réelles*) et reste une
-  configuration locale, hors CI et hors campagne.
+  **campagne manuelle V1** : le plan gratuit existe (10 requêtes/minute), mais
+  les résultats manuels ont été obtenus en mode simulé, conformément au budget
+  0 €. Les **suites automatisées** (PyTest, Postman, Playwright) ont été rendues
+  indépendantes du référentiel et rejouées en données réelles le 21/11/2026 ;
+  la CI exige désormais le secret `FOOTBALL_API_TOKEN`.
 
 ## 3. Hypothèses et contraintes
 
@@ -85,7 +86,7 @@ le [`README.md`](../README.md#choix-de-lapplication). L'application est testée
 | H1 | L'application a été soumise au formateur et validée avant le début des travaux (voir § 1.1 et le README). |
 | H2 | Toutes les exécutions se font en local via Docker Compose ; aucun environnement de recette distant. |
 | H3 | Le budget est de 0 € : outils open source uniquement (Playwright, PyTest, Postman/Newman, Allure, Squash TM). |
-| H4 | Le mode `MOCK_FOOTBALL_API=true` fournit un jeu de données stable (6 championnats, 4 équipes par classement, 3 matchs) : c'est le référentiel de la campagne. Le mode réel (`MOCK_FOOTBALL_API=false`) change les données affichées, pas les règles ni les anomalies testées. |
+| H4 | Le référentiel de la **campagne manuelle V1** est le mode simulé (`MOCK_FOOTBALL_API=true` : 6 championnats, 4 équipes par classement, 3 matchs). Les suites automatisées ne dépendent plus de ce référentiel : elles vérifient des invariants et, côté UI, comparent l'interface aux réponses réelles de l'API (oracle). Le mode réel change les données, pas les règles ni les anomalies. |
 | H5 | Les tests créent leurs propres comptes : aucun jeu de données de production n'est utilisé. |
 | H6 | Les défauts applicatifs constatés sont documentés et non corrigés : ils constituent une preuve QA attendue par le jury. |
 | H7 | Un seul testeur, une seule machine : les tests sont séquentiels côté API, parallélisés (2 workers) côté UI. |
@@ -165,12 +166,13 @@ exploratoires.
 | Node.js | 20.10.0 (local), 22 (CI), Playwright 1.x, allure-playwright 3.14.0 |
 | Postman | Newman 6.x (CLI), collection `postman/` |
 | Base | PostgreSQL 16-alpine, port hôte 5433, volume `postgres_data` |
-| Application | API `:8001`, UI `:5174`, mode simulé activé |
+| Application | API `:8001`, UI `:5174`. Campagne manuelle V1 en mode simulé ; suites automatisées en mode réel (`MOCK_FOOTBALL_API=false`) |
 | Gestion de test | Squash TM 15.0.3, `http://localhost:8090/squash` |
 
 **Jeux de données** : comptes générés à la volée (`qa.<uuid>@example.com`),
-équipes du référentiel simulé (Arsenal 57, Chelsea 61, Liverpool 64, Atlético 78)
-et entrées invalides figées dans `tests/pytest/data/`.
+équipes **lues dynamiquement** dans l'API (identifiants stables : Arsenal 57,
+Chelsea 61, Liverpool 64, Atlético 78) et entrées invalides figées dans
+`tests/pytest/data/`.
 
 **Remise à zéro** : `docker compose down --volumes` puis
 `docker compose up --build --detach --wait`.
@@ -210,7 +212,7 @@ et entrées invalides figées dans `tests/pytest/data/`.
 
 | Risque projet | Parade |
 |---|---|
-| Indisponibilité de l'API football externe | Mode simulé par défaut en local et en CI |
+| Indisponibilité de l'API football externe | Suites automatisées en réel avec reprise bornée ; cache 900 s en CI ; repli simulé pour le hors-ligne |
 | Tests UI instables (attentes) | Attentes par assertion Playwright, `expect.timeout` à 7 s, 2 tentatives en CI, traces et vidéos à l'échec |
 | Données de test polluées entre exécutions | Comptes uniques par test, base éphémère en CI (`--volumes`) |
 | Dépendance à un service payant | Aucune : tous les outils sont open source, aucune clé requise |

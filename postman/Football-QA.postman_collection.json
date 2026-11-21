@@ -266,7 +266,7 @@
                   "const team = pm.response.json();",
                   "pm.test('Identité de l’équipe', () => {",
                   "  pm.expect(team.id).to.eql(57);",
-                  "  pm.expect(team.name).to.eql('Arsenal');",
+                  "  pm.expect(team.name).to.be.a('string').and.match(/Arsenal/);",
                   "});"
                 ]
               }

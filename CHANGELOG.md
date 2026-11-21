@@ -6,6 +6,28 @@ versionnage sémantique.
 
 ## [Non publié]
 
+### Modifié
+
+- **Suites QA rejouées sur les données réelles** (21/11/2026) : la CI force
+  `MOCK_FOOTBALL_API=false`, exige le secret `FOOTBALL_API_TOKEN` (garde-fou
+  explicite si absent) et porte `FOOTBALL_CACHE_TTL_SECONDS` à 900 s. Les
+  attentes figées du référentiel simulé (4 équipes, « Arsenal », 3 matchs,
+  « Football QA Stadium ») sont remplacées par des **invariants** et par un
+  **oracle API** : la fixture Playwright `football` lit le classement et le
+  calendrier réels, puis compare l'interface aux réponses de l'API. PyTest
+  ajoute une reprise bornée sur 5xx transitoire. Fichiers :
+  `tests/pytest/tests/test_football.py`,
+  `tests/playwright/fixtures/test.js`,
+  `tests/playwright/tests/championships.spec.js`,
+  `tests/playwright/tests/favorites.spec.js`,
+  `postman/Football-QA.postman_collection.json`, `.github/workflows/ci.yml`.
+  Validation locale du 21/11/2026 : PyTest **52 passed, 4 xfailed**,
+  Postman **41 assertions / 0 échec**, Playwright **17 passed**.
+
+- **`README.md`** : la section « Impact sur les tests et la campagne » décrit
+  désormais l'exécution en données réelles, l'oracle API et le rôle du mode
+  simulé (développement hors ligne et tests unitaires uniquement).
+
 ### Corrigé
 
 - **`FOOTBALL_CACHE_TTL_SECONDS` ignoré par Compose** : la variable était
@@ -23,14 +45,20 @@ versionnage sémantique.
 
 ### Ajouté
 
+- **ANO-005** (`docs/ANOMALIES.md`) : en données réelles, une équipe inconnue
+  est traduite en `502` au lieu de `404` par `football_service._fetch`. Le
+  défaut n'apparaît pas en mode simulé ; il est couvert par le test
+  `test_unknown_team_returns_404` marqué `xfail` conditionnel.
+
 - **Documentation du mode « données réelles »** (README § *Données réelles*) :
   création d'un compte gratuit football-data.org, renseignement local de
   `FOOTBALL_API_TOKEN` et `MOCK_FOOTBALL_API=false`, recréation du backend,
   vérification du classement complet. La section précise les quotas du plan
   gratuit (10 requêtes/minute), le rôle du cache `FOOTBALL_CACHE_TTL_SECONDS`,
-  et le fait que **la CI, les suites automatisées et la campagne V1 restent en
-  mode simulé** (assertions à 4 équipes) : les tests se lancent contre la stack
-  isolée `8002`/`5175` pour rester verts. `docs/TEST_PLAN.md` est aligné : le
+  et le fait que la **campagne V1 a été exécutée en mode simulé** (assertions à
+  4 équipes) ; les suites automatisées ont depuis été rendues indépendantes du
+  référentiel et rejouées sur les données réelles. `docs/TEST_PLAN.md` est
+  aligné : le
   hors-périmètre et l'hypothèse H4 distinguent désormais le référentiel de la
   campagne et l'option « données réelles ». `.env.example` est commenté (mode
   simulé par défaut, marche à suivre pour le mode réel, jamais de jeton

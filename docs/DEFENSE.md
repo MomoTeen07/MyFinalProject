@@ -124,7 +124,7 @@ puis `python infra/squash/seed_campaign.py` (procédure complète :
 | **`xfail(strict=True)`** | Un défaut connu reste visible sans bloquer la CI ; si le défaut est corrigé, le test échoue et force la mise à jour | `skip` : masquerait le défaut ; test rouge : CI inutilisable |
 | **Anomalies non corrigées** | Preuve QA attendue ; l'application est le produit testé, pas le livrable | Corriger le code applicatif hors périmètre |
 | **Squash TM** | Outil de gestion imposé, traçabilité exigence → cas → exécution → anomalie | JIRA/Xray : écarté par l'énoncé |
-| **Mode simulé** | Budget 0 €, aucune dépendance à une clé payante, données stables | API réelle : coût et quotas |
+| **Données réelles + repli simulé** | Les suites tournent sur le fournisseur réel avec des invariants et un oracle API ; le mode simulé reste pour le hors-ligne et les tests unitaires. Budget 0 € : plan gratuit (10 req/min) + cache | Quota, latence, indisponibilité du fournisseur (reprise bornée, ANO-005) |
 
 ## 4. Questions probables et réponses
 
@@ -195,9 +195,13 @@ filtrent sur `user_id`. Testé côté API (liste vide, suppression 404) et côt�
 (deux contextes navigateur distincts).
 
 **Que se passe-t-il si l'API externe tombe ?**
-En local et en CI, `MOCK_FOOTBALL_API=true` : aucune dépendance réseau. En
-production, le service football a un cache ; ce comportement n'est pas couvert
-par la campagne (limite assumée).
+Les suites automatisées tournent sur les données réelles, CI incluse, avec une
+reprise bornée sur les 5xx transitoires. Le service football met les réponses
+en cache (`FOOTBALL_CACHE_TTL_SECONDS`, 900 s en CI) pour tenir dans le quota
+de 10 requêtes/minute. Le mode simulé reste disponible pour travailler hors
+ligne et pour les tests unitaires. Limites assumées : une indisponibilité
+prolongée du fournisseur rend la CI rouge, et le mapping des erreurs du
+fournisseur est imparfait (**ANO-005**).
 
 ### 4.3 Questions pièges
 

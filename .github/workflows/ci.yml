@@ -10,7 +10,12 @@ permissions:
 
 env:
   JWT_SECRET: ci-only-secret-do-not-use-outside-github-actions
-  MOCK_FOOTBALL_API: "true"
+  # La campagne s'exécute sur les données réelles du fournisseur, jamais sur le
+  # jeu simulé : le secret FOOTBALL_API_TOKEN est obligatoire (voir garde-fou).
+  MOCK_FOOTBALL_API: "false"
+  FOOTBALL_API_TOKEN: ${{ secrets.FOOTBALL_API_TOKEN }}
+  FOOTBALL_CACHE_TTL_SECONDS: "900"
+  REAL_FOOTBALL_DATA: "true"
 
 jobs:
   backend:
@@ -55,6 +60,13 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: tests/playwright/package-lock.json
+
+      - name: Verify real football data token
+        run: |
+          if [ -z "${FOOTBALL_API_TOKEN}" ]; then
+            echo "::error::Le secret FOOTBALL_API_TOKEN est requis : la campagne s'exécute sur les données réelles (MOCK_FOOTBALL_API=false)."
+            exit 1
+          fi
 
       - name: Start application
         run: docker compose up --build --detach --wait --wait-timeout 240
