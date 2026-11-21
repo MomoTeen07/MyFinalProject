@@ -102,12 +102,16 @@ npx --yes newman@6 run postman/Football-QA.postman_collection.json \
 
 La collection est également importable dans Postman : dossier `postman/`, variable `baseUrl` à adapter. Elle couvre l’inscription, la connexion, la session, les contrats football, le parcours favori complet et quatre contrôles de sécurité (41 assertions). Le détail est documenté dans `postman/README.md`.
 
-Tests de contrat API, avec l’application démarrée par Docker :
+Tests de contrat API, avec l'application démarrée par Docker :
 
 ```bash
 python -m pip install -r tests/pytest/requirements.txt
-python -m pytest tests/pytest/tests --alluredir=allure-results-api
+REAL_FOOTBALL_DATA=true python -m pytest tests/pytest/tests --alluredir=allure-results-api
 ```
+
+`REAL_FOOTBALL_DATA=true` indique que l'instance sert des données réelles : le
+seul test dont l'attendu diffère du mode simulé (ANO-005) est alors marqué
+`xfail`.
 
 Tests Playwright, avec l’application accessible sur `http://localhost:5174` :
 
@@ -170,10 +174,11 @@ Le workflow `.github/workflows/ci.yml` s’exécute sur chaque push, pull reques
 | [`docs/SQUASH.md`](docs/SQUASH.md) | Campagne Squash TM : démarrage, création par script REST, vérification, limites |
 | [`docs/CONCEPTION.md`](docs/CONCEPTION.md) | Conception technique de l’application |
 
-Synthèse de la campagne V1 : **115 vérifications automatisées** (4 backend,
-53 API, 17 UI, 41 assertions Postman) et 3 `xfail` documentés, **36 cas
-manuels**, **4 anomalies** reproductibles, **11/11 endpoints** couverts,
-pipeline vert.
+Synthèse de la campagne V1 : **118 vérifications automatisées** (4 backend,
+56 API, 17 UI, 41 assertions Postman) et 4 `xfail` documentés, **36 cas
+manuels**, **5 anomalies** reproductibles, **11/11 endpoints** couverts,
+pipeline vert. Les suites automatisées ont été rejouées en **données réelles**
+le 21/11/2026 : 114 vérifications passent, 0 échec, 4 `xfail`.
 
 ## Gestion de campagne (Squash TM)
 
@@ -243,12 +248,20 @@ erreur et l’interface affiche son écran d’erreur récupérable.
 
 ### Impact sur les tests et la campagne
 
-- **CI et suites automatisées restent en mode simulé** : la CI force
-  `MOCK_FOOTBALL_API=true`, et les assertions (4 équipes, Arsenal en tête,
-  3 matchs) décrivent ce référentiel stable. Ne pas exécuter ces suites contre
-  une instance en mode réel : elles échoueraient sur le nombre de lignes.
-- Pour tester pendant que l’application de travail est en réel, utiliser la
-  stack isolée des agents (`http://localhost:8002` / `5175`, mode simulé) :
+- **CI et suites automatisées sur données réelles** : la CI force
+  `MOCK_FOOTBALL_API=false` et exige le secret `FOOTBALL_API_TOKEN`. Les
+  assertions sont des **invariants dérivés de l'API** (schéma JSON, ordre des
+  positions, cohérence UI ↔ API, bornes) et non des valeurs figées : elles
+  restent valables quand la saison, le nombre d'équipes ou les libellés
+  changent. Les appels de données sont protégés par une **reprise bornée** sur
+  erreur 5xx transitoire, et le cache `FOOTBALL_CACHE_TTL_SECONDS` évite de
+  consommer le quota du fournisseur (10 requêtes/minute en gratuit).
+- Le **mode simulé** reste disponible pour le développement hors ligne
+  (`MOCK_FOOTBALL_API=true`) et pour les tests unitaires du backend, qui ne
+  doivent jamais dépendre du réseau.
+- Pour tester sans consommer le quota pendant que l'application de travail est
+  en réel, utiliser la stack isolée des agents (`http://localhost:8002` /
+  `5175`, mode simulé) :
 
   ```bash
   # API
@@ -258,8 +271,9 @@ erreur et l’interface affiche son écran d’erreur récupérable.
   ```
 
 - Les résultats de la campagne V1 (36 cas, 32 conformes) ont été obtenus en
-  mode simulé. Le passage en réel ne les invalide pas : il change le
-  référentiel affiché, pas les règles métier ni les anomalies.
+  mode simulé. Les suites automatisées ont depuis été rendues **indépendantes
+  du référentiel** et rejouées sur les données réelles (voir `CHANGELOG.md`) ;
+  le passage en réel ne change pas les règles métier ni les anomalies.
 - Les identifiants d’équipes du mode simulé reprennent ceux de
   football-data.org (Arsenal 57, Chelsea 61…) : les favoris existants restent
   cohérents. En revanche, les données réelles évoluent avec la saison.

@@ -6,9 +6,9 @@
 | Version testée | commit `a0ea6e6` (`main`), API 1.0.0 |
 | Période | 13/11/2026 |
 | Testeur | Mohamed Abdo |
-| Environnement | Docker local : API `:8001`, UI `:5174`, PostgreSQL 16, mode simulé |
+| Environnement | Docker local : API `:8001`, UI `:5174`, PostgreSQL 16. Campagne manuelle V1 en mode simulé ; suites automatisées rejouées en **données réelles** le 21/11/2026 |
 | Outils | PyTest, Playwright (POM), Postman/Newman, Allure, GitHub Actions, Squash TM |
-| Statut | **Campagne conforme aux critères de sortie**, 4 anomalies ouvertes documentées |
+| Statut | **Campagne conforme aux critères de sortie**, 5 anomalies ouvertes documentées |
 
 ## 1. Résumé exécutif
 
@@ -16,10 +16,12 @@ La campagne V1 a couvert l'ensemble du périmètre défini dans le plan de test 
 authentification, consultation football, gestion des favoris, sécurité des
 jetons et supervision. **118 vérifications automatisées** ont été exécutées
 (4 backend, 56 API, 17 UI, 41 assertions Postman) et **36 cas manuels**.
-**Aucun test automatisé n'échoue** : 115 passent, 3 sont marqués `xfail` car ils
-révèlent des défauts réels et reproductibles.
+**Aucun test automatisé n'échoue** : 114 passent, 4 sont marqués `xfail` car ils
+révèlent des défauts réels et reproductibles. Depuis le 21/11/2026, les suites
+automatisées s'exécutent sur les **données réelles** du fournisseur, sans
+assertion figée sur le référentiel simulé.
 
-Quatre anomalies ont été identifiées, dont **deux majeures** : l'acceptation
+Cinq anomalies ont été identifiées, dont **deux majeures** : l'acceptation
 d'une équipe inexistante en favori (ANO-001) et un point de santé qui masque
 l'indisponibilité de la base (ANO-003). Aucune anomalie bloquante n'a été
 relevée sur le parcours critique : ajouter, consulter et supprimer un favori
@@ -32,6 +34,8 @@ et vidéos.
 La campagne est également organisée dans **Squash TM 15.0.3** : 16 exigences,
 36 cas de test avec pas et couvertures, une campagne, une itération, une suite
 et 36 exécutions (**32 `SUCCESS`**, **4 `FAILURE`** pour ANO-001 à ANO-004).
+ANO-005, détectée en données réelles, est couverte par la suite automatisée et
+n'est pas encore reportée dans la campagne Squash.
 La procédure de démarrage, de création et de vérification est décrite dans
 [`docs/SQUASH.md`](SQUASH.md).
 
@@ -42,10 +46,10 @@ La procédure de démarrage, de création et de vérification est décrite dans
 | Suite | Exécutés | Réussis | Échecs | xfail | Durée | Taux de réussite |
 |---|---|---|---|---|---|---|
 | Backend (PyTest) | 4 | 4 | 0 | 0 | 3,3 s | 100 % |
-| API (PyTest) | 56 | 53 | 0 | 3 | 124 s | 100 % (hors xfail) |
-| UI (Playwright, 2 workers) | 17 | 17 | 0 | 0 | 19 s | 100 % |
-| Postman (Newman) | 41 assertions | 41 | 0 | 0 | 2,2 s | 100 % |
-| **Total** | **118 vérifications** | **115** | **0** | **3** | **≈ 2 min 30** | **100 %** |
+| API (PyTest) | 56 | 52 | 0 | 4 | 125 s | 100 % (hors xfail) |
+| UI (Playwright, 2 workers) | 17 | 17 | 0 | 0 | 27 s | 100 % |
+| Postman (Newman) | 41 assertions | 41 | 0 | 0 | 2,4 s | 100 % |
+| **Total** | **118 vérifications** | **114** | **0** | **4** | **≈ 2 min 40** | **100 %** |
 
 Le taux de réussite est calculé hors `xfail` : un `xfail` strict qui passe
 deviendrait un échec, ce qui garantit que ces tests restent représentatifs des
@@ -110,8 +114,9 @@ Détail, preuves et procédures de reproduction : `docs/ANOMALIES.md`.
 | Écusson non validé (ANO-002) | Faible | Pas d'exécution constatée, contexte `<img>` | Validation d'URL avant réutilisation dans un autre contexte |
 | Couverture mono-navigateur | Moyen | Chromium seulement ; Safari/Firefox non vérifiés | Ajouter les projets Playwright Firefox/WebKit en CI (coût : temps de calcul) |
 | Absence de tests de charge | Moyen | Aucun profil de performance validé | Test de montée en charge k6/Locust sur un environnement dédié |
-| API football réelle non testée | Faible | Mode simulé uniquement ; contrat externe non vérifié | Test de contrat consommateur sur un environnement à jeton |
-| Tests UI dépendants d'un backend réel | Faible | Les fixtures créent des comptes via l'API | Conserver le mode simulé et des comptes uniques (déjà en place) |
+| Mapping d'erreurs fournisseur (ANO-005) | Faible | Un `400` du fournisseur devient `502` au lieu de `404` | Traduire les codes du fournisseur avant de les relayer |
+| Dépendance au fournisseur réel | Moyen | Quota 10 req/min, latence et 5xx transitoires ; suites automatisées exécutées en réel depuis le 21/11/2026 | Cache 900 s en CI, reprise bornée, repli simulé disponible |
+| Tests UI dépendants d'un backend réel | Faible | Les fixtures créent des comptes via l'API et lisent l'oracle réel | Comptes uniques et oracle API (déjà en place) |
 
 ## 5. Recommandations
 

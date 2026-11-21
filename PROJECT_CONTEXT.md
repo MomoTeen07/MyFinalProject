@@ -52,6 +52,14 @@ Après la PR #12, la campagne Squash et les suites restent en mode simulé ;
 seules la documentation, `.env.example` et une variable d'environnement du
 service `backend` ont changé.
 
+**21/11/2026 — suites automatisées en données réelles.** Les suites PyTest,
+Postman et Playwright ne dépendent plus du référentiel simulé : les attentes
+sont des invariants et, côté UI, un oracle API (fixture `football`). La CI
+exige désormais le secret `FOOTBALL_API_TOKEN` et force
+`MOCK_FOOTBALL_API=false`. La **campagne manuelle V1** reste, elle, documentée
+telle qu'exécutée en mode simulé (§ 11.3) : ne pas la présenter comme réelle
+sans rejouer les 36 cas.
+
 La campagne Squash cible le commit `a0ea6e6` ; les PR #6 à #12 ne changent que
 de la documentation, sauf la #12 (une ligne de `docker-compose.yml`, sans effet
 sur les tests).
@@ -300,8 +308,10 @@ curl.exe -s http://localhost:8001/api/football/leagues/PL/standings
 ```
 
 Revenir au simulé : remettre `MOCK_FOOTBALL_API=true`, puis la même recréation
-du backend. Les suites API/UI (assertions à 4 équipes) et la campagne V1 ne
-doivent être exécutées qu'en mode simulé, ou contre la stack isolée
-`8002`/`5175` (`API_URL` / `BASE_URL`). Vérifié le 15/11/2026 en réel :
+du backend. Depuis le 21/11/2026, les suites API/UI sont **indépendantes du
+référentiel** et s'exécutent dans les deux modes. En réel, lancer PyTest avec
+`REAL_FOOTBALL_DATA=true` (active le `xfail` d'ANO-005) et surveiller le quota
+de 10 requêtes/minute. Vérifié le 15/11/2026 en réel :
 6 championnats (20/18/20/20/18/36 équipes), 380 matchs en PL, interface à
-20 lignes, aucune erreur console.
+20 lignes, aucune erreur console. Rejoué le 21/11/2026 : PyTest 52 passed +
+4 xfailed, Postman 41 assertions / 0 échec, Playwright 17 passed.

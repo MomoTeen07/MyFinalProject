@@ -5,8 +5,8 @@
 | Campagne | Campagne V1 |
 | Version | commit `a0ea6e6` |
 | Environnement | Docker local (`API :8001`, `UI :5174`, PostgreSQL 16) |
-| Date | 13/11/2026 |
-| Anomalies ouvertes | 4 (0 bloquante, 1 majeure, 2 moyennes, 1 mineure) |
+| Date | 13/11/2026 (ANO-001 à 004), 21/11/2026 (ANO-005, données réelles) |
+| Anomalies ouvertes | 5 (0 bloquante, 1 majeure, 3 moyennes, 1 mineure) |
 
 Chaque anomalie est reproductible avec les commandes fournies : aucune ne
 dépend d'un état antérieur de la base. Toutes ont été constatées sur
@@ -20,6 +20,7 @@ l'application réellement démarrée, pas sur un mock.
 | ANO-002 | `team_crest` accepte n'importe quel schéma d'URL | Moyenne | Moyenne | Ouverte | TC-SEC-09, `xfail` `test_crest_url_scheme_is_restricted` |
 | ANO-003 | `/health` renvoie 200 alors que la base est arrêtée | Majeure | Haute | Ouverte | TC-SEC-10 |
 | ANO-004 | Aucune limitation des tentatives de connexion | Moyenne | Haute | Ouverte | TC-SEC-05, `xfail` `test_repeated_failed_logins_are_throttled` |
+| ANO-005 | En données réelles, une équipe inconnue renvoie 502 au lieu de 404 | Moyenne | Moyenne | Ouverte | `xfail` `test_unknown_team_returns_404` |
 
 > **Statut « Ouverte »** : les anomalies sont documentées, non corrigées. La
 > correction est hors périmètre du projet final ; elles sont conservées comme
@@ -287,3 +288,69 @@ avec en-tête `Retry-After`.
 Limitation par couple (adresse IP, e-mail) sur une fenêtre glissante
 (ex. 5 échecs / 15 min), réponse `429` avec `Retry-After`, journalisation des
 échecs. Un test de non-régression vérifierait l'apparition du `429`.
+
+---
+
+## ANO-005 — En données réelles, une équipe inconnue renvoie 502 au lieu de 404
+
+| Champ | Valeur |
+|---|---|
+| ID | ANO-005 |
+| Gravité | Moyenne |
+| Priorité | Moyenne |
+| Type | Contrat d'API / gestion d'erreur |
+| Composant | `GET /api/football/leagues/{code}/teams/{id}` — `backend/app/services/football_service.py` (`_fetch`) |
+| Détectée par | `test_unknown_team_returns_404` (`xfail`), exécution en données réelles du 21/11/2026 |
+| Statut | Ouverte |
+
+### Contexte
+
+En mode réel, l'API relaie les erreurs du fournisseur football-data.org. Le
+service `_fetch` ne distingue que le cas `429` (traduit en `503`) ; toute autre
+erreur HTTP du fournisseur devient un `502 Bad Gateway`.
+
+Un identifiant d'équipe inexistant (`999999`) est refusé par le fournisseur
+avec un `HTTP 400`, ce qui produit un `502` côté application.
+
+### Étapes de reproduction
+
+```bash
+# Prérequis : MOCK_FOOTBALL_API=false et FOOTBALL_API_TOKEN renseigné
+curl -i http://localhost:8001/api/football/leagues/PL/teams/999999
+```
+
+### Résultat attendu
+
+`404 Not Found` avec un message métier : la ressource demandée n'existe pas.
+
+### Résultat obtenu
+
+`502 Bad Gateway` avec `{"detail":"Football data API returned HTTP 400"}`.
+
+### Preuve
+
+- Réponse HTTP ci-dessus.
+- Test automatisé : `tests/pytest/tests/test_football.py::test_unknown_team_returns_404`,
+  marqué `xfail(strict=True)` **uniquement** lorsque `REAL_FOOTBALL_DATA=true`
+  (le mode simulé renvoie correctement `404`, le défaut n'existe qu'en réel).
+
+### Impact
+
+- Le client ne peut pas distinguer « ressource inconnue » d'une panne du
+  fournisseur : le frontend affiche un écran d'erreur récupérable au lieu d'un
+  état « introuvable ».
+- Les tableaux de bord de supervision comptabilisent ces 502 comme des
+  indisponibilités, ce qui masque les vraies pannes.
+- Un identifiant erroné (lien obsolète, favori ANO-001) génère une alerte
+  d'infrastructure au lieu d'une erreur applicative.
+
+### Cause probable
+
+`_fetch` mappe toute `httpx.HTTPStatusError` non-429 vers `502`, sans tenir
+compte du code du fournisseur.
+
+### Correction proposée (non appliquée)
+
+Traduire les codes du fournisseur : `400`/`404` → `404`, `401`/`403` → `502`
+(configuration), `5xx` → `502`. Conserver le `503` + `Retry-After` pour `429`.
+Ajouter un test de non-régression dans les deux modes.
