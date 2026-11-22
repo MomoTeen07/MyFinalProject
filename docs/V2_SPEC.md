@@ -6,7 +6,7 @@
 | Base | `main` figé par le tag `v1.0-campagne-v1` (`eabd40f`) |
 | Branche de développement | `app/v2` |
 | Objectif | Enrichir l'application support **sans invalider** la démarche QA déjà produite |
-| Dernière révision | 22/11/2026 — note de favori et rôle admin écartés |
+| Dernière révision | 22/11/2026 — note de favori, rôle admin et profil écartés ; actualités ajoutées |
 
 ## 1. Principes
 
@@ -64,29 +64,55 @@
 - **Mode simulé** : jeu `MOCK_SCORERS` déterministe pour les 6 championnats,
   afin que les tests unitaires restent hors ligne.
 - **UI** : troisième onglet « Buteurs » dans la page championnat, avec bascule
-  « Buts / Passes », tableau `#`, joueur, équipe (lien vers la fiche), matchs,
-  buts, passes. États chargement / erreur / vide réutilisés.
+  **« Buts / Passes »** dans un seul onglet (décision du 22/11/2026), tableau
+  `#`, joueur, équipe (lien vers la fiche), matchs, buts, passes. `limit`
+  par défaut : **10**. États chargement / erreur / vide réutilisés.
 - **Valeur QA** : tri multi-critères, égalités, `null` vs `0`, bornes de `limit`,
   énumération de `sort`, état vide, cohérence UI ↔ API, liens joueur → équipe.
 
-### F3 — Profil et changement de mot de passe
+### F3 — Actualités récentes au démarrage
 
-- **Besoin** : compléter le parcours authentifié, créer de la régression utile.
-- **API** : `PATCH /api/users/me` (`name`) et
-  `POST /api/users/me/password` (`current_password`, `new_password`) → `204`.
-- **Règles** : ancien mot de passe obligatoire, nouveau ≥ 8 caractères et
-  différent de l'ancien, e-mail non modifiable. Mot de passe incorrect → `401`.
-- **Limite assumée et documentée** : les jetons déjà émis restent valides après
-  changement (pas de `token_version`). Candidat à une nouvelle anomalie.
-- **UI** : page `/profile` avec deux formulaires.
-- **Valeur QA** : régression authentification, valeurs limites, cas négatifs.
+- **Besoin** : afficher les résultats marquants des derniers jours sur la page
+  d'accueil, pour que l'application « vive » dès l'ouverture.
+- **Nature exacte** : **fil de résultats récents**, pas d'articles de presse.
+  Le plan gratuit du fournisseur ne fournit pas de contenu éditorial ; toute
+  autre solution (RSS, scraping) sortirait du budget 0 € et des conditions
+  d'utilisation. À assumer explicitement devant le jury.
+- **Source** : `GET /matches?dateFrom=...&dateTo=...` (endpoint global).
+  **Constat du 22/11/2026** : 57 matchs sur 7 jours, dont **29 terminés** dans
+  nos 6 championnats, en **un seul appel** fournisseur (contre 6 si on
+  interrogeait chaque championnat). Le cache s'applique comme ailleurs.
+- **API** : `GET /api/football/news?days=7&limit=10`
+  - `days` : `1..30`, défaut `7` ; `limit` : `1..20`, défaut `10`.
+  - Réponse : `{ window: { from, to, days }, items: [{ id, competition,
+    utcDate, status, homeTeam, awayTeam, score, headline }] }`.
+- **Règles** :
+  - ne conserver que les matchs **terminés** de nos 6 championnats
+    (le fournisseur renvoie aussi BSA, DED, ELC) ;
+  - score complet obligatoire, sinon le match est ignoré ;
+  - tri : date décroissante, puis identifiant décroissant (déterministe) ;
+  - `headline` généré côté service, en français, trois branches testables :
+    - victoire domicile : `« {home} s'impose {h}-{a} face à {away} »` ;
+    - victoire extérieur : `« {away} s'impose {a}-{h} sur le terrain de {home} »` ;
+    - match nul : `« {home} et {away} se quittent dos à dos ({h}-{a}) »`.
+- **Erreurs** : `days` ou `limit` hors bornes → `422` ; aucun match terminé →
+  `200` avec `items: []` ; panne fournisseur → `502`/`503` (comportement actuel,
+  ANO-005 non corrigée).
+- **Mode simulé** : `MOCK_NEWS` déterministe, couvrant les trois branches de
+  `headline`.
+- **UI** : section « Actualités récentes » sur la page d'accueil, 5 éléments,
+  compétition, heure relative (« il y a 2 h »), état vide explicite. Les liens
+  vers la fiche match arriveront avec F4.
+- **Valeur QA** : trois branches de formatage, bornes `days`/`limit`, état vide,
+  ordre stable, fuseau horaire, indépendance vis-à-vis des compétitions non
+  supportées, coût fournisseur (un seul appel).
 
 ### F4 — Page détail d'un match
 
 - **Besoin** : nouveau parcours de bout en bout, et gestion du `404` fournisseur.
 - **API** : `GET /api/football/matches/{id}` (relais du fournisseur).
 - **UI** : `/matches/:id` — compétition, statut, score, équipes, date.
-  Lien depuis la liste des matchs.
+  Liens ajoutés depuis la liste des matchs **et** depuis les actualités.
 - **Règles** : identifiant inconnu → `404` (sert de cas concret pour ANO-005,
   sans la corriger).
 - **Valeur QA** : parcours E2E supplémentaire, dépendance à une donnée externe
@@ -97,8 +123,11 @@
 - Correction d'ANO-001 à ANO-005.
 - **Note personnelle sur un favori** — écartée le 22/11/2026.
 - **Rôle administrateur et matrice de permissions** — écarté le 22/11/2026.
-  Conséquence assumée : on perd le test transverse 401/403 par rôle. La sécurité
-  reste couverte par ANO-001 à ANO-004 et par les tests d'authentification.
+- **Profil et changement de mot de passe** — écarté le 22/11/2026 (non
+  essentiel : la régression d'authentification reste couverte par les tests
+  existants et ANO-004).
+- **Articles de presse / contenu éditorial** — hors budget et hors conditions
+  d'utilisation du fournisseur gratuit.
 - Paiement, messagerie, notifications, temps réel.
 - Upload de fichiers, avatars, i18n, thème sombre, refonte graphique.
 - Modification de l'e-mail ou suppression de compte.
@@ -110,9 +139,8 @@
 **Aucune migration Alembic.** Les quatre fonctionnalités réutilisent le schéma
 existant :
 
-- `users` : `name` existe déjà (F3) ;
-- `favorites` : inchangé ;
-- matchs, buteurs, compétitions : données du fournisseur, mises en cache en
+- `users` et `favorites` : inchangés ;
+- matchs, buteurs, actualités : données du fournisseur, mises en cache en
   mémoire, non persistées.
 
 C'est un choix délibéré : moins de risque de régression, et la base reste
@@ -124,37 +152,37 @@ strictement identique à celle de la campagne V1.
 |---|---|---|---|
 | GET | `/api/football/leagues/{code}/matches` | public | 200, 404, 422 |
 | GET | `/api/football/leagues/{code}/scorers` | public | 200, 404, 422 |
+| GET | `/api/football/news` | public | 200, 422, 502, 503 |
 | GET | `/api/football/matches/{id}` | public | 200, 404, 502 |
-| PATCH | `/api/users/me` | authentifié | 200, 401, 422 |
-| POST | `/api/users/me/password` | authentifié | 204, 401, 422 |
 
-On passe de 11 à **15 endpoints**.
+On passe de 11 à **14 endpoints**.
 
 ## 6. Impact QA (à prévoir dès la première PR)
 
 | Élément | Impact |
 |---|---|
-| `tests/pytest/tests/test_football.py` | contrat `matches` en enveloppe, pagination, filtres, buteurs (tri, égalités, `null` → `0`, bornes) |
-| `tests/pytest/tests/test_favorites.py` | **aucun changement** (schéma et routes inchangés) |
-| `tests/pytest/tests/test_auth.py` | profil, changement de mot de passe |
-| `tests/pytest/tests/test_security.py` | `401` sur les routes profil, non-fuite de `password_hash` |
-| Schémas JSON | `matches` (enveloppe), nouveau `scorers` |
-| Postman | 2 dossiers + assertions (objectif ≈ 55) |
-| Playwright | pagination/filtres, onglet buteurs, profil, détail match |
+| `tests/pytest/tests/test_football.py` | contrat `matches` en enveloppe, pagination, filtres, buteurs (tri, égalités, `null` → `0`, bornes), actualités (3 branches, bornes, état vide) |
+| `tests/pytest/tests/test_favorites.py` | **aucun changement** |
+| `tests/pytest/tests/test_auth.py` | **aucun changement** |
+| `tests/pytest/tests/test_security.py` | **aucun changement** |
+| Schémas JSON | `matches` (enveloppe), nouveaux `scorers` et `news` |
+| Postman | 3 dossiers + assertions (objectif ≈ 55) |
+| Playwright | pagination/filtres, onglet buteurs, actualités à l'accueil, détail match |
 | `docs/TEST_CASES.md` | +12 à +15 cas manuels |
 | `docs/TRACEABILITY.md` | nouvelles exigences R-17 à R-20 |
 | Squash TM | nouvelles exigences et cas, campagne V2 |
 | `docs/CAMPAIGN_REPORT.md` | métriques V2, anomalies nouvelles |
 | `README.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md` | mis à jour à chaque PR |
 
-## 7. Séquencement
+## 7. Séquencement proposé
 
 1. **PR V2-0** : cette spécification (documentation seule).
 2. **PR V2-1** : F2 buteurs/passeurs — la moins risquée, aucune migration,
    immédiatement démontrable.
-3. **PR V2-2** : F3 profil et mot de passe.
-4. **PR V2-3** : F1 pagination — structurante, elle touche le contrat des matchs.
-5. **PR V2-4** : F4 détail de match.
+3. **PR V2-2** : F3 actualités — visible dès l'accueil, un seul appel fournisseur.
+4. **PR V2-3** : F4 détail de match — active les liens depuis les actualités.
+5. **PR V2-4** : F1 pagination — seul changement cassant, traité quand le reste
+   est stable.
 6. **PR V2-5** : campagne V2 (traçabilité, Squash, rapport, démo).
 
 Chaque PR : code + tests adaptés + docs + CI verte. Aucune PR ne casse `main`.
@@ -170,9 +198,9 @@ Chaque PR : code + tests adaptés + docs + CI verte. Aucune PR ne casse `main`.
 
 ## 9. Décisions à valider avant tout code
 
-1. **Périmètre** : les 4 fonctionnalités, ou seulement 2 (F1 + F2) ?
+1. **Périmètre** : les 4 fonctionnalités, ou 3 en reportant la pagination (F1) ?
 2. **Pagination** : accepter le changement cassant de contrat (enveloppe) ?
-3. **Buteurs** : bascule « Buts / Passes » dans un seul onglet, ou deux onglets
-   distincts ? Et `limit` par défaut à 10 ou 20 ?
-4. **Ordre** : commencer par F2 (sûr, démontrable vite) comme proposé, ou
-   attaquer F1 tout de suite ?
+3. **Ordre** : valider la séquence F2 → F3 → F4 → F1 ?
+
+Les autres points sont tranchés : bascule Buts/Passes dans un seul onglet,
+`limit` à 10 pour les buteurs, fil d'actualités limité aux résultats récents.
