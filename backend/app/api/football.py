@@ -16,6 +16,18 @@ from app.services.football_service import (
 
 router = APIRouter(prefix="/api/football", tags=["football"])
 
+MatchStatus = Literal[
+    "SCHEDULED",
+    "TIMED",
+    "IN_PLAY",
+    "PAUSED",
+    "FINISHED",
+    "POSTPONED",
+    "CANCELLED",
+    "AWARDED",
+    "SUSPENDED",
+]
+
 
 @router.get("/leagues")
 def get_leagues():
@@ -28,8 +40,24 @@ def standings(code: str):
 
 
 @router.get("/leagues/{code}/matches")
-def matches(code: str):
-    return get_matches(code)
+def matches(
+    code: str,
+    page: int = Query(1, ge=1, description="Page demandée (>= 1)"),
+    page_size: int = Query(50, ge=1, le=100, description="Taille de page (1..100)"),
+    status: MatchStatus | None = Query(None, description="Filtrer par statut"),
+    team_id: int | None = Query(
+        None, ge=0, description="Filtrer sur l'équipe à domicile ou à l'extérieur"
+    ),
+    sort: Literal["date", "date_desc"] = Query("date", description="Ordre chronologique"),
+):
+    return get_matches(
+        code,
+        page=page,
+        page_size=page_size,
+        status=status,
+        team_id=team_id,
+        sort=sort,
+    )
 
 
 @router.get("/leagues/{code}/scorers")

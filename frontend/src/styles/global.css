@@ -85,6 +85,13 @@ h1 { color: #f4e6c9; text-shadow: 0 2px 16px #000; }
 .tabs button { background: transparent; color: #c9b99d; }
 .tabs button.active { color: #21160d; background: #d9b465; box-shadow: 0 1px 5px #000; }
 
+.filters { display: flex; flex-wrap: wrap; gap: 16px; margin: 0 0 18px; }
+.filters label { display: flex; flex-direction: column; gap: 6px; color: #c9b99d; font-size: 12px; letter-spacing: .4px; }
+.filters select { padding: 9px 12px; color: #f1dfba; background: #21170f; border: 1px solid #634a2e; border-radius: 4px; font: inherit; }
+.pager { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 24px; color: #c9b99d; }
+.pager button { color: #f1dfba; background: #33251d; border-color: #705433; }
+.pager button:disabled { opacity: .45; cursor: not-allowed; }
+
 .table-wrap { overflow: auto; border-radius: 5px; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 14px 16px; border-bottom: 1px solid rgba(185, 148, 81, .2); text-align: left; font-size: 14px; }

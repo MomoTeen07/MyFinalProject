@@ -254,25 +254,84 @@ def get_team(code: str, team_id: int):
     return _fetch(f"/teams/{team_id}")
 
 
-def get_matches(code: str):
+# Jeu simulé des matchs : 6 rencontres par championnat, dont 2 terminées, pour
+# que pagination, filtres et tri restent démontrables hors ligne.
+# (décalage en jours, statut, index domicile, index extérieur, buts domicile, buts extérieur)
+MOCK_MATCH_FIXTURES = (
+    (-14, "FINISHED", 0, 1, 2, 1),
+    (-7, "FINISHED", 2, 3, 0, 0),
+    (7, "SCHEDULED", 1, 2, None, None),
+    (14, "TIMED", 3, 0, None, None),
+    (21, "SCHEDULED", 0, 2, None, None),
+    (28, "SCHEDULED", 1, 3, None, None),
+)
+
+
+def _mock_matches(code: str) -> list[dict]:
+    teams = MOCK_TEAMS[code]
+    now = datetime.now(timezone.utc)
+    matches = []
+    for index, (day_offset, status, home_index, away_index, home, away) in enumerate(
+        MOCK_MATCH_FIXTURES
+    ):
+        home_team = teams[home_index]
+        away_team = teams[away_index]
+        matches.append(
+            {
+                "id": index + 1,
+                "utcDate": (now + timedelta(days=day_offset)).isoformat(),
+                "status": status,
+                "homeTeam": {"id": home_team[0], "name": home_team[1]},
+                "awayTeam": {"id": away_team[0], "name": away_team[1]},
+                "score": {"fullTime": {"home": home, "away": away}},
+            }
+        )
+    return matches
+
+
+def get_matches(
+    code: str,
+    page: int = 1,
+    page_size: int = 50,
+    status: str | None = None,
+    team_id: int | None = None,
+    sort: str = "date",
+):
+    """Calendrier paginé : filtrage et tri applicatifs, liste complète en cache."""
     if code not in LEAGUES:
         raise HTTPException(status_code=404, detail="Championship not found")
 
     if settings.mock_football_api:
-        teams = MOCK_TEAMS[code]
-        now = datetime.now(timezone.utc)
-        return [
-            {
-                "id": index + 1,
-                "utcDate": (now + timedelta(days=7 * (index + 1))).isoformat(),
-                "status": "SCHEDULED",
-                "homeTeam": {"id": teams[0][0], "name": teams[0][1]},
-                "awayTeam": {"id": teams[1][0], "name": teams[1][1]},
-            }
-            for index in range(3)
+        matches = _mock_matches(code)
+    else:
+        matches = _fetch(f"/competitions/{code}/matches").get("matches", [])
+
+    if status:
+        matches = [match for match in matches if match.get("status") == status]
+    if team_id is not None:
+        matches = [
+            match
+            for match in matches
+            if (match.get("homeTeam") or {}).get("id") == team_id
+            or (match.get("awayTeam") or {}).get("id") == team_id
         ]
 
-    return _fetch(f"/competitions/{code}/matches").get("matches", [])
+    matches = sorted(
+        matches,
+        key=lambda match: (match.get("utcDate") or "", match.get("id") or 0),
+        reverse=sort == "date_desc",
+    )
+
+    total = len(matches)
+    total_pages = (total + page_size - 1) // page_size if total else 0
+    start = (page - 1) * page_size
+    return {
+        "items": matches[start : start + page_size],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": total_pages,
+    }
 
 
 def _as_count(value) -> int:
@@ -530,19 +589,21 @@ def get_press(limit: int = 5):
 def get_match(match_id: int):
     """Détail d'un match. Un identifiant inconnu renvoie 404, jamais 502."""
     if settings.mock_football_api:
-        if not 1 <= match_id <= 3:
+        match = next(
+            (item for item in _mock_matches("PL") if item["id"] == match_id), None
+        )
+        if match is None:
             raise HTTPException(status_code=404, detail="Match not found")
-        teams = MOCK_TEAMS["PL"]
-        now = datetime.now(timezone.utc)
+        score = (match.get("score") or {}).get("fullTime") or {}
         return {
-            "id": match_id,
+            "id": match["id"],
             "competition": {"code": "PL", "name": LEAGUES["PL"]["name"]},
-            "utcDate": (now + timedelta(days=7 * match_id)).isoformat(),
-            "status": "SCHEDULED",
-            "matchday": match_id,
-            "homeTeam": {"id": teams[0][0], "name": teams[0][1], "crest": ""},
-            "awayTeam": {"id": teams[1][0], "name": teams[1][1], "crest": ""},
-            "score": {"home": None, "away": None},
+            "utcDate": match["utcDate"],
+            "status": match["status"],
+            "matchday": match["id"],
+            "homeTeam": {**match["homeTeam"], "crest": ""},
+            "awayTeam": {**match["awayTeam"], "crest": ""},
+            "score": {"home": score.get("home"), "away": score.get("away")},
         }
 
     # Le fournisseur répond 400 (ou 404) pour un identifiant inconnu : la

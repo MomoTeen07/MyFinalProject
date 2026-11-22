@@ -11,7 +11,23 @@ const matchStatuses = {
   POSTPONED: 'Reporté',
   CANCELLED: 'Annulé',
   AWARDED: 'Décision officielle',
+  SUSPENDED: 'Suspendu',
 };
+
+const MATCHES_PAGE_SIZE = 20;
+
+// Liste fermée alignée sur l'énumération de l'API (`MatchStatus`).
+const matchFilterStatuses = [
+  ['SCHEDULED', 'Programmé'],
+  ['TIMED', 'Horaire fixé'],
+  ['IN_PLAY', 'En cours'],
+  ['PAUSED', 'Mi-temps'],
+  ['FINISHED', 'Terminé'],
+  ['POSTPONED', 'Reporté'],
+  ['CANCELLED', 'Annulé'],
+  ['AWARDED', 'Décision officielle'],
+  ['SUSPENDED', 'Suspendu'],
+];
 
 function formatMatchDate(value) {
   if (!value) return 'Date à confirmer';
@@ -62,6 +78,15 @@ export default function Championship() {
   const [league, setLeague] = useState(null);
   const [standings, setStandings] = useState([]);
   const [matches, setMatches] = useState([]);
+  const [matchesMeta, setMatchesMeta] = useState(null);
+  const [matchesStatus, setMatchesStatus] = useState('idle');
+  const [matchesError, setMatchesError] = useState('');
+  const [matchStatusFilter, setMatchStatusFilter] = useState('');
+  const [matchSort, setMatchSort] = useState('date');
+  const matchQueryKey = `${code}|${matchStatusFilter}|${matchSort}`;
+  const [matchPageState, setMatchPageState] = useState({ key: matchQueryKey, page: 1 });
+  const matchPage = matchPageState.key === matchQueryKey ? matchPageState.page : 1;
+  const goToMatchPage = (page) => setMatchPageState({ key: matchQueryKey, page });
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
@@ -78,12 +103,10 @@ export default function Championship() {
 
     Promise.all([
       api(`/api/football/leagues/${code}/standings`, { signal: controller.signal }),
-      api(`/api/football/leagues/${code}/matches`, { signal: controller.signal }),
       api('/api/football/leagues', { signal: controller.signal }).catch(() => []),
     ])
-      .then(([table, fixtures, leagues]) => {
+      .then(([table, leagues]) => {
         setStandings(Array.isArray(table) ? table : []);
-        setMatches(Array.isArray(fixtures) ? fixtures : []);
         setLeague(leagues.find((item) => item.code === code) || { code, name: code });
         setStatus('success');
       })
@@ -119,7 +142,39 @@ export default function Championship() {
     return () => controller.abort();
   }, [code, tab, scorerSort]);
 
+  useEffect(() => {
+    if (tab !== 'matches') return undefined;
+
+    const controller = new AbortController();
+    setMatchesStatus('loading');
+    setMatchesError('');
+
+    const params = new URLSearchParams({
+      page: String(matchPage),
+      page_size: String(MATCHES_PAGE_SIZE),
+      sort: matchSort,
+    });
+    if (matchStatusFilter) params.set('status', matchStatusFilter);
+
+    api(`/api/football/leagues/${code}/matches?${params.toString()}`, {
+      signal: controller.signal,
+    })
+      .then((payload) => {
+        setMatches(Array.isArray(payload?.items) ? payload.items : []);
+        setMatchesMeta(payload);
+        setMatchesStatus('success');
+      })
+      .catch((requestError) => {
+        if (requestError.name === 'AbortError') return;
+        setMatchesError(requestError.message);
+        setMatchesStatus('error');
+      });
+
+    return () => controller.abort();
+  }, [code, tab, matchPage, matchStatusFilter, matchSort]);
+
   const scorerItems = scorers?.items || [];
+  const matchTotalPages = matchesMeta?.total_pages || 0;
 
   return (
     <section>
@@ -140,9 +195,61 @@ export default function Championship() {
           <tbody>{standings.map((row) => <tr key={row.team.id}><td>{row.position}</td><td><Link className="team" to={`/teams/${code}/${row.team.id}`}>{row.team.name}</Link></td><td>{row.playedGames}</td><td>{row.won}</td><td>{row.draw}</td><td>{row.lost}</td><td><b>{row.points}</b></td></tr>)}</tbody>
         </table></div>
       )}
-      {status === 'success' && tab === 'matches' && matches.length === 0 && <p className="empty">Aucun match disponible.</p>}
-      {status === 'success' && tab === 'matches' && matches.length > 0 && (
-        <div className="grid">{matches.map((match) => <MatchCard key={match.id} match={match} leagueCode={code} />)}</div>
+      {status === 'success' && tab === 'matches' && (
+        <>
+          <div className="filters">
+            <label>
+              Statut
+              <select
+                value={matchStatusFilter}
+                onChange={(event) => setMatchStatusFilter(event.target.value)}
+              >
+                <option value="">Tous</option>
+                {matchFilterStatuses.map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Tri
+              <select value={matchSort} onChange={(event) => setMatchSort(event.target.value)}>
+                <option value="date">Date (croissant)</option>
+                <option value="date_desc">Date (décroissant)</option>
+              </select>
+            </label>
+          </div>
+          {matchesStatus === 'loading' && <p className="notice" role="status">Chargement des matchs…</p>}
+          {matchesStatus === 'error' && (
+            <div className="error" role="alert">Impossible de charger les matchs : {matchesError}</div>
+          )}
+          {matchesStatus === 'success' && matches.length === 0 && (
+            <p className="empty">
+              {matchStatusFilter ? 'Aucun match pour ce filtre.' : 'Aucun match disponible.'}
+            </p>
+          )}
+          {matchesStatus === 'success' && matches.length > 0 && (
+            <div className="grid">{matches.map((match) => <MatchCard key={match.id} match={match} leagueCode={code} />)}</div>
+          )}
+          {matchesStatus === 'success' && matchTotalPages > 0 && (
+            <nav className="pager" aria-label="Pagination des matchs">
+              <button
+                type="button"
+                disabled={matchPage <= 1}
+                onClick={() => goToMatchPage(matchPage - 1)}
+              >
+                Précédent
+              </button>
+              <span>Page {matchesMeta?.page ?? matchPage} / {matchTotalPages}</span>
+              <button
+                type="button"
+                disabled={matchPage >= matchTotalPages}
+                onClick={() => goToMatchPage(matchPage + 1)}
+              >
+                Suivant
+              </button>
+            </nav>
+          )}
+        </>
       )}
       {status === 'success' && tab === 'scorers' && (
         <>

@@ -81,7 +81,110 @@ def test_matches_match_the_contract(api, api_url, schemas, code):
     assert response.status_code == 200
     payload = response.json()
     validate(payload, schemas["matches"])
-    assert payload, f"Le calendrier {code} ne doit pas être vide"
+    assert payload["items"], f"Le calendrier {code} ne doit pas être vide"
+    assert payload["page"] == 1
+    assert payload["page_size"] == 50
+    assert payload["total"] >= len(payload["items"])
+    assert payload["total_pages"] == (
+        payload["total"] + payload["page_size"] - 1
+    ) // payload["page_size"]
+
+
+@allure.story("Pagination")
+@allure.severity(allure.severity_level.NORMAL)
+def test_matches_pagination_is_stable(api, api_url):
+    """Deux appels identiques donnent la même page, sans recouvrement."""
+    url = f"{api_url}/api/football/leagues/PL/matches?page=1&page_size=5&sort=date"
+    first = get_football(api, url)
+    again = get_football(api, url)
+
+    assert first.status_code == 200
+    assert again.status_code == 200
+    first_ids = [match["id"] for match in first.json()["items"]]
+    assert [match["id"] for match in again.json()["items"]] == first_ids
+    assert len(first_ids) <= 5
+
+    total = first.json()["total"]
+    if total > 5:
+        second = get_football(
+            api,
+            f"{api_url}/api/football/leagues/PL/matches?page=2&page_size=5&sort=date",
+        )
+        assert second.status_code == 200
+        second_ids = [match["id"] for match in second.json()["items"]]
+        assert set(first_ids).isdisjoint(second_ids)
+
+
+@allure.story("Pagination")
+@allure.severity(allure.severity_level.NORMAL)
+def test_matches_page_beyond_last_is_empty(api, api_url):
+    response = get_football(
+        api, f"{api_url}/api/football/leagues/PL/matches?page=9999&page_size=100"
+    )
+
+    assert response.status_code == 200
+    assert response.json()["items"] == []
+
+
+@allure.story("Pagination")
+@allure.severity(allure.severity_level.NORMAL)
+def test_matches_can_be_filtered_by_status_and_team(api, api_url):
+    finished = get_football(
+        api,
+        f"{api_url}/api/football/leagues/PL/matches?status=FINISHED&page_size=100",
+    )
+
+    assert finished.status_code == 200
+    items = finished.json()["items"]
+    assert items, "Aucun match terminé renvoyé pour la Premier League"
+    assert all(match["status"] == "FINISHED" for match in items)
+
+    team_id = items[0]["homeTeam"]["id"]
+    by_team = get_football(
+        api,
+        f"{api_url}/api/football/leagues/PL/matches?team_id={team_id}&page_size=100",
+    )
+
+    assert by_team.status_code == 200
+    assert by_team.json()["items"]
+    for match in by_team.json()["items"]:
+        assert team_id in (match["homeTeam"]["id"], match["awayTeam"]["id"]), match
+
+
+@allure.story("Pagination")
+@allure.severity(allure.severity_level.NORMAL)
+@pytest.mark.parametrize("sort,descending", [("date", False), ("date_desc", True)])
+def test_matches_sort_is_deterministic(api, api_url, sort, descending):
+    response = get_football(
+        api,
+        f"{api_url}/api/football/leagues/PL/matches?sort={sort}&page_size=100",
+    )
+
+    assert response.status_code == 200
+    keys = [(match["utcDate"], match["id"]) for match in response.json()["items"]]
+    assert keys == sorted(keys, reverse=descending)
+
+
+@allure.story("Pagination")
+@allure.severity(allure.severity_level.MINOR)
+@pytest.mark.parametrize(
+    "query",
+    [
+        "page=0",
+        "page=abc",
+        "page_size=0",
+        "page_size=101",
+        "sort=alpha",
+        "team_id=-1",
+        "status=UNKNOWN",
+    ],
+)
+def test_matches_reject_invalid_parameters(api, api_url, query):
+    response = api.get(
+        f"{api_url}/api/football/leagues/PL/matches?{query}", timeout=FOOTBALL_TIMEOUT
+    )
+
+    assert response.status_code == 422
 
 
 @allure.story("Équipe")
@@ -351,7 +454,7 @@ def test_press_rejects_invalid_parameters(api, api_url, query):
 def test_match_details_match_the_contract(api, api_url, schemas):
     calendar = get_football(api, f"{api_url}/api/football/leagues/PL/matches")
     assert calendar.status_code == 200
-    match = calendar.json()[0]
+    match = calendar.json()["items"][0]
 
     response = get_football(api, f"{api_url}/api/football/matches/{match['id']}")
 
