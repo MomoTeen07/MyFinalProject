@@ -6,7 +6,7 @@
 | Base | `main` figé par le tag `v1.0-campagne-v1` (`eabd40f`) |
 | Branche de développement | `app/v2` |
 | Objectif | Enrichir l'application support **sans invalider** la démarche QA déjà produite |
-| Dernière révision | 22/11/2026 — note de favori, rôle admin et profil écartés ; actualités ajoutées |
+| Dernière révision | 22/11/2026 — note de favori, rôle admin et profil écartés ; actualités (résultats + presse RMC) ajoutées |
 
 ## 1. Principes
 
@@ -70,14 +70,14 @@
 - **Valeur QA** : tri multi-critères, égalités, `null` vs `0`, bornes de `limit`,
   énumération de `sort`, état vide, cohérence UI ↔ API, liens joueur → équipe.
 
-### F3 — Actualités récentes au démarrage
+### F3 — Actualités au démarrage : résultats récents + presse
 
-- **Besoin** : afficher les résultats marquants des derniers jours sur la page
-  d'accueil, pour que l'application « vive » dès l'ouverture.
-- **Nature exacte** : **fil de résultats récents**, pas d'articles de presse.
-  Le plan gratuit du fournisseur ne fournit pas de contenu éditorial ; toute
-  autre solution (RSS, scraping) sortirait du budget 0 € et des conditions
-  d'utilisation. À assumer explicitement devant le jury.
+Deux blocs distincts sur la page d'accueil, avec des garanties différentes.
+
+#### F3a — Fil de résultats récents (socle, fiable)
+
+- **Besoin** : afficher les résultats marquants des derniers jours dès
+  l'ouverture de l'application.
 - **Source** : `GET /matches?dateFrom=...&dateTo=...` (endpoint global).
   **Constat du 22/11/2026** : 57 matchs sur 7 jours, dont **29 terminés** dans
   nos 6 championnats, en **un seul appel** fournisseur (contre 6 si on
@@ -100,12 +100,43 @@
   ANO-005 non corrigée).
 - **Mode simulé** : `MOCK_NEWS` déterministe, couvrant les trois branches de
   `headline`.
-- **UI** : section « Actualités récentes » sur la page d'accueil, 5 éléments,
-  compétition, heure relative (« il y a 2 h »), état vide explicite. Les liens
-  vers la fiche match arriveront avec F4.
 - **Valeur QA** : trois branches de formatage, bornes `days`/`limit`, état vide,
   ordre stable, fuseau horaire, indépendance vis-à-vis des compétitions non
   supportées, coût fournisseur (un seul appel).
+
+#### F3b — Bloc « Presse » (RMC Sport, dégradation gracieuse)
+
+- **Besoin** : donner un vrai effet « actualités » avec des titres éditoriaux
+  en français.
+- **Source** : flux RSS `https://rmcsport.bfmtv.com/rss/football/`
+  (HTTP 200, 30 items, vérifié le 22/11/2026). Aucune clé, budget 0 €.
+- **API** : `GET /api/football/press?limit=5` — `limit` : `1..10`, défaut `5`.
+  - Réponse : `{ available, source: { name, url }, fetchedAt, items: [
+    { title, link, publishedAt } ] }`.
+- **Règle d'or — jamais bloquant** : toute erreur (timeout 5 s, statut non-200,
+  XML invalide, zéro item) renvoie **`200`** avec `available: false` et
+  `items: []`. Aucune route de presse ne renvoie `5xx`. Le bloc disparaît
+  proprement côté interface.
+- **Traitement** : parsing `xml.etree.ElementTree` (bibliothèque standard, aucune
+  dépendance ajoutée), suppression des balises HTML, titre tronqué à 140
+  caractères, seuls `title`, `link` et `publishedAt` sont conservés.
+- **Cache** : 600 s par défaut (`PRESS_CACHE_TTL_SECONDS`), pour rester discret
+  vis-à-vis du site source.
+- **Configuration** : `PRESS_FEED_URL`, `PRESS_TIMEOUT_SECONDS` (5),
+  `PRESS_CACHE_TTL_SECONDS` (600). L'URL est surchargeable pour tester l'échec
+  sans réseau.
+- **Attribution et légalité** : le bloc affiche « Source : RMC Sport » et chaque
+  titre pointe vers l'article d'origine (`target="_blank"`,
+  `rel="noopener noreferrer"`). Aucun contenu intégral, aucune image, aucune
+  réécriture : uniquement titre + lien + date.
+- **UI** : bloc « Presse » sous le fil de résultats, masqué si
+  `available: false`. Aucun état d'erreur visible pour l'utilisateur.
+- **Valeur QA** : parsing XML, encodage, champs manquants, flux indisponible →
+  `200` + `available:false`, bornes de `limit`, cache, absence de fuite de HTML,
+  test négatif avec une URL injoignable (`http://127.0.0.1:9/`).
+- **Limite assumée** : le flux est un contrat non versionné. C'est pourquoi il
+  est isolé, caché, non bloquant, et que les tests d'interface restent
+  **tolérants** (bloc visible *ou* masqué, jamais d'échec).
 
 ### F4 — Page détail d'un match
 
@@ -126,8 +157,11 @@
 - **Profil et changement de mot de passe** — écarté le 22/11/2026 (non
   essentiel : la régression d'authentification reste couverte par les tests
   existants et ANO-004).
-- **Articles de presse / contenu éditorial** — hors budget et hors conditions
-  d'utilisation du fournisseur gratuit.
+- **Contenu éditorial complet** (corps d'article, images, réécriture) : le bloc
+  presse se limite à titre + lien + date, avec attribution explicite. Aucune
+  republication de contenu.
+- **Seconde source de presse** : un seul flux (RMC Sport). Pas d'agrégation
+  multi-sources, pas de repli automatique sur BBC.
 - Paiement, messagerie, notifications, temps réel.
 - Upload de fichiers, avatars, i18n, thème sombre, refonte graphique.
 - Modification de l'e-mail ou suppression de compte.
@@ -153,37 +187,49 @@ strictement identique à celle de la campagne V1.
 | GET | `/api/football/leagues/{code}/matches` | public | 200, 404, 422 |
 | GET | `/api/football/leagues/{code}/scorers` | public | 200, 404, 422 |
 | GET | `/api/football/news` | public | 200, 422, 502, 503 |
+| GET | `/api/football/press` | public | **200 uniquement** (`available: false` en cas d'échec) |
 | GET | `/api/football/matches/{id}` | public | 200, 404, 502 |
 
-On passe de 11 à **14 endpoints**.
+On passe de 11 à **15 endpoints**. La route `press` est la seule du projet à ne
+jamais renvoyer d'erreur : c'est un choix explicite pour qu'une source externe
+non contractuelle ne puisse pas casser l'accueil.
 
 ## 6. Impact QA (à prévoir dès la première PR)
 
 | Élément | Impact |
 |---|---|
 | `tests/pytest/tests/test_football.py` | contrat `matches` en enveloppe, pagination, filtres, buteurs (tri, égalités, `null` → `0`, bornes), actualités (3 branches, bornes, état vide) |
+| `tests/pytest/tests/test_press.py` | **nouveau fichier** : flux valide simulé, flux injoignable → `200` + `available:false`, XML invalide, flux vide, bornes de `limit`, nettoyage HTML, troncature |
 | `tests/pytest/tests/test_favorites.py` | **aucun changement** |
 | `tests/pytest/tests/test_auth.py` | **aucun changement** |
 | `tests/pytest/tests/test_security.py` | **aucun changement** |
-| Schémas JSON | `matches` (enveloppe), nouveaux `scorers` et `news` |
+| Schémas JSON | `matches` (enveloppe), nouveaux `scorers`, `news` et `press` |
 | Postman | 3 dossiers + assertions (objectif ≈ 55) |
-| Playwright | pagination/filtres, onglet buteurs, actualités à l'accueil, détail match |
-| `docs/TEST_CASES.md` | +12 à +15 cas manuels |
+| Playwright | pagination/filtres, onglet buteurs, actualités à l'accueil, détail match, bloc presse **tolérant** (visible *ou* masqué) |
+| `docs/TEST_CASES.md` | +15 à +18 cas manuels |
 | `docs/TRACEABILITY.md` | nouvelles exigences R-17 à R-20 |
 | Squash TM | nouvelles exigences et cas, campagne V2 |
 | `docs/CAMPAIGN_REPORT.md` | métriques V2, anomalies nouvelles |
 | `README.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md` | mis à jour à chaque PR |
+
+**Règle de non-régression CI** : aucun test automatisé ne doit dépendre de la
+disponibilité de RMC Sport. Les tests de la presse utilisent exclusivement un
+flux local simulé (fixture XML) ou une URL volontairement injoignable. En CI,
+seul le fil de résultats (football-data.org) reste une dépendance externe réelle.
 
 ## 7. Séquencement proposé
 
 1. **PR V2-0** : cette spécification (documentation seule).
 2. **PR V2-1** : F2 buteurs/passeurs — la moins risquée, aucune migration,
    immédiatement démontrable.
-3. **PR V2-2** : F3 actualités — visible dès l'accueil, un seul appel fournisseur.
-4. **PR V2-3** : F4 détail de match — active les liens depuis les actualités.
-5. **PR V2-4** : F1 pagination — seul changement cassant, traité quand le reste
+3. **PR V2-2** : F3a fil de résultats récents — visible dès l'accueil, un seul
+   appel fournisseur, aucun risque de rupture.
+4. **PR V2-3** : F3b bloc presse RMC — isolé, non bloquant, testé hors ligne.
+5. **PR V2-4** : F4 détail de match — active les liens depuis la liste et les
+   actualités.
+6. **PR V2-5** : F1 pagination — seul changement cassant, traité quand le reste
    est stable.
-6. **PR V2-5** : campagne V2 (traçabilité, Squash, rapport, démo).
+7. **PR V2-6** : campagne V2 (traçabilité, Squash, rapport, démo).
 
 Chaque PR : code + tests adaptés + docs + CI verte. Aucune PR ne casse `main`.
 
@@ -198,9 +244,33 @@ Chaque PR : code + tests adaptés + docs + CI verte. Aucune PR ne casse `main`.
 
 ## 9. Décisions à valider avant tout code
 
-1. **Périmètre** : les 4 fonctionnalités, ou 3 en reportant la pagination (F1) ?
-2. **Pagination** : accepter le changement cassant de contrat (enveloppe) ?
-3. **Ordre** : valider la séquence F2 → F3 → F4 → F1 ?
+1. **Périmètre** : les 4 fonctionnalités (F1, F2, F3a+F3b, F4), ou 3 en reportant
+   la pagination (F1) ?
+2. **Pagination** : accepter le changement cassant de contrat (enveloppe
+   `{items, total, page, page_size, total_pages}`) ?
+3. **Ordre** : valider la séquence F2 → F3a → F3b → F4 → F1 ?
 
-Les autres points sont tranchés : bascule Buts/Passes dans un seul onglet,
-`limit` à 10 pour les buteurs, fil d'actualités limité aux résultats récents.
+Déjà tranché : bascule Buts/Passes dans un seul onglet, `limit` à 10 pour les
+buteurs, actualités = résultats récents **+** bloc presse RMC avec dégradation
+gracieuse, aucune migration de base.
+
+## 10. Risques identifiés et parades
+
+| Risque | Impact | Parade retenue |
+|---|---|---|
+| Flux RSS RMC non contractuel (structure modifiable, accès révocable) | Bloc presse cassé silencieusement | Route toujours `200`, `available:false`, parsing tolérant, test avec flux local |
+| Quota football-data.org (10 req/min) | `502` transitoires (déjà observé, ANO-005) | Cache existant, un seul appel pour les actualités, pas d'appel supplémentaire par championnat |
+| Changement de contrat sur `matches` (enveloppe) | Tests et interface existants cassés | Traité en dernier (V2-5), tests adaptés dans la même PR |
+| Contenu éditorial tiers | Risque juridique | Titre + lien + date uniquement, attribution « Source : RMC Sport », aucune image |
+| Démo dépendante du réseau | Soutenance fragile | Mode simulé disponible (`MOCK_FOOTBALL_API=true`) et bloc presse masquable |
+
+## 11. Ce que la V2 apporte à la démarche QA (argumentaire soutenance)
+
+- Une **deuxième source externe** traitée avec une stratégie de dégradation
+  gracieuse : illustration concrète de la gestion du risque fournisseur.
+- Un **classement** (buteurs/passeurs) qui exerce tri multi-critères, égalités et
+  données manquantes (`null` → `0`) : cas limites réels, pas inventés.
+- Un **changement de contrat assumé et planifié** (pagination) : montre la
+  maîtrise de l'impact sur les tests existants.
+- Un **parcours E2E supplémentaire** (détail de match) sans corriger les
+  anomalies existantes, qui restent la matière des rapports d'anomalie.
