@@ -92,6 +92,7 @@ th { color: #d9b96e; font-family: Inter, sans-serif; font-size: 11px; letter-spa
 tbody tr:hover { background: rgba(182, 36, 31, .14); }
 .team { color: #f1dfba; font-weight: 700; }
 .team:hover { color: #e8be65; }
+.stat-active { color: #f6d98c; }
 
 .match { padding: 18px; }
 .match-meta { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 16px; color: #baa98c; font-size: 13px; }

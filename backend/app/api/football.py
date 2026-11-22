@@ -1,6 +1,14 @@
-from fastapi import APIRouter
+from typing import Literal
 
-from app.services.football_service import get_matches, get_standings, get_team, leagues
+from fastapi import APIRouter, Query
+
+from app.services.football_service import (
+    get_matches,
+    get_scorers,
+    get_standings,
+    get_team,
+    leagues,
+)
 
 router = APIRouter(prefix="/api/football", tags=["football"])
 
@@ -18,6 +26,15 @@ def standings(code: str):
 @router.get("/leagues/{code}/matches")
 def matches(code: str):
     return get_matches(code)
+
+
+@router.get("/leagues/{code}/scorers")
+def scorers(
+    code: str,
+    limit: int = Query(10, ge=1, le=50, description="Nombre de joueurs renvoyés"),
+    sort: Literal["goals", "assists"] = Query("goals", description="Critère de classement"),
+):
+    return get_scorers(code, limit=limit, sort=sort)
 
 
 @router.get("/leagues/{code}/teams/{team_id}")

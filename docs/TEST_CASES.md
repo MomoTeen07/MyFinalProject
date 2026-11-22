@@ -2,12 +2,12 @@
 
 | Élément | Valeur |
 |---|---|
-| Campagne | Campagne V1 — Football QA |
-| Date d'exécution | 13/11/2026 |
-| Environnement | Docker local, API `:8001`, UI `:5174`, mode simulé (campagne manuelle V1) |
-| Commit testé | `a0ea6e6` (`main`) |
+| Campagne | Campagne V1 (36 cas) + V2 en cours (4 cas buteurs) |
+| Date d'exécution | 13/11/2026 (V1) — 22/11/2026 (V2, buteurs) |
+| Environnement | Docker local, API `:8001`, UI `:5174`. V1 : mode simulé. V2 : données réelles |
+| Commit testé | V1 : `a0ea6e6` (`main`) — V2 : branche `app/v2` |
 | Exécutant | Mohamed Abdo |
-| Nombre de cas | 36 cas formels + 1 session exploratoire |
+| Nombre de cas | 40 cas formels (36 V1 + 4 V2) + 1 session exploratoire |
 
 Les cas sont conçus avec des techniques explicites : **partitions
 d'équivalence** (PE), **valeurs limites** (VL), **table de décision** (TD),
@@ -71,13 +71,28 @@ d'équivalence** (PE), **valeurs limites** (VL), **table de décision** (TD),
 | TC-SEC-09 | Schéma d'URL de l'écusson | PE (invalide) | `team_crest = "javascript:alert(1)"` | 422 : schéma non autorisé | **201**, valeur stockée telle quelle | **Anomalie ANO-002** |
 | TC-SEC-10 | Santé du service avec base arrêtée | — | `docker compose stop db`, puis `GET /health` et `POST /api/auth/register` | `/health` doit signaler l'indisponibilité | `/health` → 200 `{"status":"ok"}` ; inscription → 500 | **Anomalie ANO-003** |
 
-## 5. Session exploratoire
+## 5. V2 — Buteurs et passeurs
+
+Section ajoutée le 22/11/2026 pour la fonctionnalité F2 de la
+[`V2_SPEC.md`](V2_SPEC.md). Exécution sur **données réelles**
+(`MOCK_FOOTBALL_API=false`), Premier League.
+
+| ID | Titre | Technique | Étapes | Résultat attendu | Résultat obtenu | Statut |
+|---|---|---|---|---|---|---|
+| TC-SCOR-01 | Classement des buteurs | CT | Ouvrir `/championships/PL`, cliquer l'onglet « Buteurs » | 10 lignes, positions 1 à 10, buts strictement décroissants (à égalité : moins de matchs, puis nom) | 10 lignes ; Haaland 9 buts en tête ; égalités à 6 buts départagées par les matchs puis le nom | Passé (automatisé UI + API + Postman) |
+| TC-SCOR-02 | Bascule « Buts / Passes » | TD | Dans l'onglet « Buteurs », cliquer « Passes » | Le tableau est réordonné par passes décroissantes, la colonne active est signalée | Réordonné : Evanilson 4 passes, puis Groβ, Wirtz, McGinn (départage buts puis nom) | Passé (automatisé UI + API + Postman) |
+| TC-SCOR-03 | Bornes des paramètres | VL (0, 51) et PE (invalide) | `GET /api/football/leagues/PL/scorers` avec `limit=0`, `limit=51`, `limit=abc`, `sort=penalties` | 422 pour chacun | 422 pour les quatre | Passé (automatisé API + Postman) |
+| TC-SCOR-04 | Donnée absente et championnat inconnu | PE (invalide) | Observer un joueur sans passe fournie ; appeler `/leagues/XX/scorers` | `assists` exposé à `0` (jamais `null`) ; 404 pour `XX` | Haaland (9 buts, `assists: null` côté fournisseur) exposé à `0` ; 404 pour `XX` | Passé (automatisé API) |
+
+## 6. Session exploratoire
 
 | ID | Charte | Durée | Zones explorées | Constats |
 |---|---|---|---|---|
 | EX-01 | Explorer les états limites et les erreurs réseau sur les parcours championnat et favoris | 45 min | Navigation arrière après déconnexion, double clic sur « Ajouter aux favoris », coupure réseau simulée, URL directe `/teams/PL/abc`, collage d'un e-mail avec espaces, écusson invalide | Aucun crash ; les écrans d'erreur sont récupérables ; `team_name` trop long refusé ; **ANO-001**, **ANO-002**, **ANO-003** confirmées ; aucun défaut d'accessibilité bloquant (libellés et rôles présents) |
 
-## 6. Synthèse d'exécution
+## 7. Synthèse d'exécution
+
+### Campagne V1 (13/11/2026, mode simulé)
 
 | Domaine | Cas | Passés | Anomalies |
 |---|---|---|---|
@@ -87,6 +102,13 @@ d'équivalence** (PE), **valeurs limites** (VL), **table de décision** (TD),
 | Sécurité / robustesse | 10 | 6 | 4 (ANO-001, ANO-002, ANO-003, ANO-004) |
 | Exploratoire | 1 session | — | ANO-003 confirmée |
 | **Total** | **36** | **32 (88,9 %)** | **4 anomalies distinctes** |
+
+### V2 — buteurs (22/11/2026, données réelles)
+
+| Domaine | Cas | Passés | Anomalies |
+|---|---|---|---|
+| Buteurs / passeurs | 4 | 4 | 0 |
+| **Total V2 (fonctionnalité F2)** | **4** | **4 (100 %)** | **0** |
 
 Les cas marqués « automatisé » sont rejoués à chaque pipeline ; les autres sont
 rejoués manuellement à chaque campagne. Les anomalies ANO-001, ANO-002 et

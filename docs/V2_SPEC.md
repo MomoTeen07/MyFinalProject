@@ -2,7 +2,7 @@
 
 | Élément | Valeur |
 |---|---|
-| Statut | **Proposition à valider** — aucun code ne démarre avant accord |
+| Statut | **Validée le 22/11/2026.** F2 implémentée ; F3, F4 et F1 à venir |
 | Base | `main` figé par le tag `v1.0-campagne-v1` (`eabd40f`) |
 | Branche de développement | `app/v2` |
 | Objectif | Enrichir l'application support **sans invalider** la démarche QA déjà produite |
@@ -69,6 +69,8 @@
   par défaut : **10**. États chargement / erreur / vide réutilisés.
 - **Valeur QA** : tri multi-critères, égalités, `null` vs `0`, bornes de `limit`,
   énumération de `sort`, état vide, cohérence UI ↔ API, liens joueur → équipe.
+- **Statut : implémenté le 22/11/2026.** Vérifié en données réelles : 61 tests
+  API (+4 `xfail`), 52 assertions Postman, 20 tests UI, 4 tests backend.
 
 ### F3 — Actualités au démarrage : résultats récents + presse
 
@@ -242,13 +244,12 @@ Chaque PR : code + tests adaptés + docs + CI verte. Aucune PR ne casse `main`.
 - [ ] Aucun secret dans le diff, aucune régression sur les suites existantes
 - [ ] Anomalies existantes toujours reproductibles
 
-## 9. Décisions à valider avant tout code
+## 9. Décisions validées le 22/11/2026
 
-1. **Périmètre** : les 4 fonctionnalités (F1, F2, F3a+F3b, F4), ou 3 en reportant
-   la pagination (F1) ?
-2. **Pagination** : accepter le changement cassant de contrat (enveloppe
-   `{items, total, page, page_size, total_pages}`) ?
-3. **Ordre** : valider la séquence F2 → F3a → F3b → F4 → F1 ?
+1. **Périmètre** : les 4 fonctionnalités (F1, F2, F3a + F3b, F4).
+2. **Pagination** : changement cassant accepté — réponse en enveloppe
+   `{items, total, page, page_size, total_pages}`, tests adaptés dans la même PR.
+3. **Ordre** : F2 → F3a → F3b → F4 → F1.
 
 Déjà tranché : bascule Buts/Passes dans un seul onglet, `limit` à 10 pour les
 buteurs, actualités = résultats récents **+** bloc presse RMC avec dégradation

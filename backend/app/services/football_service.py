@@ -40,6 +40,81 @@ MOCK_TEAMS = {
     ],
     "CL": [(81, "FC Barcelona"), (86, "Real Madrid"), (64, "Liverpool"), (5, "Bayern München")],
 }
+# Jeu simulé des buteurs : couvre volontairement trois cas limites utilisés par
+# les tests — égalité de buts départagée par les matchs joués, égalité parfaite
+# départagée par le nom, et `assists` absent (None) qui doit devenir 0.
+def _scorer(player_id, name, team_id, team_name, goals, assists, penalties, played):
+    return {
+        "player": {"id": player_id, "name": name},
+        "team": {"id": team_id, "name": team_name},
+        "goals": goals,
+        "assists": assists,
+        "penalties": penalties,
+        "playedMatches": played,
+    }
+
+
+MOCK_SCORERS = {
+    "PL": [
+        _scorer(9001, "Erling Haaland", 65, "Manchester City", 9, None, 1, 11),
+        _scorer(9002, "Alexander Isak", 64, "Liverpool", 7, 2, 0, 10),
+        _scorer(9003, "Bukayo Saka", 57, "Arsenal", 6, 4, 1, 9),
+        _scorer(9004, "Thierno Barry", 61, "Chelsea", 6, 1, 0, 10),
+        _scorer(9005, "Cole Palmer", 61, "Chelsea", 5, 5, 2, 11),
+        _scorer(9006, "Kai Havertz", 57, "Arsenal", 4, None, 0, 8),
+    ],
+    "FL1": [
+        _scorer(9101, "Mason Greenwood", 522, "Olympique de Marseille", 8, 3, 1, 11),
+        _scorer(9102, "Ousmane Dembélé", 524, "Paris Saint-Germain", 7, None, 0, 9),
+        _scorer(9103, "Bradley Barcola", 524, "Paris Saint-Germain", 6, 4, 0, 10),
+        _scorer(9104, "Alexandre Lacazette", 516, "Olympique Lyonnais", 6, 2, 2, 11),
+        _scorer(9105, "Folarin Balogun", 548, "AS Monaco", 5, 1, 0, 8),
+        _scorer(9106, "Rayan Cherki", 516, "Olympique Lyonnais", 3, 6, 0, 10),
+    ],
+    "PD": [
+        _scorer(9201, "Kylian Mbappé", 86, "Real Madrid", 10, 2, 2, 11),
+        _scorer(9202, "Robert Lewandowski", 81, "Barcelona", 8, 1, 1, 9),
+        _scorer(9203, "Lamine Yamal", 81, "Barcelona", 6, 7, 0, 10),
+        _scorer(9204, "Antoine Griezmann", 78, "Atlético de Madrid", 6, 3, 2, 11),
+        _scorer(9205, "Vinícius Júnior", 86, "Real Madrid", 5, None, 0, 8),
+        _scorer(9206, "Álvaro Morata", 78, "Atlético de Madrid", 4, 2, 0, 10),
+    ],
+    "SA": [
+        _scorer(9301, "Lautaro Martínez", 108, "Inter Milan", 9, 2, 1, 10),
+        _scorer(9302, "Dušan Vlahović", 100, "Juventus", 7, None, 2, 9),
+        _scorer(9303, "Rafael Leão", 98, "AC Milan", 6, 4, 0, 11),
+        _scorer(9304, "Ademola Lookman", 102, "Atalanta", 6, 2, 0, 10),
+        _scorer(9305, "Marcus Thuram", 108, "Inter Milan", 5, 3, 0, 9),
+        _scorer(9306, "Christian Pulisic", 98, "AC Milan", 4, 5, 1, 11),
+    ],
+    "BL1": [
+        _scorer(9401, "Harry Kane", 5, "Bayern München", 12, 3, 2, 10),
+        _scorer(9402, "Serhou Guirassy", 4, "Borussia Dortmund", 8, 1, 1, 9),
+        _scorer(9403, "Florian Wirtz", 3, "Bayer Leverkusen", 6, 6, 0, 11),
+        _scorer(9404, "Jamal Musiala", 5, "Bayern München", 6, 4, 0, 9),
+        _scorer(9405, "Robert Glatzel", 18, "Hamburger SV", 5, None, 1, 10),
+        _scorer(9406, "Julian Brandt", 4, "Borussia Dortmund", 3, 5, 0, 11),
+    ],
+    "CL": [
+        _scorer(9501, "Erling Haaland", 5, "Bayern München", 5, None, 1, 4),
+        _scorer(9502, "Kylian Mbappé", 86, "Real Madrid", 5, 2, 0, 4),
+        _scorer(9503, "Raphinha", 81, "FC Barcelona", 4, 3, 0, 3),
+        _scorer(9504, "Mohamed Salah", 64, "Liverpool", 4, 1, 0, 4),
+        _scorer(9505, "Vinícius Júnior", 86, "Real Madrid", 3, 4, 0, 4),
+        _scorer(9506, "Robert Lewandowski", 81, "FC Barcelona", 2, None, 0, 4),
+    ],
+}
+
+MOCK_SCORER_SEASON = {
+    "startDate": "2026-08-01",
+    "endDate": "2027-05-31",
+    "currentMatchday": 12,
+}
+
+# Le fournisseur ne trie que par buts. Pour classer par passes sans rater un
+# passeur peu buteur, on récupère un vivier large puis on trie côté application.
+SCORER_CANDIDATE_LIMIT = 100
+
 _RESPONSE_CACHE: dict[str, tuple[float, object]] = {}
 _CACHE_LOCK = Lock()
 
@@ -170,3 +245,72 @@ def get_matches(code: str):
         ]
 
     return _fetch(f"/competitions/{code}/matches").get("matches", [])
+
+
+def _as_count(value) -> int:
+    """Normalise un compteur du fournisseur : ``None`` et valeurs non entières → 0."""
+    return value if isinstance(value, int) and not isinstance(value, bool) else 0
+
+
+def _normalise_scorer(entry: dict) -> dict:
+    player = entry.get("player") or {}
+    team = entry.get("team") or {}
+    return {
+        "player": {
+            "id": player.get("id"),
+            "name": player.get("name") or "Joueur inconnu",
+        },
+        "team": {
+            "id": team.get("id"),
+            "name": team.get("name") or "Équipe inconnue",
+            "crest": team.get("crest") or "",
+        },
+        "goals": _as_count(entry.get("goals")),
+        "assists": _as_count(entry.get("assists")),
+        "penalties": _as_count(entry.get("penalties")),
+        "playedMatches": _as_count(entry.get("playedMatches")),
+    }
+
+
+def _scorer_rank_key(scorer: dict, sort: str):
+    """Clé de tri déterministe : métrique, puis buts, puis matchs, puis nom."""
+    primary = scorer["goals"] if sort == "goals" else scorer["assists"]
+    return (
+        -primary,
+        -scorer["goals"],
+        scorer["playedMatches"],
+        scorer["player"]["name"].casefold(),
+    )
+
+
+def get_scorers(code: str, limit: int = 10, sort: str = "goals"):
+    if code not in LEAGUES:
+        raise HTTPException(status_code=404, detail="Championship not found")
+
+    if settings.mock_football_api:
+        raw_scorers = MOCK_SCORERS[code]
+        season = MOCK_SCORER_SEASON
+    else:
+        payload = _fetch(f"/competitions/{code}/scorers?limit={SCORER_CANDIDATE_LIMIT}")
+        raw_scorers = payload.get("scorers") or []
+        season = payload.get("season") or {}
+
+    ranked = sorted(
+        (_normalise_scorer(entry) for entry in raw_scorers),
+        key=lambda scorer: _scorer_rank_key(scorer, sort),
+    )[:limit]
+
+    items = [
+        {"position": index + 1, **scorer} for index, scorer in enumerate(ranked)
+    ]
+
+    return {
+        "competition": {"code": code, **LEAGUES[code]},
+        "season": {
+            "startDate": season.get("startDate"),
+            "endDate": season.get("endDate"),
+            "currentMatchday": season.get("currentMatchday"),
+        },
+        "sort": sort,
+        "items": items,
+    }

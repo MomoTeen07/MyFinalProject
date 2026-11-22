@@ -16,16 +16,17 @@ réel du dépôt et des environnements locaux, pas seulement l'intention.
 | Domaine | Livrable | État |
 |---|---|---|
 | Cadrage | `docs/TEST_PLAN.md` (périmètre, hypothèses, 10 risques, critères d'entrée/sortie, § 1.1 choix de l'application) | Terminé |
-| Cas manuels | `docs/TEST_CASES.md` (36 cas, techniques PE/VL/TD/EX, résultats) | Terminé, 32 conformes / 4 anomalies |
+| Cas manuels | `docs/TEST_CASES.md` (40 cas : 36 V1 + 4 V2, techniques PE/VL/TD/EX, résultats) | V1 : 32 conformes / 4 anomalies ; V2 : 4/4 |
 | Anomalies | `docs/ANOMALIES.md` (ANO-001 à ANO-004, reproduction, preuve, gravité, priorité) | Terminé, non corrigées volontairement |
-| Traçabilité | `docs/TRACEABILITY.md` (16 exigences, 36 cas, 11 endpoints) | Terminé, 36/36 cas tracés |
+| Traçabilité | `docs/TRACEABILITY.md` (17 exigences, 40 cas, 12 endpoints) | Terminé, 40/40 cas tracés |
 | Rapport | `docs/CAMPAIGN_REPORT.md` (métriques, risques résiduels, recommandations) | Terminé |
 | Soutenance | `docs/DEFENSE.md` (trame 25 min, 5 séquences de démo, questions/réponses) | Terminé, à répéter |
-| API | `tests/pytest/` (53 passed, 3 xfailed) + `postman/` (18 requêtes, 41 assertions) | Terminé, CI verte |
-| UI | `tests/playwright/` (6 page objects, 17 tests) | Terminé, CI verte |
+| API | `tests/pytest/` (61 passed, 4 xfailed) + `postman/` (22 requêtes, 52 assertions) | Terminé, CI verte |
+| UI | `tests/playwright/` (6 page objects, 20 tests) | Terminé, CI verte |
 | Backend | 4 tests unitaires | Terminé |
 | CI | `.github/workflows/ci.yml` (2 jobs, 4 artefacts, Allure agrégé) | Verte sur `main` |
 | Campagne | Squash TM 15.0.3 : `infra/squash/`, 16 exigences, 36 cas, 32 `SUCCESS` / 4 `FAILURE` | Terminé, vérifié par API |
+| **V2 — F2 buteurs/passeurs** | API `/scorers`, onglet « Buteurs », bascule Buts/Passes, 9 tests PyTest, 3 tests UI, 4 requêtes Postman | **Terminé sur `app/v2`, PR à ouvrir** |
 
 ## 2. Historique des PR (toutes fusionnées en squash)
 
@@ -64,6 +65,18 @@ La campagne Squash cible le commit `a0ea6e6` ; les PR #6 à #12 ne changent que
 de la documentation, sauf la #12 (une ligne de `docker-compose.yml`, sans effet
 sur les tests).
 
+### V2 en cours (branche `app/v2`, base = tag `v1.0-campagne-v1`)
+
+| Élément | État |
+|---|---|
+| Périmètre | 4 fonctionnalités, décidées le 22/11/2026 : F1 pagination, F2 buteurs/passeurs, F3 actualités (résultats + presse RMC), F4 détail de match |
+| Spec | `docs/V2_SPEC.md`, principe **additif** : ANO-001 à ANO-005 conservées |
+| F2 buteurs | **Implémentée et verte en local** (22/11/2026) : 61 tests API + 4 `xfail`, 52 assertions Postman, 20 tests UI, 4 tests backend |
+| Reste | F3, F4, F1, puis campagne V2 (traçabilité, Squash, rapport, démo) |
+
+Aucune migration de base n'est prévue pour les 4 fonctionnalités. Les tests ne
+sont jamais supprimés, seulement adaptés dans la PR qui change l'API.
+
 ## 3. Reprise en 5 minutes
 
 ```powershell
@@ -89,13 +102,13 @@ Push-Location backend
 ..\.venv-qa\Scripts\python.exe -m pytest tests -q
 Pop-Location
 
-# API : 53 passed, 3 xfailed
+# API : 61 passed, 4 xfailed
 .venv-qa\Scripts\python.exe -m pytest tests/pytest/tests -q --alluredir=allure-results-api
 
-# Postman : 41 assertions, 0 échec
+# Postman : 52 assertions, 0 échec
 npx --yes newman@6 run postman/Football-QA.postman_collection.json -e postman/Football-QA.postman_environment.json
 
-# UI : 17 passed
+# UI : 20 passed
 Push-Location tests\playwright
 npx playwright test
 Pop-Location

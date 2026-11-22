@@ -7,7 +7,7 @@ ligne de commande avec Newman.
 
 | Fichier | Rôle |
 |---|---|
-| `Football-QA.postman_collection.json` | 18 requêtes, 4 dossiers, 41 assertions |
+| `Football-QA.postman_collection.json` | 22 requêtes, 4 dossiers, 52 assertions |
 | `Football-QA.postman_environment.json` | Environnement local (`baseUrl = http://localhost:8001`) |
 
 ## Prérequis
@@ -45,7 +45,7 @@ npx --yes newman@6 run postman/Football-QA.postman_collection.json \
 | Dossier | Requêtes | Ce qui est vérifié |
 |---|---|---|
 | `01 - Authentification` | 5 | Inscription, doublon 409, connexion, refus 401 sans énumération de compte, profil courant |
-| `02 - Football` | 5 | Championnats (6), classement ordonné, calendrier, fiche équipe, championnat inconnu 404 |
+| `02 - Football` | 9 | Championnats (6), classement ordonné, calendrier, buteurs (enveloppe, positions, tri), passeurs (tri et départage), limite invalide 422, championnat inconnu 404, fiche équipe |
 | `03 - Favoris (scénario chaîné)` | 5 | Ajout, liste, doublon 409, suppression 204, suppression déjà effectuée 404 |
 | `04 - Sécurité` | 3 | Accès sans jeton, jeton malformé, jeton `alg: none` |
 
@@ -70,6 +70,9 @@ nettoyage préalable et n'utilise que des données de test.
 
 - Pas de collection de non-régression sur les données réelles
   (`FOOTBALL_API_TOKEN` absent en local).
+- Les assertions sur les buteurs portent sur des **invariants** (tri, bornes,
+  absence de `null`), pas sur des noms de joueurs : elles restent valables
+  quand la saison change.
 - Les contrôles de sécurité couvrent l'authentification et le cloisonnement ;
   ils ne remplacent pas la suite PyTest, qui teste en plus la falsification de
   signature et l'absence de limitation des tentatives (anomalie ANO-004).

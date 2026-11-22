@@ -61,6 +61,48 @@ test.describe('Championnats', () => {
     await expect(team.venue).not.toBeEmpty();
   });
 
+  test('l’onglet buteurs affiche le classement des buteurs', async ({ page, football }) => {
+    const championship = new ChampionshipPage(page);
+    await championship.goto('PL');
+
+    await championship.openScorers();
+
+    const expectedCount = Math.min(10, football.scorers.items.length);
+    await expect(championship.tableRows).toHaveCount(expectedCount);
+    const top = football.scorers.items[0];
+    await expect(championship.tableRows.first()).toContainText(top.player.name);
+    await expect(championship.tableRows.first()).toContainText(top.team.name);
+    await expect(championship.scorerColumn(4).first()).toHaveText(String(top.goals));
+    await expect(championship.scorerColumn(5).first()).toHaveText(String(top.assists));
+  });
+
+  test('la bascule Buts/Passes reclasse le tableau', async ({ page, football }) => {
+    const championship = new ChampionshipPage(page);
+    await championship.goto('PL');
+    await championship.openScorers();
+    await expect(championship.goalsToggle).toHaveAttribute('aria-pressed', 'true');
+
+    await championship.assistsToggle.click();
+
+    await expect(championship.assistsToggle).toHaveAttribute('aria-pressed', 'true');
+    const top = football.scorersByAssists.items[0];
+    await expect(championship.tableRows.first()).toContainText(top.player.name);
+    await expect(championship.scorerColumn(5).first()).toHaveText(String(top.assists));
+  });
+
+  test('un buteur mène à la fiche de son équipe', async ({ page, football }) => {
+    const championship = new ChampionshipPage(page);
+    const team = new TeamPage(page);
+    const expected = football.scorers.items[0].team;
+    await championship.goto('PL');
+    await championship.openScorers();
+
+    await championship.teamLink(expected.name).first().click();
+
+    await expect(page).toHaveURL(new RegExp(`/teams/PL/${expected.id}$`));
+    await expect(team.heading).toHaveText(expected.name);
+  });
+
   test('un championnat inconnu affiche une erreur récupérable', async ({ page }) => {
     const championship = new ChampionshipPage(page);
     await championship.goto('XX');

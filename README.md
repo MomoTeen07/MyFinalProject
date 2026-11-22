@@ -15,8 +15,8 @@ garantir un niveau de difficulté comparable entre stagiaires.
 
 | Critère de l’énoncé | Réponse de Football QA | Preuve dans le dépôt |
 |---|---|---|
-| Application web avec interface utilisateur | Frontend React/Vite servi par Nginx : connexion, inscription, championnats, classement, calendrier, fiche équipe, favoris | `frontend/src/pages/`, `tests/playwright/` |
-| API testable avec authentification | API REST FastAPI, 11 endpoints, jeton JWT `Bearer` sur les routes personnelles | `backend/app/api/`, `postman/` |
+| Application web avec interface utilisateur | Frontend React/Vite servi par Nginx : connexion, inscription, championnats, classement, calendrier, buteurs, fiche équipe, favoris | `frontend/src/pages/`, `tests/playwright/` |
+| API testable avec authentification | API REST FastAPI, 12 endpoints, jeton JWT `Bearer` sur les routes personnelles | `backend/app/api/`, `postman/` |
 | Persistance et règles métier | PostgreSQL 16 avec migrations Alembic : comptes, favoris uniques par utilisateur, cloisonnement des données | `backend/app/db/`, `docs/CONCEPTION.md` |
 | Exécutable localement | Docker Compose (3 conteneurs), mode de données simulé sans clé ni service payant | `docker-compose.yml`, section « Démarrage local » |
 | Complexité suffisante | Parcours visiteur et authentifié, états de chargement et d’erreur, données d’une API externe, pages dédiées (accueil, championnats, championnat, équipe, favoris, authentification) | `docs/TEST_PLAN.md` § 4 |
@@ -100,7 +100,7 @@ npx --yes newman@6 run postman/Football-QA.postman_collection.json \
   -e postman/Football-QA.postman_environment.json
 ```
 
-La collection est également importable dans Postman : dossier `postman/`, variable `baseUrl` à adapter. Elle couvre l’inscription, la connexion, la session, les contrats football, le parcours favori complet et quatre contrôles de sécurité (41 assertions). Le détail est documenté dans `postman/README.md`.
+La collection est également importable dans Postman : dossier `postman/`, variable `baseUrl` à adapter. Elle couvre l’inscription, la connexion, la session, les contrats football (dont le classement des buteurs et des passeurs), le parcours favori complet et quatre contrôles de sécurité (52 assertions). Le détail est documenté dans `postman/README.md`.
 
 Tests de contrat API, avec l'application démarrée par Docker :
 
@@ -135,9 +135,10 @@ tests/playwright/
 
 Chaque test crée son propre compte : aucun état partagé entre exécutions, donc
 la suite est rejouable sans nettoyage de base. Les scénarios couvrent
-l’authentification, les six championnats, le classement, le calendrier, la fiche
-équipe, le parcours critique des favoris (ajout → consultation → suppression) et
-le cloisonnement entre deux comptes.
+l’authentification, les six championnats, le classement, le calendrier, le
+classement des buteurs et des passeurs, la fiche équipe, le parcours critique
+des favoris (ajout → consultation → suppression) et le cloisonnement entre deux
+comptes.
 
 ### Rapports Allure
 
@@ -166,7 +167,7 @@ Le workflow `.github/workflows/ci.yml` s’exécute sur chaque push, pull reques
 | Document | Contenu |
 |---|---|
 | [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md) | Périmètre, hypothèses, analyse de risques (P × I), critères d’entrée et de sortie, organisation |
-| [`docs/TEST_CASES.md`](docs/TEST_CASES.md) | 36 cas manuels avec technique de conception, étapes, attendu, obtenu et statut |
+| [`docs/TEST_CASES.md`](docs/TEST_CASES.md) | 40 cas manuels (36 pour la campagne V1, 4 pour la V2) avec technique de conception, étapes, attendu, obtenu et statut |
 | [`docs/ANOMALIES.md`](docs/ANOMALIES.md) | Rapports ANO-001 à ANO-004 : contexte, reproduction, preuve, gravité, priorité, correction proposée |
 | [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md) | Matrice exigence → cas → exécution → anomalie et couverture des endpoints |
 | [`docs/CAMPAIGN_REPORT.md`](docs/CAMPAIGN_REPORT.md) | Métriques, bilan des anomalies, risques résiduels, recommandations |
@@ -179,6 +180,23 @@ Synthèse de la campagne V1 : **118 vérifications automatisées** (4 backend,
 manuels**, **5 anomalies** reproductibles, **11/11 endpoints** couverts,
 pipeline vert. Les suites automatisées ont été rejouées en **données réelles**
 le 21/11/2026 : 114 vérifications passent, 0 échec, 4 `xfail`.
+
+### V2 (en cours)
+
+La V2 ajoute des fonctionnalités sans corriger les anomalies de la V1
+(voir [`docs/V2_SPEC.md`](docs/V2_SPEC.md)). État au 22/11/2026 :
+
+| Élément | V1 | V2 |
+|---|---|---|
+| Endpoints | 11 | 12 (buteurs/passeurs) |
+| Tests backend | 4 | 4 |
+| Tests de contrat API | 52 passés + 4 `xfail` | 61 passés + 4 `xfail` |
+| Assertions Postman | 41 | 52 |
+| Tests UI Playwright | 17 | 20 |
+| Cas manuels | 36 | 40 |
+
+Vérifications rejouées le 22/11/2026 en **données réelles** : backend 4/4,
+API 61 passés + 4 `xfail`, Postman 52/52, Playwright 20/20.
 
 ## Gestion de campagne (Squash TM)
 
@@ -206,10 +224,11 @@ Le port et les identifiants PostgreSQL par défaut sont réservés au développe
 
 ## Données réelles (football-data.org)
 
-Par défaut, l’application utilise un jeu de données simulé
-(`MOCK_FOOTBALL_API=true`) : 6 championnats, 4 équipes par classement et
-3 matchs, sans clé ni quota. C’est le mode utilisé en CI et pour toute la
-campagne V1.
+Le **mode simulé** reste disponible (`MOCK_FOOTBALL_API=true`) : 6 championnats,
+4 équipes par classement, 3 matchs et un jeu de buteurs déterministe, sans clé
+ni quota. C’est le mode utilisé pour le développement hors ligne et pour les
+tests unitaires du backend. La campagne V1 a été exécutée dans ce mode ; depuis
+le 21/11/2026, la CI et les suites automatisées tournent en **données réelles**.
 
 Pour afficher les classements réels (20 équipes en Premier League, calendrier
 complet) :
@@ -282,7 +301,8 @@ erreur et l’interface affiche son écran d’erreur récupérable.
 
 Accueil → Connexion → Championnat → Classement → Équipe → Ajouter aux favoris → Mes favoris → Suppression → Vérification.
 
-- Un visiteur ne peut pas gérer de favoris.
+- Un visiteur consulte librement les classements, les matchs et le classement
+  des buteurs/passeurs ; il ne peut pas gérer de favoris.
 - Un utilisateur connecté peut enregistrer plusieurs équipes.
 - Une équipe ne peut être enregistrée qu’une fois par utilisateur.
 - Chaque utilisateur ne consulte que ses favoris.

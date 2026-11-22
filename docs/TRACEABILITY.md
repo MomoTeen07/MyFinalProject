@@ -2,11 +2,11 @@
 
 | Élément | Valeur |
 |---|---|
-| Campagne | Campagne V1 |
-| Version | commit `a0ea6e6` |
-| Date | 13/11/2026 |
+| Campagne | Campagne V1 + V2 (fonctionnalité F2) |
+| Version | V1 : commit `a0ea6e6` — V2 : branche `app/v2` |
+| Date | 13/11/2026 (V1) — 22/11/2026 (V2) |
 | Chaîne couverte | Exigence → cas de test → exécution → anomalie |
-| Couverture | 16 exigences / 16 couvertes (100 %) |
+| Couverture | 17 exigences / 17 couvertes (100 %) |
 
 Chaque exigence est reliée à au moins un cas manuel, à un test automatisé
 (PyTest, Playwright ou Postman) et, le cas échéant, à une anomalie. Les
@@ -30,6 +30,7 @@ identifiants de cas renvoient à `docs/TEST_CASES.md`, ceux des anomalies à
 | R-11 | Une même équipe ne peut pas être ajoutée deux fois | TC-FAV-02 | `test_favorites.py::test_the_same_team_cannot_be_added_twice`, Postman | — | Conforme |
 | R-12 | Les données d'un compte ne sont ni lisibles ni supprimables par un autre compte | TC-FAV-06 | `test_security.py`, `favorites.spec.js` (deux contextes) | — | Conforme |
 | R-13 | Les données favorites survivent à un rechargement et à un redémarrage | TC-FAV-07 | Vérification manuelle + volume PostgreSQL | — | Conforme |
+| R-17 | Un visiteur peut consulter le classement des buteurs et des passeurs d'un championnat, avec un ordre déterministe et des compteurs jamais nuls | TC-SCOR-01 à 04 | `test_football.py` (7 tests : contrat JSON Schema, tri, `null` → 0, bornes, 404), `championships.spec.js` (3 tests), Postman (4 requêtes) | — | Conforme |
 
 ## 2. Exigences non fonctionnelles
 
@@ -59,19 +60,20 @@ identifiants de cas renvoient à `docs/TEST_CASES.md`, ceux des anomalies à
 | `/api/football/leagues` | GET | TC-FOOT-01, TC-FOOT-05 | PyTest + Postman |
 | `/api/football/leagues/{code}/standings` | GET | TC-FOOT-02, 05 | PyTest + Playwright + Postman |
 | `/api/football/leagues/{code}/matches` | GET | TC-FOOT-03 | PyTest + Playwright + Postman |
+| `/api/football/leagues/{code}/scorers` | GET | TC-SCOR-01 à 04 | PyTest + Playwright + Postman |
 | `/api/football/leagues/{code}/teams/{id}` | GET | TC-FOOT-04, 06 | PyTest + Playwright + Postman |
 | `/api/favorites` | GET | TC-FAV-03, 06 | PyTest + Playwright + Postman |
 | `/api/favorites` | POST | TC-FAV-01, 02, 08 ; TC-SEC-06 à 09 | PyTest + Playwright + Postman |
 | `/api/favorites/{id}` | DELETE | TC-FAV-04, 05, 06 | PyTest + Playwright + Postman |
 
-**Couverture des endpoints : 11 / 11 (100 %).**
+**Couverture des endpoints : 12 / 12 (100 %).**
 
 ## 5. Couverture par niveau de test
 
 | Niveau | Tests | Exigences couvertes |
 |---|---|---|
 | Unitaire backend | 4 | R-02, R-14 (hachage et jetons) |
-| API PyTest | 53 (+3 xfail) | R-01, R-02, R-04 à R-15 |
-| Postman | 18 requêtes / 41 assertions | R-01, R-02, R-04 à R-14 |
-| UI Playwright | 17 | R-03 à R-13 |
-| Manuel | 36 cas | R-01 à R-16 |
+| API PyTest | 65 (61 passés + 4 `xfail`) | R-01, R-02, R-04 à R-15, R-17 |
+| Postman | 22 requêtes / 52 assertions | R-01, R-02, R-04 à R-14, R-17 |
+| UI Playwright | 20 | R-03 à R-13, R-17 |
+| Manuel | 40 cas | R-01 à R-17 |

@@ -6,6 +6,34 @@ versionnage sémantique.
 
 ## [Non publié]
 
+### Ajouté — V2, F2 : buteurs et passeurs (22/11/2026)
+
+- **API** : `GET /api/football/leagues/{code}/scorers?limit=10&sort=goals|assists`.
+  Réponse en enveloppe `{ competition, season, sort, items }`. `limit` borné à
+  `1..50` (défaut 10), `sort` limité à `goals`/`assists`, championnat inconnu →
+  `404`, paramètre invalide → `422`. Le classement applique quatre critères
+  déterministes : métrique décroissante, puis buts, puis matchs joués croissants,
+  puis nom du joueur. Le fournisseur ne sachant trier que par buts, un vivier de
+  100 joueurs est récupéré puis trié côté application.
+- **Normalisation** : `assists: null` renvoyé par le fournisseur (cas réel
+  Haaland, 9 buts) est exposé comme `0`, jamais `null`. Compteurs non entiers
+  ramenés à `0`.
+- **Interface** : troisième onglet « Buteurs » dans la page championnat, avec
+  bascule « Buts / Passes » (`aria-pressed`), tableau `#`, joueur, équipe (lien
+  vers la fiche), matchs, buts, passes, colonne active mise en évidence, états
+  chargement / erreur / vide et libellé de saison.
+- **Mode simulé** : jeu `MOCK_SCORERS` déterministe pour les 6 championnats,
+  couvrant égalités de buts, départage par matchs puis par nom, et `assists`
+  absent.
+- **Tests** : 9 tests PyTest (contrat JSON Schema, ordre déterministe,
+  `null` → 0, tri par passes, 4 paramètres invalides, 404), 3 tests Playwright,
+  4 requêtes Postman. Nouveau schéma `tests/pytest/schemas/scorers_schema.json`.
+  Validation locale du 22/11/2026 en données réelles : PyTest **61 passed +
+  4 xfailed**, Postman **52 assertions / 0 échec**, Playwright **20 passed**,
+  backend **4 passed**.
+- **Documentation** : `docs/V2_SPEC.md` (périmètre V2), `docs/TEST_CASES.md`
+  (TC-SCOR-01 à 04), `docs/TRACEABILITY.md` (R-17), `README.md`.
+
 ### Modifié
 
 - **Suites QA rejouées sur les données réelles** (21/11/2026) : la CI force

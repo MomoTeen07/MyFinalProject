@@ -56,14 +56,27 @@ export const test = base.extend({
     expect(matchesResponse.status(), await matchesResponse.text()).toBe(200);
     const matches = await matchesResponse.json();
 
+    const scorersResponse = await request.get('/api/football/leagues/PL/scorers?limit=10');
+    expect(scorersResponse.status(), await scorersResponse.text()).toBe(200);
+    const scorers = await scorersResponse.json();
+
+    const assistsResponse = await request.get(
+      '/api/football/leagues/PL/scorers?limit=10&sort=assists',
+    );
+    expect(assistsResponse.status(), await assistsResponse.text()).toBe(200);
+    const scorersByAssists = await assistsResponse.json();
+
     expect(standings.length, 'le classement réel de la Premier League est vide').toBeGreaterThan(0);
     expect(standings.length, 'au moins deux équipes sont nécessaires').toBeGreaterThan(1);
+    expect(scorers.items.length, 'le classement des buteurs est vide').toBeGreaterThan(0);
 
     await use({
       leagueName: leagues.find((league) => league.code === 'PL')?.name ?? 'PL',
       standings,
       teams: standings.map((row) => row.team),
       matches,
+      scorers,
+      scorersByAssists,
     });
   },
 });

@@ -255,6 +255,118 @@
           }
         },
         {
+          "name": "Buteurs Premier League",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Enveloppe complète', () => {",
+                  "  pm.expect(body.competition.code).to.eql('PL');",
+                  "  pm.expect(body.sort).to.eql('goals');",
+                  "  pm.expect(body.items).to.be.an('array').with.length.above(0);",
+                  "  pm.expect(body.items.length).to.be.at.most(10);",
+                  "});",
+                  "pm.test('Positions contiguës', () => {",
+                  "  const positions = body.items.map((item) => item.position);",
+                  "  pm.expect(positions).to.eql(body.items.map((_, index) => index + 1));",
+                  "});",
+                  "pm.test('Tri par buts décroissants', () => {",
+                  "  const goals = body.items.map((item) => item.goals);",
+                  "  pm.expect(goals).to.eql([...goals].sort((a, b) => b - a));",
+                  "});",
+                  "pm.test('Passes jamais nulles', () => {",
+                  "  body.items.forEach((item) => {",
+                  "    pm.expect(item.assists).to.be.a('number');",
+                  "    pm.expect(item.assists).to.be.at.least(0);",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/leagues/PL/scorers?limit=10", "host": ["{{baseUrl}}"], "path": ["api", "football", "leagues", "PL", "scorers"], "query": [{ "key": "limit", "value": "10" }] }
+          }
+        },
+        {
+          "name": "Passeurs Premier League",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Critère appliqué', () => pm.expect(body.sort).to.eql('assists'));",
+                  "pm.test('Tri par passes décroissantes', () => {",
+                  "  const assists = body.items.map((item) => item.assists);",
+                  "  pm.expect(assists).to.eql([...assists].sort((a, b) => b - a));",
+                  "});",
+                  "pm.test('Départage par buts puis par matchs', () => {",
+                  "  body.items.forEach((item, index) => {",
+                  "    if (index === 0) return;",
+                  "    const previous = body.items[index - 1];",
+                  "    if (previous.assists === item.assists && previous.goals === item.goals) {",
+                  "      pm.expect(previous.playedMatches).to.be.at.most(item.playedMatches);",
+                  "    }",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/leagues/PL/scorers?limit=10&sort=assists", "host": ["{{baseUrl}}"], "path": ["api", "football", "leagues", "PL", "scorers"], "query": [{ "key": "limit", "value": "10" }, { "key": "sort", "value": "assists" }] }
+          }
+        },
+        {
+          "name": "Buteurs - limite invalide (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/leagues/PL/scorers?limit=0", "host": ["{{baseUrl}}"], "path": ["api", "football", "leagues", "PL", "scorers"], "query": [{ "key": "limit", "value": "0" }] }
+          }
+        },
+        {
+          "name": "Buteurs - championnat inconnu (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/leagues/XX/scorers", "host": ["{{baseUrl}}"], "path": ["api", "football", "leagues", "XX", "scorers"] }
+          }
+        },
+        {
           "name": "Équipe Arsenal",
           "event": [
             {
