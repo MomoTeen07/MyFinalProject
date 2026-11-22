@@ -113,6 +113,15 @@ versionnage sémantique.
 
 ### Corrigé
 
+- **Double exécution de la CI sur les branches de travail** (22/11/2026) : la
+  clé `push` sans filtre déclenchait un pipeline en plus de celui de la pull
+  request. Deux backends interrogeaient alors le fournisseur en parallèle et
+  épuisaient le quota de 10 requêtes/minute (un `503` transitoire a fait échouer
+  une fiche équipe). Le workflow ne s'exécute plus sur les push de branches
+  (`branches: [main]`). Le test du lien « buteur → équipe » vérifie désormais la
+  cible du lien sans navigation, ce qui supprime un appel fournisseur inutile
+  et rend le test déterministe.
+
 - **`FOOTBALL_CACHE_TTL_SECONDS` ignoré par Compose** : la variable était
   documentée (README, `.env.example`) mais n'était pas transmise au conteneur
   backend, qui retombait sur sa valeur par défaut de 300 s. Elle est désormais

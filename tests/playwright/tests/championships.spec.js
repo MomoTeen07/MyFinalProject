@@ -90,17 +90,19 @@ test.describe('Championnats', () => {
     await expect(championship.scorerColumn(5).first()).toHaveText(String(top.assists));
   });
 
-  test('un buteur mène à la fiche de son équipe', async ({ page, football }) => {
+  test('le lien d’un buteur pointe vers la fiche de son équipe', async ({ page, football }) => {
     const championship = new ChampionshipPage(page);
-    const team = new TeamPage(page);
     const expected = football.scorers.items[0].team;
     await championship.goto('PL');
     await championship.openScorers();
 
-    await championship.teamLink(expected.name).first().click();
-
-    await expect(page).toHaveURL(new RegExp(`/teams/PL/${expected.id}$`));
-    await expect(team.heading).toHaveText(expected.name);
+    // On vérifie la cible du lien sans naviguer : la page équipe est déjà
+    // couverte par le test du classement, et chaque navigation supplémentaire
+    // consomme un appel au fournisseur (quota 10 req/min partagé en CI).
+    await expect(championship.teamLink(expected.name).first()).toHaveAttribute(
+      'href',
+      `/teams/PL/${expected.id}`,
+    );
   });
 
   test('un championnat inconnu affiche une erreur récupérable', async ({ page }) => {

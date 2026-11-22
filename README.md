@@ -160,7 +160,7 @@ En cas d’échec Playwright, `tests/playwright/test-results/` conserve la trace
 
 ## Intégration continue
 
-Le workflow `.github/workflows/ci.yml` s’exécute sur chaque push, pull request et lancement manuel. Il prépare une base PostgreSQL éphémère, lance les tests unitaires backend puis les suites API, Postman et UI, agrège les résultats Allure et publie quatre artefacts : `allure-report`, `playwright-report`, `postman-report` et, en cas d’échec, `playwright-test-results` (traces, captures, vidéos). Les identifiants configurés dans ce workflow sont réservés à cette base temporaire.
+Le workflow `.github/workflows/ci.yml` s’exécute sur chaque **pull request**, sur les push vers `main` et sur lancement manuel. Les push de branches de travail ne déclenchent volontairement **qu’une seule** exécution (celle de la PR) : deux pipelines simultanés épuiseraient le quota de 10 requêtes/minute du fournisseur. Il prépare une base PostgreSQL éphémère, lance les tests unitaires backend puis les suites API, Postman et UI, agrège les résultats Allure et publie quatre artefacts : `allure-report`, `playwright-report`, `postman-report` et, en cas d’échec, `playwright-test-results` (traces, captures, vidéos). Les identifiants configurés dans ce workflow sont réservés à cette base temporaire.
 
 ## Documentation QA
 
