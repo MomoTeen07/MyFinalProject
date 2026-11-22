@@ -192,6 +192,15 @@ details summary { margin-top: 10px; color: #e2bd69; cursor: pointer; }
 .fav > div { display: flex; align-items: center; }
 .fav button { color: #f2d38b; background: #3b281c; border-color: #775434; }
 
+/* Le tableau de bord des favoris est vertical : les règles .fav ci-dessus
+   ciblent la carte compacte de la V1 et écrasaient la mise en page. */
+.favorites-grid { grid-template-columns: 1fr; }
+.fav.fav-overview { display: block; }
+.fav.fav-overview > .fav-head { display: flex; }
+.fav.fav-overview > .fav-rank { display: flex; }
+.fav.fav-overview > .fav-block { display: block; }
+.fav-overview .match-row-main { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto; }
+
 .news { margin-top: 20px; }
 .news-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
 .news-head h2 { margin: 4px 0 0; }
