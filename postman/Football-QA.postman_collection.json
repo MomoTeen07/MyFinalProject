@@ -439,6 +439,65 @@
           }
         },
         {
+          "name": "Presse - titres RMC Sport",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK (source non bloquante)', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Contrat de la section presse', () => {",
+                  "  pm.expect(body.available).to.be.a('boolean');",
+                  "  pm.expect(body.source.name).to.eql('RMC Sport');",
+                  "  pm.expect(body.source.url).to.be.a('string').and.not.empty;",
+                  "  pm.expect(body.fetchedAt).to.be.a('string');",
+                  "  pm.expect(body.items).to.be.an('array');",
+                  "  pm.expect(body.items.length).to.be.at.most(5);",
+                  "});",
+                  "pm.test('Titres exploitables et attribuables', () => {",
+                  "  body.items.forEach((item) => {",
+                  "    pm.expect(item.title).to.be.a('string').and.not.empty;",
+                  "    pm.expect(item.title.length).to.be.at.most(140);",
+                  "    pm.expect(item.title).to.not.include('<');",
+                  "    pm.expect(item.link).to.match(/^https?:\\/\\//);",
+                  "  });",
+                  "});",
+                  "pm.test('Disponibilité cohérente', () => {",
+                  "  if (body.available) pm.expect(body.items.length).to.be.above(0);",
+                  "  else pm.expect(body.items.length).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/press?limit=5", "host": ["{{baseUrl}}"], "path": ["api", "football", "press"], "query": [{ "key": "limit", "value": "5" }] }
+          }
+        },
+        {
+          "name": "Presse - limite invalide (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/press?limit=11", "host": ["{{baseUrl}}"], "path": ["api", "football", "press"], "query": [{ "key": "limit", "value": "11" }] }
+          }
+        },
+        {
           "name": "Équipe Arsenal",
           "event": [
             {

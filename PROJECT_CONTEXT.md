@@ -16,18 +16,19 @@ réel du dépôt et des environnements locaux, pas seulement l'intention.
 | Domaine | Livrable | État |
 |---|---|---|
 | Cadrage | `docs/TEST_PLAN.md` (périmètre, hypothèses, 10 risques, critères d'entrée/sortie, § 1.1 choix de l'application) | Terminé |
-| Cas manuels | `docs/TEST_CASES.md` (44 cas : 36 V1 + 8 V2, techniques PE/VL/TD/EX, résultats) | V1 : 32 conformes / 4 anomalies ; V2 : 8/8 |
+| Cas manuels | `docs/TEST_CASES.md` (47 cas : 36 V1 + 11 V2, techniques PE/VL/TD/EX, résultats) | V1 : 32 conformes / 4 anomalies ; V2 : 11/11 |
 | Anomalies | `docs/ANOMALIES.md` (ANO-001 à ANO-004, reproduction, preuve, gravité, priorité) | Terminé, non corrigées volontairement |
-| Traçabilité | `docs/TRACEABILITY.md` (18 exigences, 44 cas, 13 endpoints) | Terminé, 44/44 cas tracés |
+| Traçabilité | `docs/TRACEABILITY.md` (19 exigences, 47 cas, 14 endpoints) | Terminé, 47/47 cas tracés |
 | Rapport | `docs/CAMPAIGN_REPORT.md` (métriques, risques résiduels, recommandations) | Terminé |
 | Soutenance | `docs/DEFENSE.md` (trame 25 min, 5 séquences de démo, questions/réponses) | Terminé, à répéter |
-| API | `tests/pytest/` (70 passed, 4 xfailed) + `postman/` (24 requêtes, 59 assertions) | Terminé, CI verte |
-| UI | `tests/playwright/` (6 page objects, 22 tests) | Terminé, CI verte |
-| Backend | 4 tests unitaires | Terminé |
+| API | `tests/pytest/` (75 passed, 4 xfailed) + `postman/` (26 requêtes, 64 assertions) | Terminé, CI verte |
+| UI | `tests/playwright/` (6 page objects, 23 tests) | Terminé, CI verte |
+| Backend | 10 tests unitaires (sécurité, presse) | Terminé |
 | CI | `.github/workflows/ci.yml` (2 jobs, 4 artefacts, Allure agrégé) | Verte sur `main` |
 | Campagne | Squash TM 15.0.3 : `infra/squash/`, 16 exigences, 36 cas, 32 `SUCCESS` / 4 `FAILURE` | Terminé, vérifié par API |
 | **V2 — F2 buteurs/passeurs** | API `/scorers`, onglet « Buteurs », bascule Buts/Passes, 9 tests PyTest, 3 tests UI, 4 requêtes Postman | **Terminé sur `app/v2`** |
 | **V2 — F3a actualités** | API `/news`, section « Résultats récents » à l'accueil, 6 tests PyTest, 2 tests UI, 2 requêtes Postman | **Terminé sur `app/v2`** |
+| **V2 — F3b presse** | API `/press` toujours `200`, section « À la une », 6 tests unitaires, 3 tests API, 1 test UI, 2 requêtes Postman | **Terminé sur `app/v2`** |
 
 ## 2. Historique des PR (toutes fusionnées en squash)
 
@@ -74,7 +75,8 @@ sur les tests).
 | Spec | `docs/V2_SPEC.md`, principe **additif** : ANO-001 à ANO-005 conservées |
 | F2 buteurs | **Implémentée et verte** (22/11/2026) : classement buts/passes, tri déterministe, `null` → 0 |
 | F3a actualités | **Implémentée et verte** (22/11/2026) : fil de résultats récents, 3 branches de titre, `days` borné à 10 |
-| Reste | F3b presse, F4 détail de match, F1 pagination, puis campagne V2 (traçabilité, Squash, rapport, démo) |
+| F3b presse | **Implémentée et verte** (22/11/2026) : flux RMC, route toujours `200`, cache 600 s, dégradation gracieuse |
+| Reste | F4 détail de match, F1 pagination, puis campagne V2 (traçabilité, Squash, rapport, démo) |
 
 Aucune migration de base n'est prévue pour les 4 fonctionnalités. Les tests ne
 sont jamais supprimés, seulement adaptés dans la PR qui change l'API.
@@ -99,18 +101,18 @@ Start-Process http://localhost:8090/squash
 Vérification des suites (résultats attendus) :
 
 ```powershell
-# Backend : 4 passed
+# Backend : 10 passed
 Push-Location backend
 ..\.venv-qa\Scripts\python.exe -m pytest tests -q
 Pop-Location
 
-# API : 70 passed, 4 xfailed
+# API : 75 passed, 4 xfailed
 .venv-qa\Scripts\python.exe -m pytest tests/pytest/tests -q --alluredir=allure-results-api
 
-# Postman : 59 assertions, 0 échec
+# Postman : 64 assertions, 0 échec
 npx --yes newman@6 run postman/Football-QA.postman_collection.json -e postman/Football-QA.postman_environment.json
 
-# UI : 22 passed
+# UI : 23 passed
 Push-Location tests\playwright
 npx playwright test
 Pop-Location

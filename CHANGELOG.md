@@ -6,6 +6,33 @@ versionnage sémantique.
 
 ## [Non publié]
 
+### Ajouté — V2, F3b : bloc presse RMC Sport (22/11/2026)
+
+- **API** : `GET /api/football/press?limit=5` (`limit` de 1 à 10). Réponse
+  `{ available, source, fetchedAt, items: [{ title, link, publishedAt }] }`.
+- **Règle d'or** : la route renvoie **toujours `200`**. Timeout, statut non-200,
+  XML invalide ou flux vide → `available: false` et `items: []`. Aucun `5xx` :
+  une source externe non contractuelle ne peut pas casser l'accueil.
+- **Traitement** : `xml.etree.ElementTree` (bibliothèque standard, aucune
+  dépendance ajoutée), suppression des balises HTML, normalisation des espaces,
+  titre tronqué à 140 caractères, seuls titre / lien / date conservés, liens non
+  HTTP écartés, date RFC 822 convertie en ISO 8601 UTC, tri du plus récent.
+- **Cache et configuration** : `PRESS_CACHE_TTL_SECONDS` (600 s),
+  `PRESS_FEED_URL`, `PRESS_TIMEOUT_SECONDS` (5 s), transmis par Compose et
+  documentés dans `.env.example`.
+- **Interface** : section « À la une » sous les résultats, attribution
+  « Source : RMC Sport », liens `target="_blank"` +
+  `rel="noopener noreferrer"`, masquée si le flux est indisponible.
+- **Tests** : 6 tests unitaires hors ligne (`backend/tests/test_press.py` :
+  parsing, timeout, XML invalide, HTTP 503, troncature, limite), 3 tests API,
+  1 test UI tolérant (bloc visible *ou* masqué), 2 requêtes Postman. Nouveau
+  schéma `tests/pytest/schemas/press_schema.json`.
+  Validation du 22/11/2026 en réel : flux disponible (30 titres, 5 exposés),
+  backend **10 passed**, API **75 passed + 4 xfailed**, Postman **64 assertions
+  / 0 échec**, Playwright **23 passed**.
+- **Documentation** : `docs/V2_SPEC.md`, `docs/TEST_CASES.md` (TC-PRESS-01 à 03),
+  `docs/TRACEABILITY.md` (R-19), `README.md`, `.env.example`.
+
 ### Ajouté — V2, F3a : actualités récentes (22/11/2026)
 
 - **API** : `GET /api/football/news?days=7&limit=10`. Réponse

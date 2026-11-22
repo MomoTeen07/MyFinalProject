@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     football_api_base_url: str = "https://api.football-data.org/v4"
     football_api_token: str = ""
     football_cache_ttl_seconds: int = Field(default=300, ge=0, le=3600)
+    press_feed_url: str = "https://rmcsport.bfmtv.com/rss/football/"
+    press_timeout_seconds: int = Field(default=5, ge=1, le=30)
+    press_cache_ttl_seconds: int = Field(default=600, ge=0, le=3600)
     cors_origins: str = "http://localhost:5174"
     mock_football_api: bool = False
     model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore")

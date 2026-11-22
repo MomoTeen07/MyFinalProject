@@ -19,6 +19,7 @@ export default function Home() {
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
+  const [press, setPress] = useState(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -39,7 +40,19 @@ export default function Home() {
     return () => controller.abort();
   }, [attempt]);
 
+  useEffect(() => {
+    // Bloc non bloquant : toute erreur masque simplement la section.
+    const controller = new AbortController();
+
+    api('/api/football/press?limit=5', { signal: controller.signal })
+      .then((payload) => setPress(payload))
+      .catch(() => setPress(null));
+
+    return () => controller.abort();
+  }, []);
+
   const items = news?.items || [];
+  const pressItems = press?.available ? press.items : [];
 
   return (
     <>
@@ -90,6 +103,36 @@ export default function Home() {
           </ul>
         )}
       </section>
+
+      {pressItems.length > 0 && (
+        <section className="press" aria-labelledby="press-title">
+          <div className="news-head">
+            <div>
+              <span className="eyebrow">PRESSE</span>
+              <h2 id="press-title">À la une</h2>
+            </div>
+            <span className="muted">Source : {press.source.name}</span>
+          </div>
+          <ul className="news-list">
+            {pressItems.map((item) => (
+              <li className="card news-item press-item" key={item.link}>
+                <a
+                  className="press-link"
+                  href={item.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {item.title}
+                  <span aria-hidden="true"> ↗</span>
+                </a>
+                {item.publishedAt && (
+                  <time dateTime={item.publishedAt}>{relativeTime(item.publishedAt)}</time>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </>
   );
 }

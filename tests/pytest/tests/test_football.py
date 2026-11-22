@@ -308,3 +308,39 @@ def test_news_rejects_invalid_parameters(api, api_url, query):
     response = api.get(f"{api_url}/api/football/news?{query}", timeout=FOOTBALL_TIMEOUT)
 
     assert response.status_code == 422
+
+
+@allure.story("Presse")
+@allure.severity(allure.severity_level.NORMAL)
+def test_press_always_returns_the_contract(api, api_url, schemas):
+    """Source non contractuelle : la route répond 200, disponible ou non."""
+    response = api.get(f"{api_url}/api/football/press?limit=5", timeout=FOOTBALL_TIMEOUT)
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    validate(payload, schemas["press"])
+    assert payload["source"]["name"] == "RMC Sport"
+    assert isinstance(payload["available"], bool)
+    assert len(payload["items"]) <= 5
+
+
+@allure.story("Presse")
+@allure.severity(allure.severity_level.NORMAL)
+def test_press_items_are_clean_and_attributable(api, api_url):
+    response = api.get(f"{api_url}/api/football/press?limit=10", timeout=FOOTBALL_TIMEOUT)
+
+    assert response.status_code == 200
+    payload = response.json()
+    for item in payload["items"]:
+        assert item["link"].startswith(("http://", "https://")), item
+        assert "<" not in item["title"], item
+        assert len(item["title"]) <= 140, item
+
+
+@allure.story("Presse")
+@allure.severity(allure.severity_level.MINOR)
+@pytest.mark.parametrize("query", ["limit=0", "limit=11", "limit=abc"])
+def test_press_rejects_invalid_parameters(api, api_url, query):
+    response = api.get(f"{api_url}/api/football/press?{query}", timeout=FOOTBALL_TIMEOUT)
+
+    assert response.status_code == 422

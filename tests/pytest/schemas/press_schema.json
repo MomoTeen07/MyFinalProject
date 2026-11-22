@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Bloc presse (source externe non contractuelle)",
+  "type": "object",
+  "required": ["available", "source", "fetchedAt", "items"],
+  "properties": {
+    "available": { "type": "boolean" },
+    "source": {
+      "type": "object",
+      "required": ["name", "url"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "minLength": 8 }
+      }
+    },
+    "fetchedAt": { "type": "string", "minLength": 10 },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "link", "publishedAt"],
+        "properties": {
+          "title": { "type": "string", "minLength": 1, "maxLength": 140 },
+          "link": { "type": "string", "pattern": "^https?://" },
+          "publishedAt": { "type": ["string", "null"] }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "available": { "const": true } },
+        "required": ["available"]
+      },
+      "then": {
+        "properties": { "items": { "minItems": 1 } }
+      }
+    }
+  ]
+}

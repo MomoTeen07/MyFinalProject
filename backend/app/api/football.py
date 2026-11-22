@@ -6,6 +6,7 @@ from app.services.football_service import (
     NEWS_MAX_DAYS,
     get_matches,
     get_news,
+    get_press,
     get_scorers,
     get_standings,
     get_team,
@@ -55,3 +56,9 @@ def news(
     limit: int = Query(10, ge=1, le=20, description="Nombre de résultats renvoyés"),
 ):
     return get_news(days=days, limit=limit)
+
+
+@router.get("/press")
+def press(limit: int = Query(5, ge=1, le=10, description="Nombre de titres renvoyés")):
+    """Titres de presse : renvoie toujours 200, `available: false` en cas d'échec."""
+    return get_press(limit=limit)

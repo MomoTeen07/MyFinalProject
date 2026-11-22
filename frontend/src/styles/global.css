@@ -138,6 +138,11 @@ tbody tr:hover { background: rgba(182, 36, 31, .14); }
 .news-meta { display: flex; align-items: center; gap: 12px; grid-column: 1 / -1; color: #baa98c; font-size: 12px; }
 .news-headline { margin: 6px 0 0; color: #f1dfba; font-size: 17px; }
 .news-score { color: #e2bd69; font-weight: 800; font-size: 18px; }
+.press { margin-top: 34px; }
+.press-item { grid-template-columns: 1fr auto; align-items: center; }
+.press-link { color: #f1dfba; font-size: 16px; }
+.press-link:hover { color: #e8be65; }
+.press-item time { color: #b9a98c; font-size: 12px; white-space: nowrap; }
 
 @media (max-width: 760px) {
   nav { display: grid; gap: 8px; padding: 12px 16px; }

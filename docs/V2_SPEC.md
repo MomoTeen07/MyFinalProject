@@ -143,6 +143,8 @@ Deux blocs distincts sur la page d'accueil, avec des garanties différentes.
 - **Limite assumée** : le flux est un contrat non versionné. C'est pourquoi il
   est isolé, caché, non bloquant, et que les tests d'interface restent
   **tolérants** (bloc visible *ou* masqué, jamais d'échec).
+- **Statut : implémenté le 22/11/2026** (branche `app/v2`). Vérifié en réel :
+  flux disponible, 30 titres, 5 exposés, attribution « Source : RMC Sport ».
 
 ### F4 — Page détail d'un match
 

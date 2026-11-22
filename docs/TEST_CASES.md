@@ -2,12 +2,12 @@
 
 | Élément | Valeur |
 |---|---|
-| Campagne | Campagne V1 (36 cas) + V2 en cours (4 cas buteurs + 4 cas actualités) |
-| Date d'exécution | 13/11/2026 (V1) — 22/11/2026 (V2, buteurs et actualités) |
+| Campagne | Campagne V1 (36 cas) + V2 en cours (4 buteurs + 4 actualités + 3 presse) |
+| Date d'exécution | 13/11/2026 (V1) — 22/11/2026 (V2) |
 | Environnement | Docker local, API `:8001`, UI `:5174`. V1 : mode simulé. V2 : données réelles |
 | Commit testé | V1 : `a0ea6e6` (`main`) — V2 : branche `app/v2` |
 | Exécutant | Mohamed Abdo |
-| Nombre de cas | 44 cas formels (36 V1 + 8 V2) + 1 session exploratoire |
+| Nombre de cas | 47 cas formels (36 V1 + 11 V2) + 1 session exploratoire |
 
 Les cas sont conçus avec des techniques explicites : **partitions
 d'équivalence** (PE), **valeurs limites** (VL), **table de décision** (TD),
@@ -96,13 +96,25 @@ Section ajoutée le 22/11/2026 pour la fonctionnalité F3a de la
 | TC-NEWS-03 | Bornes de la fenêtre | VL (0, 11) et PE (texte) | `GET /api/football/news` avec `days=0`, `days=11`, `limit=21`, `days=abc` | 422 pour chacun (le fournisseur refuse plus de 10 jours d'écart) | 422 pour les quatre | Passé (automatisé API + Postman) |
 | TC-NEWS-04 | Compétitions non supportées | PE (invalide) | Comparer la réponse du fournisseur (contient BSA, DED, ELC) et le fil renvoyé | Seuls PL, FL1, PD, SA, BL1 et CL sont exposés | Aucune compétition hors périmètre | Passé (automatisé API) |
 
-## 7. Session exploratoire
+## 7. V2 — Bloc presse
+
+Section ajoutée le 22/11/2026 pour la fonctionnalité F3b de la
+[`V2_SPEC.md`](V2_SPEC.md). Source externe **non contractuelle** : les cas
+vérifient la dégradation, pas la disponibilité du site source.
+
+| ID | Titre | Technique | Étapes | Résultat attendu | Résultat obtenu | Statut |
+|---|---|---|---|---|---|---|
+| TC-PRESS-01 | Bloc presse et attribution | CT | Ouvrir `/`, observer la section « À la une » | Titres en français, chacun lien vers l'article d'origine (`target="_blank"`, `rel="noopener noreferrer"`), mention « Source : RMC Sport » | Section affichée, 5 titres, liens et mention conformes | Passé (automatisé UI + API + Postman) |
+| TC-PRESS-02 | Dégradation gracieuse | PE (invalide) | Flux injoignable, XML invalide, flux vide (tests unitaires hors ligne) | `200` avec `available: false` et `items: []`, jamais `5xx` ; bloc masqué côté interface | `available: false`, aucun `5xx`, bloc absent | Passé (automatisé unitaire + UI) |
+| TC-PRESS-03 | Nettoyage et bornes | VL et PE | Titre contenant du HTML, titre de 300 caractères, `limit=0`, `limit=11` | Balises retirées, titre tronqué à 140 caractères, 422 hors bornes | Nettoyage et troncature conformes, 422 sur les deux bornes | Passé (automatisé unitaire + API) |
+
+## 8. Session exploratoire
 
 | ID | Charte | Durée | Zones explorées | Constats |
 |---|---|---|---|---|
 | EX-01 | Explorer les états limites et les erreurs réseau sur les parcours championnat et favoris | 45 min | Navigation arrière après déconnexion, double clic sur « Ajouter aux favoris », coupure réseau simulée, URL directe `/teams/PL/abc`, collage d'un e-mail avec espaces, écusson invalide | Aucun crash ; les écrans d'erreur sont récupérables ; `team_name` trop long refusé ; **ANO-001**, **ANO-002**, **ANO-003** confirmées ; aucun défaut d'accessibilité bloquant (libellés et rôles présents) |
 
-## 8. Synthèse d'exécution
+## 9. Synthèse d'exécution
 
 ### Campagne V1 (13/11/2026, mode simulé)
 
@@ -115,13 +127,14 @@ Section ajoutée le 22/11/2026 pour la fonctionnalité F3a de la
 | Exploratoire | 1 session | — | ANO-003 confirmée |
 | **Total** | **36** | **32 (88,9 %)** | **4 anomalies distinctes** |
 
-### V2 — buteurs et actualités (22/11/2026, données réelles)
+### V2 — buteurs, actualités et presse (22/11/2026, données réelles)
 
 | Domaine | Cas | Passés | Anomalies |
 |---|---|---|---|
 | Buteurs / passeurs | 4 | 4 | 0 |
 | Actualités récentes | 4 | 4 | 0 |
-| **Total V2 (F2 + F3a)** | **8** | **8 (100 %)** | **0** |
+| Bloc presse | 3 | 3 | 0 |
+| **Total V2 (F2 + F3)** | **11** | **11 (100 %)** | **0** |
 
 Les cas marqués « automatisé » sont rejoués à chaque pipeline ; les autres sont
 rejoués manuellement à chaque campagne. Les anomalies ANO-001, ANO-002 et

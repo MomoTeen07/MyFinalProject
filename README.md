@@ -15,8 +15,8 @@ garantir un niveau de difficulté comparable entre stagiaires.
 
 | Critère de l’énoncé | Réponse de Football QA | Preuve dans le dépôt |
 |---|---|---|
-| Application web avec interface utilisateur | Frontend React/Vite servi par Nginx : connexion, inscription, actualités, championnats, classement, calendrier, buteurs, fiche équipe, favoris | `frontend/src/pages/`, `tests/playwright/` |
-| API testable avec authentification | API REST FastAPI, 13 endpoints, jeton JWT `Bearer` sur les routes personnelles | `backend/app/api/`, `postman/` |
+| Application web avec interface utilisateur | Frontend React/Vite servi par Nginx : connexion, inscription, actualités et presse, championnats, classement, calendrier, buteurs, fiche équipe, favoris | `frontend/src/pages/`, `tests/playwright/` |
+| API testable avec authentification | API REST FastAPI, 14 endpoints, jeton JWT `Bearer` sur les routes personnelles | `backend/app/api/`, `postman/` |
 | Persistance et règles métier | PostgreSQL 16 avec migrations Alembic : comptes, favoris uniques par utilisateur, cloisonnement des données | `backend/app/db/`, `docs/CONCEPTION.md` |
 | Exécutable localement | Docker Compose (3 conteneurs), mode de données simulé sans clé ni service payant | `docker-compose.yml`, section « Démarrage local » |
 | Complexité suffisante | Parcours visiteur et authentifié, états de chargement et d’erreur, données d’une API externe, pages dédiées (accueil, championnats, championnat, équipe, favoris, authentification) | `docs/TEST_PLAN.md` § 4 |
@@ -100,7 +100,7 @@ npx --yes newman@6 run postman/Football-QA.postman_collection.json \
   -e postman/Football-QA.postman_environment.json
 ```
 
-La collection est également importable dans Postman : dossier `postman/`, variable `baseUrl` à adapter. Elle couvre l’inscription, la connexion, la session, les contrats football (classement des buteurs et des passeurs, actualités récentes), le parcours favori complet et quatre contrôles de sécurité (59 assertions). Le détail est documenté dans `postman/README.md`.
+La collection est également importable dans Postman : dossier `postman/`, variable `baseUrl` à adapter. Elle couvre l’inscription, la connexion, la session, les contrats football (buteurs et passeurs, actualités récentes, presse), le parcours favori complet et quatre contrôles de sécurité (64 assertions). Le détail est documenté dans `postman/README.md`.
 
 Tests de contrat API, avec l'application démarrée par Docker :
 
@@ -135,10 +135,10 @@ tests/playwright/
 
 Chaque test crée son propre compte : aucun état partagé entre exécutions, donc
 la suite est rejouable sans nettoyage de base. Les scénarios couvrent
-l’authentification, les actualités de l’accueil, les six championnats, le
-classement, le calendrier, le classement des buteurs et des passeurs, la fiche
-équipe, le parcours critique des favoris (ajout → consultation → suppression) et
-le cloisonnement entre deux comptes.
+l’authentification, les actualités et la presse de l’accueil, les six
+championnats, le classement, le calendrier, le classement des buteurs et des
+passeurs, la fiche équipe, le parcours critique des favoris
+(ajout → consultation → suppression) et le cloisonnement entre deux comptes.
 
 ### Rapports Allure
 
@@ -167,7 +167,7 @@ Le workflow `.github/workflows/ci.yml` s’exécute sur chaque push, pull reques
 | Document | Contenu |
 |---|---|
 | [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md) | Périmètre, hypothèses, analyse de risques (P × I), critères d’entrée et de sortie, organisation |
-| [`docs/TEST_CASES.md`](docs/TEST_CASES.md) | 44 cas manuels (36 pour la campagne V1, 8 pour la V2) avec technique de conception, étapes, attendu, obtenu et statut |
+| [`docs/TEST_CASES.md`](docs/TEST_CASES.md) | 47 cas manuels (36 pour la campagne V1, 11 pour la V2) avec technique de conception, étapes, attendu, obtenu et statut |
 | [`docs/ANOMALIES.md`](docs/ANOMALIES.md) | Rapports ANO-001 à ANO-004 : contexte, reproduction, preuve, gravité, priorité, correction proposée |
 | [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md) | Matrice exigence → cas → exécution → anomalie et couverture des endpoints |
 | [`docs/CAMPAIGN_REPORT.md`](docs/CAMPAIGN_REPORT.md) | Métriques, bilan des anomalies, risques résiduels, recommandations |
@@ -188,15 +188,15 @@ La V2 ajoute des fonctionnalités sans corriger les anomalies de la V1
 
 | Élément | V1 | V2 |
 |---|---|---|
-| Endpoints | 11 | 13 (buteurs/passeurs, actualités) |
-| Tests backend | 4 | 4 |
-| Tests de contrat API | 52 passés + 4 `xfail` | 70 passés + 4 `xfail` |
-| Assertions Postman | 41 | 59 |
-| Tests UI Playwright | 17 | 22 |
-| Cas manuels | 36 | 44 |
+| Endpoints | 11 | 14 (buteurs, actualités, presse) |
+| Tests backend | 4 | 10 |
+| Tests de contrat API | 52 passés + 4 `xfail` | 75 passés + 4 `xfail` |
+| Assertions Postman | 41 | 64 |
+| Tests UI Playwright | 17 | 23 |
+| Cas manuels | 36 | 47 |
 
-Vérifications rejouées le 22/11/2026 en **données réelles** : backend 4/4,
-API 70 passés + 4 `xfail`, Postman 59/59, Playwright 22/22.
+Vérifications rejouées le 22/11/2026 en **données réelles** : backend 10/10,
+API 75 passés + 4 `xfail`, Postman 64/64, Playwright 23/23.
 
 ## Gestion de campagne (Squash TM)
 
@@ -218,7 +218,9 @@ dans [`docs/SQUASH.md`](docs/SQUASH.md).
 
 ## Configuration
 
-Les ports, le bind local, les paramètres PostgreSQL, le secret JWT, les origines CORS, le cache football (`FOOTBALL_CACHE_TTL_SECONDS`) et le mode de données sont configurables dans `.env`. Le cache externe dure cinq minutes par défaut et peut être désactivé avec une valeur de `0`. Utilisez des caractères URI sûrs dans `POSTGRES_PASSWORD`, ou encodez les caractères réservés avant de les inclure dans l’URL PostgreSQL générée par Compose.
+Les ports, le bind local, les paramètres PostgreSQL, le secret JWT, les origines CORS, le cache football (`FOOTBALL_CACHE_TTL_SECONDS`) et le mode de données sont configurables dans `.env`. Le cache externe dure cinq minutes par défaut et peut être désactivé avec une valeur de `0`.
+
+Le bloc presse se règle séparément : `PRESS_FEED_URL` (flux RSS, RMC Sport par défaut), `PRESS_TIMEOUT_SECONDS` (5 s) et `PRESS_CACHE_TTL_SECONDS` (600 s). Une panne du flux masque la section sans jamais renvoyer d'erreur. Utilisez des caractères URI sûrs dans `POSTGRES_PASSWORD`, ou encodez les caractères réservés avant de les inclure dans l’URL PostgreSQL générée par Compose.
 
 Le port et les identifiants PostgreSQL par défaut sont réservés au développement local. Pour un déploiement, changez les secrets, limitez les origines CORS et utilisez un gestionnaire de secrets adapté à l’environnement.
 

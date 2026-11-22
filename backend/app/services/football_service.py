@@ -1,7 +1,10 @@
 from datetime import datetime, timedelta, timezone
 from copy import deepcopy
+from email.utils import parsedate_to_datetime
+import re
 from threading import Lock
 from time import monotonic
+import xml.etree.ElementTree as ET
 
 import httpx
 from fastapi import HTTPException
@@ -125,6 +128,14 @@ MOCK_NEWS = [
     ("FL1", 1, 3, 3, 0, 4),
     ("BL1", 0, 2, 0, 2, 5),
 ]
+
+PRESS_SOURCE_NAME = "RMC Sport"
+PRESS_MAX_TITLE = 140
+_HTML_TAG = re.compile(r"<[^>]+>")
+_WHITESPACE = re.compile(r"\s+")
+# (horodatage monotone, titres parsés, date de récupération ISO)
+_PRESS_CACHE: tuple[float, list[dict], str] | None = None
+_PRESS_LOCK = Lock()
 
 # Le fournisseur ne trie que par buts. Pour classer par passes sans rater un
 # passeur peu buteur, on récupère un vivier large puis on trie côté application.
@@ -423,4 +434,92 @@ def get_news(days: int = 7, limit: int = 10):
     return {
         "window": {"from": from_date.isoformat(), "to": today.isoformat(), "days": days},
         "items": items[:limit],
+    }
+
+
+def _clean_press_title(value) -> str:
+    """Retire les balises HTML, normalise les espaces et tronque le titre."""
+    if not value:
+        return ""
+    text = _HTML_TAG.sub(" ", value)
+    text = _WHITESPACE.sub(" ", text).strip()
+    return text[:PRESS_MAX_TITLE]
+
+
+def _press_published_at(value):
+    """Convertit une date RFC 822 en ISO 8601 UTC ; ``None`` si illisible."""
+    if not value:
+        return None
+    try:
+        parsed = parsedate_to_datetime(value)
+    except (TypeError, ValueError):
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _parse_press_feed(content: bytes) -> list[dict]:
+    """Parse un flux RSS et ne conserve que titre, lien et date."""
+    root = ET.fromstring(content)
+    channel = root.find("channel")
+    entries = channel.findall("item") if channel is not None else []
+    items = []
+    for entry in entries:
+        title = _clean_press_title(entry.findtext("title"))
+        link = (entry.findtext("link") or "").strip()
+        if not title or not link.startswith(("http://", "https://")):
+            continue
+        items.append(
+            {
+                "title": title,
+                "link": link,
+                "publishedAt": _press_published_at(entry.findtext("pubDate")),
+            }
+        )
+    items.sort(key=lambda item: item["publishedAt"] or "", reverse=True)
+    return items
+
+
+def _press_items():
+    """Récupère le flux presse avec cache. Toute erreur donne une liste vide."""
+    global _PRESS_CACHE
+
+    now = monotonic()
+    ttl = settings.press_cache_ttl_seconds
+    if ttl > 0:
+        with _PRESS_LOCK:
+            if _PRESS_CACHE and now - _PRESS_CACHE[0] < ttl:
+                return deepcopy(_PRESS_CACHE[1]), _PRESS_CACHE[2]
+
+    fetched_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    items: list[dict] = []
+    try:
+        response = httpx.get(
+            settings.press_feed_url,
+            timeout=settings.press_timeout_seconds,
+            follow_redirects=True,
+            headers={"User-Agent": "FootballQA/1.0 (+projet QA)"},
+        )
+        response.raise_for_status()
+        items = _parse_press_feed(response.content)
+    except Exception:  # source non contractuelle : jamais bloquante
+        items = []
+
+    if ttl > 0:
+        with _PRESS_LOCK:
+            _PRESS_CACHE = (monotonic(), deepcopy(items), fetched_at)
+
+    return items, fetched_at
+
+
+def get_press(limit: int = 5):
+    """Bloc presse : ne renvoie jamais d'erreur, même si le flux est indisponible."""
+    items, fetched_at = _press_items()
+    available = bool(items)
+    return {
+        "available": available,
+        "source": {"name": PRESS_SOURCE_NAME, "url": settings.press_feed_url},
+        "fetchedAt": fetched_at,
+        "items": items[:limit] if available else [],
     }
