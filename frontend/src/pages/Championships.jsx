@@ -37,7 +37,7 @@ export default function Championships() {
           {leagues.map((league) => (
             <Link className="card league" data-testid="championship-card" key={league.code} to={`/championships/${league.code}`}>
               <span className="league-icon" aria-hidden="true">🏆</span>
-              <div><h2>{league.name}</h2><p>{league.country}</p></div>
+              <div className="league-text"><h2>{league.name}</h2><p>{league.country}</p></div>
               <span aria-hidden="true">→</span>
             </Link>
           ))}

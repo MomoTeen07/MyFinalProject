@@ -118,6 +118,13 @@ MOCK_SCORER_SEASON = {
 # 10 jours d'écart (HTTP 400 vérifié le 22/11/2026 : 11 jours passent, 12
 # échouent). La borne applicative est fixée à 10 pour garder une marge.
 NEWS_MAX_DAYS = 10
+# Même contrainte pour toute fenêtre dateFrom/dateTo (prochains matchs, favoris).
+FIXTURES_MAX_DAYS = 10
+# Fenêtre du tableau de bord des favoris : les URL du fournisseur sont
+# volontairement identiques à celles de `/news` (7 jours) et `/fixtures` (10
+# jours) pour réutiliser le même cache et ne pas consommer de quota en plus.
+FAVORITES_LOOKBACK_DAYS = 7
+FAVORITES_LOOKAHEAD_DAYS = 10
 
 # Jeu simulé des actualités : couvre les trois branches de formulation
 # (victoire à domicile, victoire à l'extérieur, match nul).
@@ -224,6 +231,7 @@ def get_standings(code: str):
                 "draw": 2,
                 "lost": 1 + index,
                 "points": 23 - 2 * index,
+                "form": "WWDLW",
             }
             for index, (team_id, name) in enumerate(MOCK_TEAMS[code])
         ]
@@ -258,12 +266,12 @@ def get_team(code: str, team_id: int):
 # que pagination, filtres et tri restent démontrables hors ligne.
 # (décalage en jours, statut, index domicile, index extérieur, buts domicile, buts extérieur)
 MOCK_MATCH_FIXTURES = (
-    (-14, "FINISHED", 0, 1, 2, 1),
-    (-7, "FINISHED", 2, 3, 0, 0),
-    (7, "SCHEDULED", 1, 2, None, None),
-    (14, "TIMED", 3, 0, None, None),
-    (21, "SCHEDULED", 0, 2, None, None),
-    (28, "SCHEDULED", 1, 3, None, None),
+    (-7, "FINISHED", 0, 1, 2, 1),
+    (-3, "FINISHED", 2, 3, 0, 0),
+    (1, "SCHEDULED", 1, 2, None, None),
+    (2, "TIMED", 3, 0, None, None),
+    (3, "SCHEDULED", 0, 2, None, None),
+    (5, "SCHEDULED", 1, 3, None, None),
 )
 
 
@@ -331,6 +339,210 @@ def get_matches(
         "page": page,
         "page_size": page_size,
         "total_pages": total_pages,
+    }
+
+
+def _match_summary(match: dict, code: str | None = None) -> dict:
+    """Vue minimale et stable d'un match, quel que soit l'endpoint source."""
+    competition = match.get("competition") or {}
+    summary_code = competition.get("code") or code
+    score = (match.get("score") or {}).get("fullTime") or {}
+    home = match.get("homeTeam") or {}
+    away = match.get("awayTeam") or {}
+    return {
+        "id": match.get("id"),
+        "utcDate": match.get("utcDate"),
+        "status": match.get("status"),
+        "competition": {
+            "code": summary_code,
+            "name": LEAGUES.get(summary_code, {}).get("name")
+            or competition.get("name")
+            or "Compétition",
+        },
+        "homeTeam": {
+            "id": home.get("id"),
+            "name": home.get("name") or "Équipe inconnue",
+        },
+        "awayTeam": {
+            "id": away.get("id"),
+            "name": away.get("name") or "Équipe inconnue",
+        },
+        "score": {"home": score.get("home"), "away": score.get("away")},
+    }
+
+
+def get_fixtures(days: int = 3, limit: int = 4, team_id: int | None = None):
+    """Prochains matchs des 6 compétitions supportées, sur une fenêtre courte."""
+    today = datetime.now(timezone.utc).date()
+    to_date = today + timedelta(days=days - 1)
+
+    if settings.mock_football_api:
+        raw_matches = [
+            {**match, "competition": {"code": code}}
+            for code in LEAGUES
+            for match in _mock_matches(code)
+        ]
+    else:
+        payload = _fetch(
+            f"/matches?dateFrom={today.isoformat()}&dateTo={to_date.isoformat()}"
+        )
+        raw_matches = payload.get("matches") or []
+
+    items = []
+    for match in raw_matches:
+        if match.get("status") not in {"SCHEDULED", "TIMED"}:
+            continue
+        code = (match.get("competition") or {}).get("code")
+        if code not in LEAGUES:
+            continue
+        if team_id is not None and team_id not in (
+            (match.get("homeTeam") or {}).get("id"),
+            (match.get("awayTeam") or {}).get("id"),
+        ):
+            continue
+        match_date = _parse_match_date(match.get("utcDate"))
+        if match_date is None or not today <= match_date <= to_date:
+            continue
+        items.append(_match_summary(match, code))
+
+    items.sort(key=lambda item: (item.get("utcDate") or "", item.get("id") or 0))
+    return {
+        "window": {"from": today.isoformat(), "to": to_date.isoformat(), "days": days},
+        "items": items[:limit],
+    }
+
+
+def get_head_to_head(match_id: int, limit: int = 5):
+    """Confrontations directes autour d'un match. 404 local si le match est inconnu."""
+    if settings.mock_football_api:
+        if not any(match["id"] == match_id for match in _mock_matches("PL")):
+            raise HTTPException(status_code=404, detail="Match not found")
+        return {"match_id": match_id, "aggregates": None, "items": []}
+
+    payload = _fetch(
+        f"/matches/{match_id}/head2head?limit={limit}", missing_statuses=(400, 404)
+    )
+    items = [
+        _match_summary(match, (match.get("competition") or {}).get("code"))
+        for match in payload.get("matches") or []
+    ]
+    items.sort(
+        key=lambda item: (item.get("utcDate") or "", item.get("id") or 0), reverse=True
+    )
+    return {
+        "match_id": match_id,
+        "aggregates": payload.get("aggregates"),
+        "items": items,
+    }
+
+
+def get_favorites_overview(favorites: list[dict]):
+    """Tableau de bord des favoris : classement, derniers résultats, prochain match."""
+    today = datetime.now(timezone.utc).date()
+    past_from = today - timedelta(days=FAVORITES_LOOKBACK_DAYS - 1)
+    next_to = today + timedelta(days=FAVORITES_LOOKAHEAD_DAYS - 1)
+
+    if not favorites:
+        return {
+            "window": {"from": past_from.isoformat(), "to": next_to.isoformat()},
+            "items": [],
+        }
+
+    if settings.mock_football_api:
+        raw_matches = [
+            {**match, "competition": {"code": code}}
+            for code in LEAGUES
+            for match in _mock_matches(code)
+        ]
+    else:
+        raw_matches = []
+        # Mêmes fenêtres que /news et /fixtures : le cache est partagé.
+        for window_from, window_to in ((past_from, today), (today, next_to)):
+            try:
+                payload = _fetch(
+                    f"/matches?dateFrom={window_from.isoformat()}"
+                    f"&dateTo={window_to.isoformat()}"
+                )
+                raw_matches.extend(payload.get("matches") or [])
+            except HTTPException:
+                # Le tableau de bord reste utilisable même si le fournisseur
+                # limite le débit : les cartes s'affichent sans contexte sportif.
+                continue
+
+    matches_by_team: dict[int, list[dict]] = {}
+    for match in raw_matches:
+        code = (match.get("competition") or {}).get("code")
+        if code not in LEAGUES:
+            continue
+        summary = _match_summary(match, code)
+        for team in (summary["homeTeam"], summary["awayTeam"]):
+            team_id = team.get("id")
+            if team_id is not None:
+                matches_by_team.setdefault(team_id, []).append(summary)
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    standings_by_league: dict[str, list[dict]] = {}
+    items = []
+    for favorite in favorites:
+        code = favorite.get("league_code")
+        team_id = favorite.get("team_id")
+        matches = matches_by_team.get(team_id, [])
+        recent = sorted(
+            (
+                match
+                for match in matches
+                if match["status"] == "FINISHED"
+                and match["score"]["home"] is not None
+                and match["score"]["away"] is not None
+            ),
+            key=lambda match: (match.get("utcDate") or "", match.get("id") or 0),
+            reverse=True,
+        )[:3]
+        upcoming = sorted(
+            (
+                match
+                for match in matches
+                if match["status"] in {"SCHEDULED", "TIMED"}
+                and (match.get("utcDate") or "") >= now_iso
+            ),
+            key=lambda match: (match.get("utcDate") or "", match.get("id") or 0),
+        )
+
+        rank = None
+        if code in LEAGUES:
+            if code not in standings_by_league:
+                try:
+                    standings_by_league[code] = get_standings(code)
+                except HTTPException:
+                    standings_by_league[code] = []
+            row = next(
+                (
+                    entry
+                    for entry in standings_by_league[code]
+                    if (entry.get("team") or {}).get("id") == team_id
+                ),
+                None,
+            )
+            if row:
+                rank = {
+                    "position": row.get("position"),
+                    "points": row.get("points"),
+                    "playedGames": row.get("playedGames"),
+                    "form": row.get("form"),
+                }
+
+        items.append(
+            {
+                **favorite,
+                "rank": rank,
+                "recent": recent,
+                "next": upcoming[0] if upcoming else None,
+            }
+        )
+
+    return {
+        "window": {"from": past_from.isoformat(), "to": next_to.isoformat()},
+        "items": items,
     }
 
 
@@ -586,6 +798,21 @@ def get_press(limit: int = 5):
     }
 
 
+def _team_detail(team: dict) -> dict:
+    """Conserve les champs enrichis quand le plan fournisseur les expose."""
+    detail = {
+        "id": team.get("id"),
+        "name": team.get("name") or "Équipe inconnue",
+        "shortName": team.get("shortName"),
+        "tla": team.get("tla"),
+        "crest": team.get("crest") or "",
+    }
+    for key in ("coach", "formation", "lineup", "bench", "statistics"):
+        if key in team and team[key] is not None:
+            detail[key] = team[key]
+    return detail
+
+
 def get_match(match_id: int):
     """Détail d'un match. Un identifiant inconnu renvoie 404, jamais 502."""
     if settings.mock_football_api:
@@ -600,10 +827,24 @@ def get_match(match_id: int):
             "competition": {"code": "PL", "name": LEAGUES["PL"]["name"]},
             "utcDate": match["utcDate"],
             "status": match["status"],
+            "venue": "Football QA Stadium",
             "matchday": match["id"],
+            "stage": "REGULAR_SEASON",
+            "group": None,
             "homeTeam": {**match["homeTeam"], "crest": ""},
             "awayTeam": {**match["awayTeam"], "crest": ""},
-            "score": {"home": score.get("home"), "away": score.get("away")},
+            "score": {
+                "home": score.get("home"),
+                "away": score.get("away"),
+                "halfTime": {"home": None, "away": None},
+                "winner": None,
+                "duration": "REGULAR",
+            },
+            "goals": [],
+            "bookings": [],
+            "substitutions": [],
+            "penalties": [],
+            "referees": [],
         }
 
     # Le fournisseur répond 400 (ou 404) pour un identifiant inconnu : la
@@ -612,28 +853,43 @@ def get_match(match_id: int):
 
     competition = payload.get("competition") or {}
     code = competition.get("code")
-    score = (payload.get("score") or {}).get("fullTime") or {}
-    home_team = payload.get("homeTeam") or {}
-    away_team = payload.get("awayTeam") or {}
+    score_payload = payload.get("score") or {}
+    full_time = score_payload.get("fullTime") or {}
+    half_time = score_payload.get("halfTime") or {}
 
     return {
         "id": payload.get("id", match_id),
         "competition": {
             "code": code,
-            "name": LEAGUES.get(code, {}).get("name") or competition.get("name") or "Compétition",
+            "name": LEAGUES.get(code, {}).get("name")
+            or competition.get("name")
+            or "Compétition",
         },
         "utcDate": payload.get("utcDate"),
         "status": payload.get("status"),
+        "minute": payload.get("minute"),
+        "injuryTime": payload.get("injuryTime"),
+        "attendance": payload.get("attendance"),
+        "venue": payload.get("venue"),
         "matchday": payload.get("matchday"),
-        "homeTeam": {
-            "id": home_team.get("id"),
-            "name": home_team.get("name") or "Équipe inconnue",
-            "crest": home_team.get("crest") or "",
+        "stage": payload.get("stage"),
+        "group": payload.get("group"),
+        "lastUpdated": payload.get("lastUpdated"),
+        "homeTeam": _team_detail(payload.get("homeTeam") or {}),
+        "awayTeam": _team_detail(payload.get("awayTeam") or {}),
+        "score": {
+            "home": full_time.get("home"),
+            "away": full_time.get("away"),
+            "halfTime": {
+                "home": half_time.get("home"),
+                "away": half_time.get("away"),
+            },
+            "winner": score_payload.get("winner"),
+            "duration": score_payload.get("duration"),
         },
-        "awayTeam": {
-            "id": away_team.get("id"),
-            "name": away_team.get("name") or "Équipe inconnue",
-            "crest": away_team.get("crest") or "",
-        },
-        "score": {"home": score.get("home"), "away": score.get("away")},
+        "goals": payload.get("goals") or [],
+        "bookings": payload.get("bookings") or [],
+        "substitutions": payload.get("substitutions") or [],
+        "penalties": payload.get("penalties") or [],
+        "referees": payload.get("referees") or [],
     }

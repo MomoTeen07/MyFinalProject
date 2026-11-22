@@ -19,6 +19,16 @@ test.describe('Détail d’un match', () => {
     await expect(matchup).toContainText(match.awayTeam.name);
   });
 
+  test('le contexte du match est disponible', async ({ page, football }) => {
+    const match = football.matches[0];
+    await page.goto(`/matches/${match.id}`);
+
+    await expect(page.getByRole('heading', { name: 'Classement' })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Afficher les confrontations directes' }),
+    ).toBeVisible();
+  });
+
   test('un identifiant inconnu affiche une erreur récupérable', async ({ page }) => {
     await page.goto('/matches/999999999');
 

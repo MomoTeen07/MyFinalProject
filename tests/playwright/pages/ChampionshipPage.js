@@ -1,10 +1,10 @@
-/** Détail d'un championnat : classement, matchs et buteurs. */
+/** Détail d'un championnat : classement, matchs et statistiques. */
 export class ChampionshipPage {
   constructor(page) {
     this.page = page;
     this.standingsTab = page.getByRole('tab', { name: 'Classement' });
     this.matchesTab = page.getByRole('tab', { name: 'Matchs' });
-    this.scorersTab = page.getByRole('tab', { name: 'Buteurs' });
+    this.scorersTab = page.getByRole('tab', { name: 'Statistiques' });
     this.tableRows = page.locator('table tbody tr');
     this.matchCards = page.locator('article.match');
     this.errorAlert = page.getByRole('alert');

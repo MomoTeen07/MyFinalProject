@@ -61,7 +61,7 @@ test.describe('Championnats', () => {
     await expect(team.venue).not.toBeEmpty();
   });
 
-  test('l’onglet buteurs affiche le classement des buteurs', async ({ page, football }) => {
+  test('l’onglet statistiques affiche le classement des buteurs', async ({ page, football }) => {
     const championship = new ChampionshipPage(page);
     await championship.goto('PL');
 

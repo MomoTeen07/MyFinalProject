@@ -184,7 +184,7 @@ export default function Championship() {
       <div className="tabs" role="tablist" aria-label="Données du championnat">
         <button role="tab" aria-selected={tab === 'standings'} className={tab === 'standings' ? 'active' : ''} onClick={() => setTab('standings')}>Classement</button>
         <button role="tab" aria-selected={tab === 'matches'} className={tab === 'matches' ? 'active' : ''} onClick={() => setTab('matches')}>Matchs</button>
-        <button role="tab" aria-selected={tab === 'scorers'} className={tab === 'scorers' ? 'active' : ''} onClick={() => setTab('scorers')}>Buteurs</button>
+        <button role="tab" aria-selected={tab === 'scorers'} className={tab === 'scorers' ? 'active' : ''} onClick={() => setTab('scorers')}>Statistiques</button>
       </div>
       {status === 'loading' && <p className="notice" role="status">Chargement des données…</p>}
       {status === 'error' && <div className="error" role="alert">Impossible de charger les données : {error}</div>}
@@ -253,7 +253,7 @@ export default function Championship() {
       )}
       {status === 'success' && tab === 'scorers' && (
         <>
-          <div className="tabs" role="group" aria-label="Critère du classement des buteurs">
+          <div className="tabs" role="group" aria-label="Critère des statistiques">
             <button
               type="button"
               aria-pressed={scorerSort === 'goals'}
@@ -271,9 +271,9 @@ export default function Championship() {
               Passes
             </button>
           </div>
-          {scorerStatus === 'loading' && <p className="notice" role="status">Chargement des buteurs…</p>}
+          {scorerStatus === 'loading' && <p className="notice" role="status">Chargement des statistiques…</p>}
           {scorerStatus === 'error' && (
-            <div className="error" role="alert">Impossible de charger les buteurs : {scorerError}</div>
+            <div className="error" role="alert">Impossible de charger les statistiques : {scorerError}</div>
           )}
           {scorerStatus === 'success' && seasonLabel(scorers?.season) && (
             <p className="muted">{seasonLabel(scorers?.season)}</p>

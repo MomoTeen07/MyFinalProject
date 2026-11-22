@@ -263,6 +263,35 @@
           }
         },
         {
+          "name": "Prochains matchs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const payload = pm.response.json();",
+                  "pm.test('Fenêtre et enveloppe', () => {",
+                  "  pm.expect(payload.window.days).to.eql(10);",
+                  "  pm.expect(payload.items).to.be.an('array');",
+                  "});",
+                  "pm.test('Matchs à venir triés', () => {",
+                  "  const dates = payload.items.map((match) => match.utcDate);",
+                  "  pm.expect(dates).to.eql([...dates].sort());",
+                  "  payload.items.forEach((match) => pm.expect(['SCHEDULED', 'TIMED']).to.include(match.status));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/fixtures?days=10&limit=4", "host": ["{{baseUrl}}"], "path": ["api", "football", "fixtures"], "query": [{ "key": "days", "value": "10" }, { "key": "limit", "value": "4" }] }
+          }
+        },
+        {
           "name": "Buteurs Premier League",
           "event": [
             {
@@ -535,6 +564,30 @@
           }
         },
         {
+          "name": "Confrontations directes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const payload = pm.response.json();",
+                  "pm.test('Contrat des confrontations', () => {",
+                  "  pm.expect(String(payload.match_id)).to.eql(String(pm.collectionVariables.get('matchId')));",
+                  "  pm.expect(payload.items).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/matches/{{matchId}}/head2head?limit=3", "host": ["{{baseUrl}}"], "path": ["api", "football", "matches", "{{matchId}}", "head2head"], "query": [{ "key": "limit", "value": "3" }] }
+          }
+        },
+        {
           "name": "Match inconnu (404)",
           "event": [
             {
@@ -659,6 +712,33 @@
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": { "raw": "{{baseUrl}}/api/favorites", "host": ["{{baseUrl}}"], "path": ["api", "favorites"] }
+          }
+        },
+        {
+          "name": "Tableau de bord des favoris",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const payload = pm.response.json();",
+                  "pm.test('Contexte du favori', () => {",
+                  "  const item = payload.items.find((entry) => String(entry.team_id) === '57');",
+                  "  pm.expect(item).to.be.an('object');",
+                  "  pm.expect(item).to.have.property('rank');",
+                  "  pm.expect(item.recent).to.be.an('array');",
+                  "  pm.expect(item).to.have.property('next');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/favorites/overview", "host": ["{{baseUrl}}"], "path": ["api", "favorites", "overview"] }
           }
         },
         {

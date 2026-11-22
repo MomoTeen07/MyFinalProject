@@ -31,7 +31,9 @@ test.describe('Actualités', () => {
     await page.goto('/');
 
     const section = page.getByRole('region', { name: 'Résultats récents' });
-    const labels = await section.locator('li.news-item .eyebrow').allTextContents();
+    const items = section.locator('li.news-item');
+    await expect(items).toHaveCount(Math.min(5, news.items.length));
+    const labels = await items.locator('.eyebrow').allTextContents();
 
     expect(labels).toHaveLength(Math.min(5, news.items.length));
     for (const label of labels) {

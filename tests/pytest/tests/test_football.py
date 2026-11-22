@@ -465,6 +465,83 @@ def test_match_details_match_the_contract(api, api_url, schemas):
     assert payload["homeTeam"]["name"] == match["homeTeam"]["name"]
     assert payload["awayTeam"]["name"] == match["awayTeam"]["name"]
     assert payload["competition"]["code"] == "PL"
+    # Champs enrichis, optionnels côté fournisseur mais toujours exposés.
+    assert "venue" in payload
+    assert isinstance(payload["referees"], list)
+    assert isinstance(payload["goals"], list)
+    assert isinstance(payload["bookings"], list)
+
+
+@allure.story("Match")
+@allure.severity(allure.severity_level.NORMAL)
+def test_match_head_to_head_matches_the_contract(api, api_url):
+    calendar = get_football(api, f"{api_url}/api/football/leagues/PL/matches")
+    match = calendar.json()["items"][0]
+
+    response = get_football(
+        api, f"{api_url}/api/football/matches/{match['id']}/head2head?limit=3"
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["match_id"] == match["id"]
+    assert isinstance(payload["items"], list)
+    assert len(payload["items"]) <= 3
+
+
+@allure.story("Match")
+@allure.severity(allure.severity_level.NORMAL)
+def test_unknown_match_returns_404(api, api_url):
+    response = api.get(
+        f"{api_url}/api/football/matches/999999999/head2head", timeout=FOOTBALL_TIMEOUT
+    )
+
+    assert response.status_code == 404
+
+
+@allure.story("Match")
+@allure.severity(allure.severity_level.MINOR)
+@pytest.mark.parametrize(
+    "query",
+    ["limit=0", "limit=11"],
+)
+def test_head_to_head_rejects_invalid_limit(api, api_url, query):
+    calendar = get_football(api, f"{api_url}/api/football/leagues/PL/matches")
+    match = calendar.json()["items"][0]
+
+    response = api.get(
+        f"{api_url}/api/football/matches/{match['id']}/head2head?{query}",
+        timeout=FOOTBALL_TIMEOUT,
+    )
+
+    assert response.status_code == 422
+
+
+@allure.story("Actualités")
+@allure.severity(allure.severity_level.NORMAL)
+def test_upcoming_fixtures_match_the_contract(api, api_url):
+    response = get_football(api, f"{api_url}/api/football/fixtures?days=10&limit=5")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["window"]["days"] == 10
+    assert len(payload["items"]) <= 5
+    for match in payload["items"]:
+        assert match["status"] in {"SCHEDULED", "TIMED"}
+        assert match["competition"]["code"] in {"PL", "FL1", "PD", "SA", "BL1", "CL"}
+    dates = [match["utcDate"] for match in payload["items"]]
+    assert dates == sorted(dates)
+
+
+@allure.story("Actualités")
+@allure.severity(allure.severity_level.MINOR)
+@pytest.mark.parametrize("query", ["days=0", "days=11", "limit=0", "limit=21"])
+def test_upcoming_fixtures_reject_invalid_parameters(api, api_url, query):
+    response = api.get(
+        f"{api_url}/api/football/fixtures?{query}", timeout=FOOTBALL_TIMEOUT
+    )
+
+    assert response.status_code == 422
 
 
 @allure.story("Match")

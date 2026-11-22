@@ -6,6 +6,7 @@ from app.api.deps import current_user
 from app.db.database import get_db
 from app.db.models import Favorite, User
 from app.schemas.favorite import FavoriteCreate, FavoriteResponse
+from app.services.football_service import get_favorites_overview
 
 router = APIRouter(prefix="/api/favorites", tags=["favorites"])
 
@@ -17,6 +18,31 @@ def list_favorites(user: User = Depends(current_user), db: Session = Depends(get
         .filter(Favorite.user_id == user.id)
         .order_by(Favorite.created_at.desc())
         .all()
+    )
+
+
+@router.get("/overview")
+def favorites_overview(
+    user: User = Depends(current_user), db: Session = Depends(get_db)
+):
+    """Tableau de bord : classement, derniers résultats et prochain match."""
+    favorites = (
+        db.query(Favorite)
+        .filter(Favorite.user_id == user.id)
+        .order_by(Favorite.created_at.desc())
+        .all()
+    )
+    return get_favorites_overview(
+        [
+            {
+                "id": favorite.id,
+                "team_id": favorite.team_id,
+                "league_code": favorite.league_code,
+                "team_name": favorite.team_name,
+                "team_crest": favorite.team_crest,
+            }
+            for favorite in favorites
+        ]
     )
 
 

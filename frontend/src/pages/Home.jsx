@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
+import { formatShortDate } from '../components/MatchRow';
 
 const relativeFormatter = new Intl.RelativeTimeFormat('fr', { numeric: 'auto' });
 
@@ -20,6 +21,8 @@ export default function Home() {
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
   const [press, setPress] = useState(null);
+  const [fixtures, setFixtures] = useState([]);
+  const [fixturesStatus, setFixturesStatus] = useState('loading');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -51,6 +54,23 @@ export default function Home() {
     return () => controller.abort();
   }, []);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    setFixturesStatus('loading');
+
+    api('/api/football/fixtures?days=10&limit=4', { signal: controller.signal })
+      .then((payload) => {
+        setFixtures(Array.isArray(payload?.items) ? payload.items : []);
+        setFixturesStatus('success');
+      })
+      .catch((requestError) => {
+        if (requestError.name === 'AbortError') return;
+        setFixturesStatus('error');
+      });
+
+    return () => controller.abort();
+  }, []);
+
   const items = news?.items || [];
   const pressItems = press?.available ? press.items : [];
 
@@ -63,7 +83,34 @@ export default function Home() {
           <p>Consulte les grands championnats européens, les classements, les matchs et garde tes équipes favorites.</p>
           <Link className="primary" to="/championships">Explorer les championnats →</Link>
         </div>
-        <div className="hero-card"><div aria-hidden="true">⚽</div><h2>Football QA</h2><p>Une application pour découvrir les championnats, consulter les classements et enregistrer tes équipes préférées.</p></div>
+        <div className="hero-fixtures card" aria-labelledby="fixtures-title">
+          <div className="fixtures-head">
+            <span className="eyebrow">À VENIR</span>
+            <h2 id="fixtures-title">Prochains matchs</h2>
+          </div>
+          {fixturesStatus === 'loading' && <p className="muted">Chargement des prochains matchs…</p>}
+          {fixturesStatus === 'error' && <p className="muted">Prochains matchs indisponibles.</p>}
+          {fixturesStatus === 'success' && fixtures.length === 0 && (
+            <p className="muted">Aucun match programmé dans les 10 prochains jours.</p>
+          )}
+          {fixtures.length > 0 && (
+            <ul className="fixture-list">
+              {fixtures.map((fixture) => (
+                <li key={fixture.id}>
+                  <Link className="fixture-link" to={`/matches/${fixture.id}`}>
+                    <span className="fixture-top">
+                      <span className="eyebrow">{fixture.competition.code}</span>
+                      <time dateTime={fixture.utcDate || undefined}>{formatShortDate(fixture.utcDate)}</time>
+                    </span>
+                    <span className="fixture-teams">
+                      {fixture.homeTeam.name} <b>vs</b> {fixture.awayTeam.name}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </section>
 
       <section className="news" aria-labelledby="news-title">

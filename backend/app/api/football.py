@@ -3,7 +3,10 @@ from typing import Literal
 from fastapi import APIRouter, Query
 
 from app.services.football_service import (
+    FIXTURES_MAX_DAYS,
     NEWS_MAX_DAYS,
+    get_fixtures,
+    get_head_to_head,
     get_match,
     get_matches,
     get_news,
@@ -93,6 +96,30 @@ def press(limit: int = Query(5, ge=1, le=10, description="Nombre de titres renvo
     return get_press(limit=limit)
 
 
+@router.get("/fixtures")
+def fixtures(
+    days: int = Query(
+        3,
+        ge=1,
+        le=FIXTURES_MAX_DAYS,
+        description="Fenêtre en jours (maximum 10 chez le fournisseur)",
+    ),
+    limit: int = Query(4, ge=1, le=20, description="Nombre de matchs renvoyés"),
+    team_id: int | None = Query(
+        None, ge=0, description="Filtrer sur une équipe (domicile ou extérieur)"
+    ),
+):
+    return get_fixtures(days=days, limit=limit, team_id=team_id)
+
+
 @router.get("/matches/{match_id}")
 def match_details(match_id: int):
     return get_match(match_id)
+
+
+@router.get("/matches/{match_id}/head2head")
+def head_to_head(
+    match_id: int,
+    limit: int = Query(5, ge=1, le=10, description="Nombre de confrontations"),
+):
+    return get_head_to_head(match_id, limit=limit)
