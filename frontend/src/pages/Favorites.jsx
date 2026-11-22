@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
+import FormBadges, { formResults } from '../components/FormBadges';
 import MatchRow from '../components/MatchRow';
 import TeamCrest from '../components/TeamCrest';
 
@@ -78,7 +79,10 @@ export default function Favorites() {
                   <span className="standing-rank">#{favorite.rank.position}</span>
                   <span>{favorite.rank.points} pts</span>
                   <span>{favorite.rank.playedGames} J</span>
-                  {favorite.rank.form && <span className="muted">Forme : {favorite.rank.form}</span>}
+                  <FormBadges
+                    results={formResults(favorite.recent, favorite.team_id)}
+                    fallback={favorite.rank.form}
+                  />
                 </div>
               )}
 
@@ -100,7 +104,7 @@ export default function Favorites() {
                     <MatchRow match={favorite.next} showCompetition />
                   </ul>
                 ) : (
-                  <p className="muted">Aucun match prévu dans les 10 prochains jours.</p>
+                  <p className="muted">Aucun match programmé pour le moment.</p>
                 )}
               </div>
             </article>

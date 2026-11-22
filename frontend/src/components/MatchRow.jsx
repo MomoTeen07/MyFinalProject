@@ -26,7 +26,7 @@ export function formatShortDate(value) {
 
 /** Ligne compacte réutilisée par les favoris, la fiche équipe et le détail match. */
 export default function MatchRow({ match, showCompetition = false }) {
-  const score = match.score || {};
+  const score = match.score?.fullTime || match.score || {};
   const hasScore = score.home != null && score.away != null;
 
   return (

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client';
+import FormBadges, { formResults } from '../components/FormBadges';
 import MatchRow from '../components/MatchRow';
 import TeamCrest from '../components/TeamCrest';
 import { useAuth } from '../context/AuthContext';
@@ -149,7 +150,10 @@ export default function TeamDetails() {
                 <span className="standing-rank">#{overview.rank.position}</span>
                 <span>{overview.rank.points} pts</span>
                 <span>{overview.rank.playedGames} J</span>
-                {overview.rank.form && <span className="muted">Forme : {overview.rank.form}</span>}
+                <FormBadges
+                  results={formResults(overview.recent, team.id)}
+                  fallback={overview.rank.form}
+                />
               </div>
             ) : (
               <p className="muted">Aucun classement disponible.</p>

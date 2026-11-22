@@ -436,6 +436,31 @@ def get_head_to_head(match_id: int, limit: int = 5):
     }
 
 
+def _recent_and_next(matches: list[dict], now_iso: str):
+    """Sépare les derniers résultats et le prochain match d'une liste normalisée."""
+    recent = sorted(
+        (
+            match
+            for match in matches
+            if match["status"] == "FINISHED"
+            and match["score"]["home"] is not None
+            and match["score"]["away"] is not None
+        ),
+        key=lambda match: (match.get("utcDate") or "", match.get("id") or 0),
+        reverse=True,
+    )[:3]
+    upcoming = sorted(
+        (
+            match
+            for match in matches
+            if match["status"] in {"SCHEDULED", "TIMED"}
+            and (match.get("utcDate") or "") >= now_iso
+        ),
+        key=lambda match: (match.get("utcDate") or "", match.get("id") or 0),
+    )
+    return recent, upcoming[0] if upcoming else None
+
+
 def get_favorites_overview(favorites: list[dict]):
     """Tableau de bord des favoris : classement, derniers résultats, prochain match."""
     today = datetime.now(timezone.utc).date()
@@ -456,7 +481,8 @@ def get_favorites_overview(favorites: list[dict]):
         ]
     else:
         raw_matches = []
-        # Mêmes fenêtres que /news et /fixtures : le cache est partagé.
+        # Fenêtres partagées avec /news et /fixtures : elles couvrent les matchs
+        # récents et proches, toutes compétitions confondues.
         for window_from, window_to in ((past_from, today), (today, next_to)):
             try:
                 payload = _fetch(
@@ -482,31 +508,41 @@ def get_favorites_overview(favorites: list[dict]):
 
     now_iso = datetime.now(timezone.utc).isoformat()
     standings_by_league: dict[str, list[dict]] = {}
+    fallback_matches: dict[str, list[dict]] = {}
     items = []
     for favorite in favorites:
         code = favorite.get("league_code")
         team_id = favorite.get("team_id")
         matches = matches_by_team.get(team_id, [])
-        recent = sorted(
-            (
-                match
+        recent, next_match = _recent_and_next(matches, now_iso)
+
+        # La fenêtre courte peut manquer de résultats ou de matchs lointains :
+        # le calendrier complet du championnat complète alors l'information.
+        if code in LEAGUES and (len(recent) < 3 or next_match is None):
+            if code not in fallback_matches:
+                if settings.mock_football_api:
+                    fallback_matches[code] = _mock_matches(code)
+                else:
+                    try:
+                        payload = _fetch(f"/competitions/{code}/matches")
+                        fallback_matches[code] = payload.get("matches") or []
+                    except HTTPException:
+                        fallback_matches[code] = []
+            merged = {
+                match["id"]: match
                 for match in matches
-                if match["status"] == "FINISHED"
-                and match["score"]["home"] is not None
-                and match["score"]["away"] is not None
-            ),
-            key=lambda match: (match.get("utcDate") or "", match.get("id") or 0),
-            reverse=True,
-        )[:3]
-        upcoming = sorted(
-            (
-                match
-                for match in matches
-                if match["status"] in {"SCHEDULED", "TIMED"}
-                and (match.get("utcDate") or "") >= now_iso
-            ),
-            key=lambda match: (match.get("utcDate") or "", match.get("id") or 0),
-        )
+                + [
+                    _match_summary(match, code)
+                    for match in fallback_matches[code]
+                    if team_id
+                    in (
+                        (match.get("homeTeam") or {}).get("id"),
+                        (match.get("awayTeam") or {}).get("id"),
+                    )
+                ]
+                if match["id"] is not None
+            }
+            recent, next_match = _recent_and_next(list(merged.values()), now_iso)
 
         rank = None
         if code in LEAGUES:
@@ -536,7 +572,7 @@ def get_favorites_overview(favorites: list[dict]):
                 **favorite,
                 "rank": rank,
                 "recent": recent,
-                "next": upcoming[0] if upcoming else None,
+                "next": next_match,
             }
         )
 

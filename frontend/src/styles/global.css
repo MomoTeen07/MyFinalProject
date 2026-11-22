@@ -148,6 +148,7 @@ details summary { margin-top: 10px; color: #e2bd69; cursor: pointer; }
 .standing-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(12, 9, 7, .42); border: 1px solid rgba(185, 148, 81, .22); border-radius: 4px; font-size: 14px; }
 .standing-rank { color: #e2bd69; font-weight: 800; }
 .form-badges { display: inline-flex; gap: 3px; }
+.form-line { display: inline-flex; align-items: center; gap: 8px; }
 .form-badge { display: grid; width: 20px; height: 20px; place-items: center; border-radius: 3px; font-size: 11px; font-weight: 800; }
 .form-w { color: #1a1109; background: #7fbf6a; }
 .form-d { color: #1a1109; background: #d9b465; }
@@ -163,6 +164,8 @@ details summary { margin-top: 10px; color: #e2bd69; cursor: pointer; }
 .fav-block { margin-top: 16px; }
 .fav-block h3 { margin: 0 0 8px; color: #e8c97f; font-size: 15px; }
 .overview-toggle { margin-top: 16px; }
+.h2h-summary { margin: 0 0 8px; color: #e2bd69; font-weight: 700; }
+.h2h-balance { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0 0 14px; color: #c3b198; font-size: 13px; }
 .team-header { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; padding: 30px; }
 .team-header h1 { margin: 3px 0; }
 .team-header p { margin: 0; color: #c3b198; }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client';
+import FormBadges, { formResults } from '../components/FormBadges';
 import MatchRow from '../components/MatchRow';
 
 const matchStatuses = {
@@ -65,23 +66,34 @@ function formatMinute(event) {
   return event.injuryTime ? `${event.minute}+${event.injuryTime}'` : `${event.minute}'`;
 }
 
-function formBadges(form) {
-  if (!form) return null;
-  return (
-    <span className="form-badges">
-      {form.split('').map((result, index) => (
-        <span key={`${result}-${index}`} className={`form-badge form-${result.toLowerCase()}`}>{result}</span>
-      ))}
-    </span>
-  );
-}
-
 function sortRecent(matches) {
   return [...matches].sort((a, b) => {
     const left = `${a.utcDate || ''}-${a.id || 0}`;
     const right = `${b.utcDate || ''}-${b.id || 0}`;
     return right.localeCompare(left);
   });
+}
+
+function headToHeadBalance(items, homeTeam, awayTeam) {
+  const balance = { matches: items.length, goals: 0, homeWins: 0, draws: 0, awayWins: 0 };
+  if (!homeTeam?.id || !awayTeam?.id) return balance;
+
+  items.forEach((match) => {
+    const homeGoals = match.score?.fullTime?.home ?? match.score?.home;
+    const awayGoals = match.score?.fullTime?.away ?? match.score?.away;
+    if (homeGoals == null || awayGoals == null) return;
+
+    balance.goals += homeGoals + awayGoals;
+    const currentHomeWasHome = match.homeTeam?.id === homeTeam.id;
+    const currentHomeGoals = currentHomeWasHome ? homeGoals : awayGoals;
+    const currentAwayGoals = currentHomeWasHome ? awayGoals : homeGoals;
+
+    if (currentHomeGoals > currentAwayGoals) balance.homeWins += 1;
+    else if (currentHomeGoals < currentAwayGoals) balance.awayWins += 1;
+    else balance.draws += 1;
+  });
+
+  return balance;
 }
 
 export default function MatchDetails() {
@@ -191,6 +203,7 @@ export default function MatchDetails() {
   const homeStats = match?.homeTeam?.statistics;
   const awayStats = match?.awayTeam?.statistics;
   const hasLineups = (match?.homeTeam?.lineup?.length || 0) > 0 || (match?.awayTeam?.lineup?.length || 0) > 0;
+  const h2hBalance = headToHeadBalance(h2h, match?.homeTeam, match?.awayTeam);
 
   return (
     <section>
@@ -365,7 +378,14 @@ export default function MatchDetails() {
                         <span>{team.name}</span>
                         <span>{row.points} pts</span>
                         <span>{row.playedGames} J</span>
-                        {formBadges(row.form)}
+                        <FormBadges
+                          results={formResults(
+                            index === 0 ? context.homeRecent : context.awayRecent,
+                            team.id,
+                          )}
+                          fallback={row.form}
+                          label=""
+                        />
                       </div>
                     ) : (
                       <p className="muted" key={team.id || team.name}>Classement indisponible pour {team.name}.</p>
@@ -393,9 +413,20 @@ export default function MatchDetails() {
                 <p className="muted">Aucune confrontation récente disponible.</p>
               )}
               {h2h.length > 0 && (
-                <ul className="match-list">
-                  {h2h.map((item) => <MatchRow key={item.id} match={item} showCompetition />)}
-                </ul>
+                <>
+                  <p className="h2h-summary">
+                    {h2hBalance.matches} confrontation{h2hBalance.matches > 1 ? 's' : ''}
+                    {' · '}
+                    {h2hBalance.goals} but{h2hBalance.goals > 1 ? 's' : ''}
+                  </p>
+                  <p className="h2h-balance">
+                    <span>{match.homeTeam.name} : {h2hBalance.homeWins} V · {h2hBalance.draws} N · {h2hBalance.awayWins} D</span>
+                    <span>{match.awayTeam.name} : {h2hBalance.awayWins} V · {h2hBalance.draws} N · {h2hBalance.homeWins} D</span>
+                  </p>
+                  <ul className="match-list">
+                    {h2h.map((item) => <MatchRow key={item.id} match={item} showCompetition />)}
+                  </ul>
+                </>
               )}
             </section>
 
