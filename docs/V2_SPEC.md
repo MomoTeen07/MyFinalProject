@@ -156,6 +156,9 @@ Deux blocs distincts sur la page d'accueil, avec des garanties différentes.
   sans la corriger).
 - **Valeur QA** : parcours E2E supplémentaire, dépendance à une donnée externe
   non déterministe (oracle API).
+- **Statut : implémenté le 22/11/2026** (branche `app/v2`). Un identifiant
+  inconnu renvoie bien `404` : le fournisseur répond `400`, la nouvelle route le
+  traduit explicitement, tandis qu'ANO-005 reste ouverte sur `/teams`.
 
 ## 3. Hors périmètre (explicite)
 

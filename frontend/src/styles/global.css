@@ -101,6 +101,11 @@ tbody tr:hover { background: rgba(182, 36, 31, .14); }
 .fixture-team:first-child { text-align: right; }
 .fixture-team:hover { color: #e8be65; }
 .match-score { min-width: 48px; color: #e2bd69; text-align: center; }
+.match-link { color: #e2bd69; }
+.match-link:hover { color: #f6d98c; }
+.match-details { padding: 28px; }
+.match-details .matchup { margin: 24px 0 12px; }
+.match-details .match-score { font-size: 28px; }
 .team-header { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; padding: 30px; }
 .team-header h1 { margin: 3px 0; }
 .team-header p { margin: 0; color: #c3b198; }
@@ -136,6 +141,8 @@ tbody tr:hover { background: rgba(182, 36, 31, .14); }
 .news-list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
 .news-item { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: center; padding: 16px 18px; }
 .news-meta { display: flex; align-items: center; gap: 12px; grid-column: 1 / -1; color: #baa98c; font-size: 12px; }
+.news-link { margin-left: auto; color: #e2bd69; }
+.news-link:hover { color: #f6d98c; }
 .news-headline { margin: 6px 0 0; color: #f1dfba; font-size: 17px; }
 .news-score { color: #e2bd69; font-weight: 800; font-size: 18px; }
 .press { margin-top: 34px; }

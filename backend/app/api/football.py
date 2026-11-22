@@ -4,6 +4,7 @@ from fastapi import APIRouter, Query
 
 from app.services.football_service import (
     NEWS_MAX_DAYS,
+    get_match,
     get_matches,
     get_news,
     get_press,
@@ -62,3 +63,8 @@ def news(
 def press(limit: int = Query(5, ge=1, le=10, description="Nombre de titres renvoyés")):
     """Titres de presse : renvoie toujours 200, `available: false` en cas d'échec."""
     return get_press(limit=limit)
+
+
+@router.get("/matches/{match_id}")
+def match_details(match_id: int):
+    return get_match(match_id)

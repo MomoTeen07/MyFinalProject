@@ -7,7 +7,7 @@ ligne de commande avec Newman.
 
 | Fichier | Rôle |
 |---|---|
-| `Football-QA.postman_collection.json` | 26 requêtes, 4 dossiers, 64 assertions |
+| `Football-QA.postman_collection.json` | 28 requêtes, 4 dossiers, 69 assertions |
 | `Football-QA.postman_environment.json` | Environnement local (`baseUrl = http://localhost:8001`) |
 
 ## Prérequis
@@ -45,7 +45,7 @@ npx --yes newman@6 run postman/Football-QA.postman_collection.json \
 | Dossier | Requêtes | Ce qui est vérifié |
 |---|---|---|
 | `01 - Authentification` | 5 | Inscription, doublon 409, connexion, refus 401 sans énumération de compte, profil courant |
-| `02 - Football` | 13 | Championnats (6), classement ordonné, calendrier, buteurs (enveloppe, positions, tri), passeurs (tri et départage), limite invalide 422, actualités récentes (fenêtre, tri, titre), fenêtre trop large 422, presse (contrat, disponibilité, attribution), limite presse 422, championnat inconnu 404, fiche équipe |
+| `02 - Football` | 15 | Championnats (6), classement ordonné, calendrier (identifiant de match mémorisé), buteurs (enveloppe, positions, tri), passeurs (tri et départage), limite invalide 422, actualités récentes (fenêtre, tri, titre), fenêtre trop large 422, presse (contrat, disponibilité, attribution), limite presse 422, détail du match, match inconnu 404, championnat inconnu 404, fiche équipe |
 | `03 - Favoris (scénario chaîné)` | 5 | Ajout, liste, doublon 409, suppression 204, suppression déjà effectuée 404 |
 | `04 - Sécurité` | 3 | Accès sans jeton, jeton malformé, jeton `alg: none` |
 
@@ -62,6 +62,7 @@ l'inscription ou la connexion est mémorisé dans la variable de collection
 | `uniqueEmail` | Générée automatiquement à chaque exécution (`Date.now()`) |
 | `password` | Mot de passe des comptes de test (`Password123!`) |
 | `token` / `favoriteId` | Renseignées par les scripts de test |
+| `matchId` | Renseignée depuis le calendrier, utilisée pour le détail du match |
 
 Chaque exécution crée un compte neuf : la collection est rejouable sans
 nettoyage préalable et n'utilise que des données de test.

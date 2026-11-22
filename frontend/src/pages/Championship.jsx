@@ -45,6 +45,7 @@ function MatchCard({ match, leagueCode }) {
       <div className="match-meta">
         <time dateTime={match.utcDate || undefined}>{formatMatchDate(match.utcDate)}</time>
         <span>{status}</span>
+        <Link className="match-link" to={`/matches/${match.id}`}>Détails</Link>
       </div>
       <div className="matchup">
         {teamLink(match.homeTeam)}

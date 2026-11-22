@@ -6,6 +6,25 @@ versionnage sémantique.
 
 ## [Non publié]
 
+### Ajouté — V2, F4 : détail d'un match (22/11/2026)
+
+- **API** : `GET /api/football/matches/{id}`. Réponse
+  `{ id, competition, utcDate, status, matchday, homeTeam, awayTeam, score }`.
+  Identifiant inconnu → `404` (le fournisseur répond `400`), identifiant non
+  numérique → `422`. **ANO-005 reste ouverte** : la correction est locale à
+  cette nouvelle route, la route `/teams` conserve son comportement documenté.
+- **Interface** : page `/matches/:id` (compétition, date complète, statut, score,
+  équipes cliquables, journée), liens « Détails » depuis la liste des matchs et
+  « Voir le match » depuis les actualités, états chargement / erreur / retry.
+- **Tests** : 3 tests PyTest (contrat JSON Schema, 404, 422), 2 tests Playwright,
+  2 requêtes Postman (identifiant chaîné depuis le calendrier). Nouveau schéma
+  `tests/pytest/schemas/match_schema.json`.
+  Validation du 22/11/2026 en réel : Arsenal FC 3-0 Coventry City FC,
+  backend **10 passed**, API **78 passed + 4 xfailed**, Postman **69 assertions
+  / 0 échec**, Playwright **25 passed**.
+- **Documentation** : `docs/V2_SPEC.md`, `docs/TEST_CASES.md` (TC-MATCH-01 à 03),
+  `docs/TRACEABILITY.md` (R-20), `README.md`.
+
 ### Ajouté — V2, F3b : bloc presse RMC Sport (22/11/2026)
 
 - **API** : `GET /api/football/press?limit=5` (`limit` de 1 à 10). Réponse

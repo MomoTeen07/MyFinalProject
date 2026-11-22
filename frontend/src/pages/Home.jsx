@@ -93,6 +93,7 @@ export default function Home() {
                 <div className="news-meta">
                   <span className="eyebrow">{item.competition.name}</span>
                   <time dateTime={item.utcDate || undefined}>{relativeTime(item.utcDate)}</time>
+                  <Link className="news-link" to={`/matches/${item.id}`}>Voir le match</Link>
                 </div>
                 <p className="news-headline">{item.headline}</p>
                 <span className="news-score" aria-label={`Score ${item.score.home} à ${item.score.away}`}>

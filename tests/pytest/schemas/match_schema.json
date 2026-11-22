@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Détail d'un match",
+  "type": "object",
+  "required": [
+    "id",
+    "competition",
+    "utcDate",
+    "status",
+    "homeTeam",
+    "awayTeam",
+    "score"
+  ],
+  "properties": {
+    "id": { "type": "integer" },
+    "competition": {
+      "type": "object",
+      "required": ["code", "name"],
+      "properties": {
+        "code": { "type": ["string", "null"] },
+        "name": { "type": "string", "minLength": 1 }
+      }
+    },
+    "utcDate": { "type": ["string", "null"] },
+    "status": { "type": ["string", "null"] },
+    "matchday": { "type": ["integer", "null"] },
+    "homeTeam": {
+      "type": "object",
+      "required": ["id", "name", "crest"],
+      "properties": {
+        "id": { "type": ["integer", "null"] },
+        "name": { "type": "string", "minLength": 1 },
+        "crest": { "type": "string" }
+      }
+    },
+    "awayTeam": {
+      "type": "object",
+      "required": ["id", "name", "crest"],
+      "properties": {
+        "id": { "type": ["integer", "null"] },
+        "name": { "type": "string", "minLength": 1 },
+        "crest": { "type": "string" }
+      }
+    },
+    "score": {
+      "type": "object",
+      "required": ["home", "away"],
+      "properties": {
+        "home": { "type": ["integer", "null"] },
+        "away": { "type": ["integer", "null"] }
+      }
+    }
+  }
+}

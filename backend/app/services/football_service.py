@@ -161,7 +161,7 @@ def _require_api_token():
         )
 
 
-def _fetch(path: str):
+def _fetch(path: str, missing_statuses: tuple[int, ...] = ()):
     _require_api_token()
     url = f"{settings.football_api_base_url}{path}"
     now = monotonic()
@@ -188,6 +188,8 @@ def _fetch(path: str):
                 detail="Football data provider rate limit reached. Please retry later.",
                 headers={"Retry-After": retry_after},
             ) from exc
+        if exc.response.status_code in missing_statuses:
+            raise HTTPException(status_code=404, detail="Resource not found") from exc
         raise HTTPException(
             status_code=502,
             detail=f"Football data API returned HTTP {exc.response.status_code}",
@@ -522,4 +524,55 @@ def get_press(limit: int = 5):
         "source": {"name": PRESS_SOURCE_NAME, "url": settings.press_feed_url},
         "fetchedAt": fetched_at,
         "items": items[:limit] if available else [],
+    }
+
+
+def get_match(match_id: int):
+    """Détail d'un match. Un identifiant inconnu renvoie 404, jamais 502."""
+    if settings.mock_football_api:
+        if not 1 <= match_id <= 3:
+            raise HTTPException(status_code=404, detail="Match not found")
+        teams = MOCK_TEAMS["PL"]
+        now = datetime.now(timezone.utc)
+        return {
+            "id": match_id,
+            "competition": {"code": "PL", "name": LEAGUES["PL"]["name"]},
+            "utcDate": (now + timedelta(days=7 * match_id)).isoformat(),
+            "status": "SCHEDULED",
+            "matchday": match_id,
+            "homeTeam": {"id": teams[0][0], "name": teams[0][1], "crest": ""},
+            "awayTeam": {"id": teams[1][0], "name": teams[1][1], "crest": ""},
+            "score": {"home": None, "away": None},
+        }
+
+    # Le fournisseur répond 400 (ou 404) pour un identifiant inconnu : la
+    # nouvelle route le traduit en 404. ANO-005 reste ouverte sur /teams.
+    payload = _fetch(f"/matches/{match_id}", missing_statuses=(400, 404))
+
+    competition = payload.get("competition") or {}
+    code = competition.get("code")
+    score = (payload.get("score") or {}).get("fullTime") or {}
+    home_team = payload.get("homeTeam") or {}
+    away_team = payload.get("awayTeam") or {}
+
+    return {
+        "id": payload.get("id", match_id),
+        "competition": {
+            "code": code,
+            "name": LEAGUES.get(code, {}).get("name") or competition.get("name") or "Compétition",
+        },
+        "utcDate": payload.get("utcDate"),
+        "status": payload.get("status"),
+        "matchday": payload.get("matchday"),
+        "homeTeam": {
+            "id": home_team.get("id"),
+            "name": home_team.get("name") or "Équipe inconnue",
+            "crest": home_team.get("crest") or "",
+        },
+        "awayTeam": {
+            "id": away_team.get("id"),
+            "name": away_team.get("name") or "Équipe inconnue",
+            "crest": away_team.get("crest") or "",
+        },
+        "score": {"home": score.get("home"), "away": score.get("away")},
     }

@@ -2,12 +2,12 @@
 
 | Élément | Valeur |
 |---|---|
-| Campagne | Campagne V1 (36 cas) + V2 en cours (4 buteurs + 4 actualités + 3 presse) |
+| Campagne | Campagne V1 (36 cas) + V2 en cours (4 buteurs + 4 actualités + 3 presse + 3 match) |
 | Date d'exécution | 13/11/2026 (V1) — 22/11/2026 (V2) |
 | Environnement | Docker local, API `:8001`, UI `:5174`. V1 : mode simulé. V2 : données réelles |
 | Commit testé | V1 : `a0ea6e6` (`main`) — V2 : branche `app/v2` |
 | Exécutant | Mohamed Abdo |
-| Nombre de cas | 47 cas formels (36 V1 + 11 V2) + 1 session exploratoire |
+| Nombre de cas | 50 cas formels (36 V1 + 14 V2) + 1 session exploratoire |
 
 Les cas sont conçus avec des techniques explicites : **partitions
 d'équivalence** (PE), **valeurs limites** (VL), **table de décision** (TD),
@@ -108,13 +108,24 @@ vérifient la dégradation, pas la disponibilité du site source.
 | TC-PRESS-02 | Dégradation gracieuse | PE (invalide) | Flux injoignable, XML invalide, flux vide (tests unitaires hors ligne) | `200` avec `available: false` et `items: []`, jamais `5xx` ; bloc masqué côté interface | `available: false`, aucun `5xx`, bloc absent | Passé (automatisé unitaire + UI) |
 | TC-PRESS-03 | Nettoyage et bornes | VL et PE | Titre contenant du HTML, titre de 300 caractères, `limit=0`, `limit=11` | Balises retirées, titre tronqué à 140 caractères, 422 hors bornes | Nettoyage et troncature conformes, 422 sur les deux bornes | Passé (automatisé unitaire + API) |
 
-## 8. Session exploratoire
+## 8. V2 — Détail d'un match
+
+Section ajoutée le 22/11/2026 pour la fonctionnalité F4 de la
+[`V2_SPEC.md`](V2_SPEC.md). Exécution sur **données réelles**.
+
+| ID | Titre | Technique | Étapes | Résultat attendu | Résultat obtenu | Statut |
+|---|---|---|---|---|---|---|
+| TC-MATCH-01 | Détail d'un match | CT | Depuis l'onglet « Matchs », cliquer « Détails » (ou « Voir le match » depuis l'accueil) | Compétition, date, statut, équipes et score affichés, cohérents avec la liste | Arsenal FC 3-0 Coventry City FC, statut « Terminé » | Passé (automatisé UI + API + Postman) |
+| TC-MATCH-02 | Identifiant inconnu | PE (invalide) | `GET /api/football/matches/999999999` | 404, message affiché avec bouton « Réessayer » | 404, écran récupérable | Passé (automatisé UI + API + Postman) |
+| TC-MATCH-03 | Identifiant non numérique | VL et PE | `GET /api/football/matches/abc` | 422 | 422 | Passé (automatisé API) |
+
+## 9. Session exploratoire
 
 | ID | Charte | Durée | Zones explorées | Constats |
 |---|---|---|---|---|
 | EX-01 | Explorer les états limites et les erreurs réseau sur les parcours championnat et favoris | 45 min | Navigation arrière après déconnexion, double clic sur « Ajouter aux favoris », coupure réseau simulée, URL directe `/teams/PL/abc`, collage d'un e-mail avec espaces, écusson invalide | Aucun crash ; les écrans d'erreur sont récupérables ; `team_name` trop long refusé ; **ANO-001**, **ANO-002**, **ANO-003** confirmées ; aucun défaut d'accessibilité bloquant (libellés et rôles présents) |
 
-## 9. Synthèse d'exécution
+## 10. Synthèse d'exécution
 
 ### Campagne V1 (13/11/2026, mode simulé)
 
@@ -127,14 +138,15 @@ vérifient la dégradation, pas la disponibilité du site source.
 | Exploratoire | 1 session | — | ANO-003 confirmée |
 | **Total** | **36** | **32 (88,9 %)** | **4 anomalies distinctes** |
 
-### V2 — buteurs, actualités et presse (22/11/2026, données réelles)
+### V2 — buteurs, actualités, presse et détail de match (22/11/2026, données réelles)
 
 | Domaine | Cas | Passés | Anomalies |
 |---|---|---|---|
 | Buteurs / passeurs | 4 | 4 | 0 |
 | Actualités récentes | 4 | 4 | 0 |
 | Bloc presse | 3 | 3 | 0 |
-| **Total V2 (F2 + F3)** | **11** | **11 (100 %)** | **0** |
+| Détail d'un match | 3 | 3 | 0 |
+| **Total V2 (F2 + F3 + F4)** | **14** | **14 (100 %)** | **0** |
 
 Les cas marqués « automatisé » sont rejoués à chaque pipeline ; les autres sont
 rejoués manuellement à chaque campagne. Les anomalies ANO-001, ANO-002 et

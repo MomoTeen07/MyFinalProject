@@ -344,3 +344,41 @@ def test_press_rejects_invalid_parameters(api, api_url, query):
     response = api.get(f"{api_url}/api/football/press?{query}", timeout=FOOTBALL_TIMEOUT)
 
     assert response.status_code == 422
+
+
+@allure.story("Match")
+@allure.severity(allure.severity_level.NORMAL)
+def test_match_details_match_the_contract(api, api_url, schemas):
+    calendar = get_football(api, f"{api_url}/api/football/leagues/PL/matches")
+    assert calendar.status_code == 200
+    match = calendar.json()[0]
+
+    response = get_football(api, f"{api_url}/api/football/matches/{match['id']}")
+
+    assert response.status_code == 200
+    payload = response.json()
+    validate(payload, schemas["match"])
+    assert payload["id"] == match["id"]
+    assert payload["homeTeam"]["name"] == match["homeTeam"]["name"]
+    assert payload["awayTeam"]["name"] == match["awayTeam"]["name"]
+    assert payload["competition"]["code"] == "PL"
+
+
+@allure.story("Match")
+@allure.severity(allure.severity_level.NORMAL)
+def test_unknown_match_returns_404(api, api_url):
+    """La nouvelle route traduit l'erreur fournisseur en 404 (ANO-005 reste sur /teams)."""
+    response = api.get(
+        f"{api_url}/api/football/matches/999999999", timeout=FOOTBALL_TIMEOUT
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"]
+
+
+@allure.story("Match")
+@allure.severity(allure.severity_level.MINOR)
+def test_match_id_must_be_an_integer(api, api_url):
+    response = api.get(f"{api_url}/api/football/matches/abc", timeout=FOOTBALL_TIMEOUT)
+
+    assert response.status_code == 422
