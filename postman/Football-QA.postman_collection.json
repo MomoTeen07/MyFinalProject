@@ -367,6 +367,78 @@
           }
         },
         {
+          "name": "Actualités récentes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Fenêtre cohérente', () => {",
+                  "  pm.expect(body.window.days).to.eql(7);",
+                  "  pm.expect(body.window.from <= body.window.to).to.eql(true);",
+                  "  pm.expect(body.items).to.be.an('array');",
+                  "});",
+                  "pm.test('Résultats terminés de compétitions supportées', () => {",
+                  "  const codes = ['PL', 'FL1', 'PD', 'SA', 'BL1', 'CL'];",
+                  "  body.items.forEach((item) => {",
+                  "    pm.expect(item.status).to.eql('FINISHED');",
+                  "    pm.expect(codes).to.include(item.competition.code);",
+                  "    pm.expect(item.headline).to.be.a('string').and.not.empty;",
+                  "    pm.expect(item.score.home).to.be.a('number');",
+                  "    pm.expect(item.score.away).to.be.a('number');",
+                  "  });",
+                  "});",
+                  "pm.test('Tri du plus récent au plus ancien', () => {",
+                  "  const dates = body.items.map((item) => item.utcDate);",
+                  "  pm.expect(dates).to.eql([...dates].sort().reverse());",
+                  "});",
+                  "pm.test('Titre cohérent avec le score', () => {",
+                  "  body.items.forEach((item) => {",
+                  "    const home = item.homeTeam.name;",
+                  "    const away = item.awayTeam.name;",
+                  "    const h = item.score.home;",
+                  "    const a = item.score.away;",
+                  "    let expected;",
+                  "    if (h > a) expected = `${home} s'impose ${h}-${a} face à ${away}`;",
+                  "    else if (a > h) expected = `${away} s'impose ${a}-${h} sur le terrain de ${home}`;",
+                  "    else expected = `${home} et ${away} se quittent dos à dos (${h}-${a})`;",
+                  "    pm.expect(item.headline).to.eql(expected);",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/news?days=7&limit=5", "host": ["{{baseUrl}}"], "path": ["api", "football", "news"], "query": [{ "key": "days", "value": "7" }, { "key": "limit", "value": "5" }] }
+          }
+        },
+        {
+          "name": "Actualités - fenêtre trop large (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));",
+                  "pm.test('Borne métier, pas une erreur fournisseur', () => pm.expect(pm.response.code).to.not.eql(502));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/news?days=11", "host": ["{{baseUrl}}"], "path": ["api", "football", "news"], "query": [{ "key": "days", "value": "11" }] }
+          }
+        },
+        {
           "name": "Équipe Arsenal",
           "event": [
             {

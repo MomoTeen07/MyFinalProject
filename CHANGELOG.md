@@ -6,6 +6,34 @@ versionnage sémantique.
 
 ## [Non publié]
 
+### Ajouté — V2, F3a : actualités récentes (22/11/2026)
+
+- **API** : `GET /api/football/news?days=7&limit=10`. Réponse
+  `{ window: { from, to, days }, items }`. Ne conserve que les matchs
+  **terminés** des 6 championnats supportés (le fournisseur renvoie aussi BSA,
+  DED et ELC), exige un score complet, trie par date décroissante puis par
+  identifiant décroissant.
+- **Contrainte fournisseur découverte** : le plan gratuit refuse une plage
+  `dateFrom`/`dateTo` de plus de 10 jours d'écart (HTTP 400 : 11 jours passent,
+  12 échouent). `days` est donc borné à `1..10` côté API, ce qui renvoie un
+  `422` explicite au lieu d'un `502` opaque (`NEWS_MAX_DAYS`).
+- **Titre généré** côté service, en français, trois branches testables :
+  victoire domicile, victoire extérieur, match nul. Vérifié en réel :
+  « Real Madrid CF s'impose 2-1 face à RC Celta de Vigo ».
+- **Interface** : section « Résultats récents » sur la page d'accueil,
+  5 éléments, compétition, titre, score et temps relatif en français
+  (`Intl.RelativeTimeFormat`), états chargement / erreur / vide.
+- **Mode simulé** : `MOCK_NEWS` déterministe couvrant les trois branches.
+- **Tests** : 6 tests PyTest (contrat JSON Schema, compétitions supportées, tri,
+  trois branches de titre, 5 paramètres invalides), 2 tests Playwright,
+  2 requêtes Postman. Nouveau schéma `tests/pytest/schemas/news_schema.json`,
+  nouvelle fixture Playwright `news`.
+  Validation locale du 22/11/2026 en données réelles : PyTest **70 passed +
+  4 xfailed**, Postman **59 assertions / 0 échec**, Playwright **22 passed**,
+  backend **4 passed**.
+- **Documentation** : `docs/V2_SPEC.md` (borne `days` corrigée), `docs/TEST_CASES.md`
+  (TC-NEWS-01 à 04), `docs/TRACEABILITY.md` (R-18), `README.md`.
+
 ### Ajouté — V2, F2 : buteurs et passeurs (22/11/2026)
 
 - **API** : `GET /api/football/leagues/{code}/scorers?limit=10&sort=goals|assists`.

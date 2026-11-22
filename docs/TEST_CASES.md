@@ -2,12 +2,12 @@
 
 | Élément | Valeur |
 |---|---|
-| Campagne | Campagne V1 (36 cas) + V2 en cours (4 cas buteurs) |
-| Date d'exécution | 13/11/2026 (V1) — 22/11/2026 (V2, buteurs) |
+| Campagne | Campagne V1 (36 cas) + V2 en cours (4 cas buteurs + 4 cas actualités) |
+| Date d'exécution | 13/11/2026 (V1) — 22/11/2026 (V2, buteurs et actualités) |
 | Environnement | Docker local, API `:8001`, UI `:5174`. V1 : mode simulé. V2 : données réelles |
 | Commit testé | V1 : `a0ea6e6` (`main`) — V2 : branche `app/v2` |
 | Exécutant | Mohamed Abdo |
-| Nombre de cas | 40 cas formels (36 V1 + 4 V2) + 1 session exploratoire |
+| Nombre de cas | 44 cas formels (36 V1 + 8 V2) + 1 session exploratoire |
 
 Les cas sont conçus avec des techniques explicites : **partitions
 d'équivalence** (PE), **valeurs limites** (VL), **table de décision** (TD),
@@ -84,13 +84,25 @@ Section ajoutée le 22/11/2026 pour la fonctionnalité F2 de la
 | TC-SCOR-03 | Bornes des paramètres | VL (0, 51) et PE (invalide) | `GET /api/football/leagues/PL/scorers` avec `limit=0`, `limit=51`, `limit=abc`, `sort=penalties` | 422 pour chacun | 422 pour les quatre | Passé (automatisé API + Postman) |
 | TC-SCOR-04 | Donnée absente et championnat inconnu | PE (invalide) | Observer un joueur sans passe fournie ; appeler `/leagues/XX/scorers` | `assists` exposé à `0` (jamais `null`) ; 404 pour `XX` | Haaland (9 buts, `assists: null` côté fournisseur) exposé à `0` ; 404 pour `XX` | Passé (automatisé API) |
 
-## 6. Session exploratoire
+## 6. V2 — Actualités récentes
+
+Section ajoutée le 22/11/2026 pour la fonctionnalité F3a de la
+[`V2_SPEC.md`](V2_SPEC.md). Exécution sur **données réelles**, page d'accueil.
+
+| ID | Titre | Technique | Étapes | Résultat attendu | Résultat obtenu | Statut |
+|---|---|---|---|---|---|---|
+| TC-NEWS-01 | Fil de résultats à l'accueil | CT | Ouvrir `/` | Section « Résultats récents », 5 éléments au maximum, compétition, titre et score affichés, tri du plus récent au plus ancien | 5 éléments, tri conforme (Real Madrid 2-1 Celta en tête) | Passé (automatisé UI + API + Postman) |
+| TC-NEWS-02 | Trois branches de formulation | TD | Observer les titres générés | Victoire domicile « X s'impose a-b face à Y », victoire extérieur « Y s'impose b-a sur le terrain de X », nul « X et Y se quittent dos à dos (a-a) » | Les trois branches observées et conformes | Passé (automatisé API + Postman) |
+| TC-NEWS-03 | Bornes de la fenêtre | VL (0, 11) et PE (texte) | `GET /api/football/news` avec `days=0`, `days=11`, `limit=21`, `days=abc` | 422 pour chacun (le fournisseur refuse plus de 10 jours d'écart) | 422 pour les quatre | Passé (automatisé API + Postman) |
+| TC-NEWS-04 | Compétitions non supportées | PE (invalide) | Comparer la réponse du fournisseur (contient BSA, DED, ELC) et le fil renvoyé | Seuls PL, FL1, PD, SA, BL1 et CL sont exposés | Aucune compétition hors périmètre | Passé (automatisé API) |
+
+## 7. Session exploratoire
 
 | ID | Charte | Durée | Zones explorées | Constats |
 |---|---|---|---|---|
 | EX-01 | Explorer les états limites et les erreurs réseau sur les parcours championnat et favoris | 45 min | Navigation arrière après déconnexion, double clic sur « Ajouter aux favoris », coupure réseau simulée, URL directe `/teams/PL/abc`, collage d'un e-mail avec espaces, écusson invalide | Aucun crash ; les écrans d'erreur sont récupérables ; `team_name` trop long refusé ; **ANO-001**, **ANO-002**, **ANO-003** confirmées ; aucun défaut d'accessibilité bloquant (libellés et rôles présents) |
 
-## 7. Synthèse d'exécution
+## 8. Synthèse d'exécution
 
 ### Campagne V1 (13/11/2026, mode simulé)
 
@@ -103,12 +115,13 @@ Section ajoutée le 22/11/2026 pour la fonctionnalité F2 de la
 | Exploratoire | 1 session | — | ANO-003 confirmée |
 | **Total** | **36** | **32 (88,9 %)** | **4 anomalies distinctes** |
 
-### V2 — buteurs (22/11/2026, données réelles)
+### V2 — buteurs et actualités (22/11/2026, données réelles)
 
 | Domaine | Cas | Passés | Anomalies |
 |---|---|---|---|
 | Buteurs / passeurs | 4 | 4 | 0 |
-| **Total V2 (fonctionnalité F2)** | **4** | **4 (100 %)** | **0** |
+| Actualités récentes | 4 | 4 | 0 |
+| **Total V2 (F2 + F3a)** | **8** | **8 (100 %)** | **0** |
 
 Les cas marqués « automatisé » sont rejoués à chaque pipeline ; les autres sont
 rejoués manuellement à chaque campagne. Les anomalies ANO-001, ANO-002 et

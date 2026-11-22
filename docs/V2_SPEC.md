@@ -85,7 +85,11 @@ Deux blocs distincts sur la page d'accueil, avec des garanties différentes.
   nos 6 championnats, en **un seul appel** fournisseur (contre 6 si on
   interrogeait chaque championnat). Le cache s'applique comme ailleurs.
 - **API** : `GET /api/football/news?days=7&limit=10`
-  - `days` : `1..30`, défaut `7` ; `limit` : `1..20`, défaut `10`.
+  - `days` : **`1..10`**, défaut `7` ; `limit` : `1..20`, défaut `10`.
+  - **Contrainte fournisseur constatée le 22/11/2026** : le plan gratuit refuse
+    une plage `dateFrom`/`dateTo` de plus de 10 jours d'écart (HTTP 400 ; 11
+    jours passent, 12 échouent). La borne applicative est donc fixée à 10 pour
+    renvoyer un `422` explicite plutôt qu'un `502` opaque.
   - Réponse : `{ window: { from, to, days }, items: [{ id, competition,
     utcDate, status, homeTeam, awayTeam, score, headline }] }`.
 - **Règles** :
@@ -99,12 +103,12 @@ Deux blocs distincts sur la page d'accueil, avec des garanties différentes.
     - match nul : `« {home} et {away} se quittent dos à dos ({h}-{a}) »`.
 - **Erreurs** : `days` ou `limit` hors bornes → `422` ; aucun match terminé →
   `200` avec `items: []` ; panne fournisseur → `502`/`503` (comportement actuel,
-  ANO-005 non corrigée).
-- **Mode simulé** : `MOCK_NEWS` déterministe, couvrant les trois branches de
+  ANO-005 non corrigée).- **Mode simulé** : `MOCK_NEWS` déterministe, couvrant les trois branches de
   `headline`.
 - **Valeur QA** : trois branches de formatage, bornes `days`/`limit`, état vide,
   ordre stable, fuseau horaire, indépendance vis-à-vis des compétitions non
   supportées, coût fournisseur (un seul appel).
+- **Statut : implémenté le 22/11/2026** (branche `app/v2`).
 
 #### F3b — Bloc « Presse » (RMC Sport, dégradation gracieuse)
 

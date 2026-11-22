@@ -15,8 +15,8 @@ garantir un niveau de difficulté comparable entre stagiaires.
 
 | Critère de l’énoncé | Réponse de Football QA | Preuve dans le dépôt |
 |---|---|---|
-| Application web avec interface utilisateur | Frontend React/Vite servi par Nginx : connexion, inscription, championnats, classement, calendrier, buteurs, fiche équipe, favoris | `frontend/src/pages/`, `tests/playwright/` |
-| API testable avec authentification | API REST FastAPI, 12 endpoints, jeton JWT `Bearer` sur les routes personnelles | `backend/app/api/`, `postman/` |
+| Application web avec interface utilisateur | Frontend React/Vite servi par Nginx : connexion, inscription, actualités, championnats, classement, calendrier, buteurs, fiche équipe, favoris | `frontend/src/pages/`, `tests/playwright/` |
+| API testable avec authentification | API REST FastAPI, 13 endpoints, jeton JWT `Bearer` sur les routes personnelles | `backend/app/api/`, `postman/` |
 | Persistance et règles métier | PostgreSQL 16 avec migrations Alembic : comptes, favoris uniques par utilisateur, cloisonnement des données | `backend/app/db/`, `docs/CONCEPTION.md` |
 | Exécutable localement | Docker Compose (3 conteneurs), mode de données simulé sans clé ni service payant | `docker-compose.yml`, section « Démarrage local » |
 | Complexité suffisante | Parcours visiteur et authentifié, états de chargement et d’erreur, données d’une API externe, pages dédiées (accueil, championnats, championnat, équipe, favoris, authentification) | `docs/TEST_PLAN.md` § 4 |
@@ -100,7 +100,7 @@ npx --yes newman@6 run postman/Football-QA.postman_collection.json \
   -e postman/Football-QA.postman_environment.json
 ```
 
-La collection est également importable dans Postman : dossier `postman/`, variable `baseUrl` à adapter. Elle couvre l’inscription, la connexion, la session, les contrats football (dont le classement des buteurs et des passeurs), le parcours favori complet et quatre contrôles de sécurité (52 assertions). Le détail est documenté dans `postman/README.md`.
+La collection est également importable dans Postman : dossier `postman/`, variable `baseUrl` à adapter. Elle couvre l’inscription, la connexion, la session, les contrats football (classement des buteurs et des passeurs, actualités récentes), le parcours favori complet et quatre contrôles de sécurité (59 assertions). Le détail est documenté dans `postman/README.md`.
 
 Tests de contrat API, avec l'application démarrée par Docker :
 
@@ -130,15 +130,15 @@ La suite UI suit le patron **Page Object Model** :
 tests/playwright/
 ├── pages/        AuthPage, Navbar, ChampionshipsPage, ChampionshipPage, TeamPage, FavoritesPage
 ├── fixtures/     comptes uniques par l'API et session injectée
-└── tests/        auth.spec.js, championships.spec.js, favorites.spec.js, smoke.spec.js
+└── tests/        auth.spec.js, championships.spec.js, favorites.spec.js, news.spec.js, smoke.spec.js
 ```
 
 Chaque test crée son propre compte : aucun état partagé entre exécutions, donc
 la suite est rejouable sans nettoyage de base. Les scénarios couvrent
-l’authentification, les six championnats, le classement, le calendrier, le
-classement des buteurs et des passeurs, la fiche équipe, le parcours critique
-des favoris (ajout → consultation → suppression) et le cloisonnement entre deux
-comptes.
+l’authentification, les actualités de l’accueil, les six championnats, le
+classement, le calendrier, le classement des buteurs et des passeurs, la fiche
+équipe, le parcours critique des favoris (ajout → consultation → suppression) et
+le cloisonnement entre deux comptes.
 
 ### Rapports Allure
 
@@ -167,7 +167,7 @@ Le workflow `.github/workflows/ci.yml` s’exécute sur chaque push, pull reques
 | Document | Contenu |
 |---|---|
 | [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md) | Périmètre, hypothèses, analyse de risques (P × I), critères d’entrée et de sortie, organisation |
-| [`docs/TEST_CASES.md`](docs/TEST_CASES.md) | 40 cas manuels (36 pour la campagne V1, 4 pour la V2) avec technique de conception, étapes, attendu, obtenu et statut |
+| [`docs/TEST_CASES.md`](docs/TEST_CASES.md) | 44 cas manuels (36 pour la campagne V1, 8 pour la V2) avec technique de conception, étapes, attendu, obtenu et statut |
 | [`docs/ANOMALIES.md`](docs/ANOMALIES.md) | Rapports ANO-001 à ANO-004 : contexte, reproduction, preuve, gravité, priorité, correction proposée |
 | [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md) | Matrice exigence → cas → exécution → anomalie et couverture des endpoints |
 | [`docs/CAMPAIGN_REPORT.md`](docs/CAMPAIGN_REPORT.md) | Métriques, bilan des anomalies, risques résiduels, recommandations |
@@ -188,15 +188,15 @@ La V2 ajoute des fonctionnalités sans corriger les anomalies de la V1
 
 | Élément | V1 | V2 |
 |---|---|---|
-| Endpoints | 11 | 12 (buteurs/passeurs) |
+| Endpoints | 11 | 13 (buteurs/passeurs, actualités) |
 | Tests backend | 4 | 4 |
-| Tests de contrat API | 52 passés + 4 `xfail` | 61 passés + 4 `xfail` |
-| Assertions Postman | 41 | 52 |
-| Tests UI Playwright | 17 | 20 |
-| Cas manuels | 36 | 40 |
+| Tests de contrat API | 52 passés + 4 `xfail` | 70 passés + 4 `xfail` |
+| Assertions Postman | 41 | 59 |
+| Tests UI Playwright | 17 | 22 |
+| Cas manuels | 36 | 44 |
 
 Vérifications rejouées le 22/11/2026 en **données réelles** : backend 4/4,
-API 61 passés + 4 `xfail`, Postman 52/52, Playwright 20/20.
+API 70 passés + 4 `xfail`, Postman 59/59, Playwright 22/22.
 
 ## Gestion de campagne (Squash TM)
 

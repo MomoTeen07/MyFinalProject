@@ -111,6 +111,21 @@ MOCK_SCORER_SEASON = {
     "currentMatchday": 12,
 }
 
+# Le plan gratuit du fournisseur refuse une plage `dateFrom`/`dateTo` de plus de
+# 10 jours d'écart (HTTP 400 vérifié le 22/11/2026 : 11 jours passent, 12
+# échouent). La borne applicative est fixée à 10 pour garder une marge.
+NEWS_MAX_DAYS = 10
+
+# Jeu simulé des actualités : couvre les trois branches de formulation
+# (victoire à domicile, victoire à l'extérieur, match nul).
+MOCK_NEWS = [
+    ("PL", 0, 1, 2, 1, 1),
+    ("PD", 2, 3, 0, 3, 2),
+    ("SA", 0, 2, 1, 1, 3),
+    ("FL1", 1, 3, 3, 0, 4),
+    ("BL1", 0, 2, 0, 2, 5),
+]
+
 # Le fournisseur ne trie que par buts. Pour classer par passes sans rater un
 # passeur peu buteur, on récupère un vivier large puis on trie côté application.
 SCORER_CANDIDATE_LIMIT = 100
@@ -313,4 +328,99 @@ def get_scorers(code: str, limit: int = 10, sort: str = "goals"):
         },
         "sort": sort,
         "items": items,
+    }
+
+
+def _headline(home_name: str, away_name: str, home_goals: int, away_goals: int) -> str:
+    """Formule française stable : trois branches testables."""
+    if home_goals > away_goals:
+        return f"{home_name} s'impose {home_goals}-{away_goals} face à {away_name}"
+    if away_goals > home_goals:
+        return f"{away_name} s'impose {away_goals}-{home_goals} sur le terrain de {home_name}"
+    return f"{home_name} et {away_name} se quittent dos à dos ({home_goals}-{away_goals})"
+
+
+def _parse_match_date(value):
+    if not isinstance(value, str):
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).date()
+    except ValueError:
+        return None
+
+
+def _mock_news_matches(from_date, to_date):
+    now = datetime.now(timezone.utc)
+    matches = []
+    for index, (code, home_index, away_index, home_goals, away_goals, days_ago) in enumerate(
+        MOCK_NEWS
+    ):
+        teams = MOCK_TEAMS[code]
+        home_id, home_name = teams[home_index % len(teams)]
+        away_id, away_name = teams[away_index % len(teams)]
+        matches.append(
+            {
+                "id": 8000 + index,
+                "utcDate": (now - timedelta(days=days_ago)).isoformat(),
+                "status": "FINISHED",
+                "competition": {"code": code},
+                "homeTeam": {"id": home_id, "name": home_name},
+                "awayTeam": {"id": away_id, "name": away_name},
+                "score": {"fullTime": {"home": home_goals, "away": away_goals}},
+            }
+        )
+    return matches
+
+
+def get_news(days: int = 7, limit: int = 10):
+    """Fil de résultats récents : matchs terminés des 6 championnats supportés."""
+    today = datetime.now(timezone.utc).date()
+    from_date = today - timedelta(days=days - 1)
+
+    if settings.mock_football_api:
+        raw_matches = _mock_news_matches(from_date, today)
+    else:
+        payload = _fetch(
+            f"/matches?dateFrom={from_date.isoformat()}&dateTo={today.isoformat()}"
+        )
+        raw_matches = payload.get("matches") or []
+
+    items = []
+    for match in raw_matches:
+        if match.get("status") != "FINISHED":
+            continue
+        code = (match.get("competition") or {}).get("code")
+        if code not in LEAGUES:
+            continue
+        match_date = _parse_match_date(match.get("utcDate"))
+        if match_date is None or not from_date <= match_date <= today:
+            continue
+        score = (match.get("score") or {}).get("fullTime") or {}
+        home_goals, away_goals = score.get("home"), score.get("away")
+        if not isinstance(home_goals, int) or not isinstance(away_goals, int):
+            continue
+        home_team = match.get("homeTeam") or {}
+        away_team = match.get("awayTeam") or {}
+        home_name = home_team.get("name") or "Équipe inconnue"
+        away_name = away_team.get("name") or "Équipe inconnue"
+        items.append(
+            {
+                "id": match.get("id"),
+                "competition": {"code": code, "name": LEAGUES[code]["name"]},
+                "utcDate": match.get("utcDate"),
+                "status": "FINISHED",
+                "homeTeam": {"id": home_team.get("id"), "name": home_name},
+                "awayTeam": {"id": away_team.get("id"), "name": away_name},
+                "score": {"home": home_goals, "away": away_goals},
+                "headline": _headline(home_name, away_name, home_goals, away_goals),
+            }
+        )
+
+    items.sort(
+        key=lambda item: (item.get("utcDate") or "", item.get("id") or 0), reverse=True
+    )
+
+    return {
+        "window": {"from": from_date.isoformat(), "to": today.isoformat(), "days": days},
+        "items": items[:limit],
     }

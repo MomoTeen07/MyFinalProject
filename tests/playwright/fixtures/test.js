@@ -79,6 +79,18 @@ export const test = base.extend({
       scorersByAssists,
     });
   },
+
+  /**
+   * Oracle du fil d'actualités.
+   *
+   * Séparé de `football` pour ne pas ralentir les tests qui n'en ont pas
+   * besoin. La fenêtre par défaut (7 jours) est mise en cache par le backend.
+   */
+  news: async ({ request }, use) => {
+    const response = await request.get('/api/football/news?days=7&limit=5');
+    expect(response.status(), await response.text()).toBe(200);
+    await use(await response.json());
+  },
 });
 
 export { expect };

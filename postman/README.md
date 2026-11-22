@@ -7,7 +7,7 @@ ligne de commande avec Newman.
 
 | Fichier | Rôle |
 |---|---|
-| `Football-QA.postman_collection.json` | 22 requêtes, 4 dossiers, 52 assertions |
+| `Football-QA.postman_collection.json` | 24 requêtes, 4 dossiers, 59 assertions |
 | `Football-QA.postman_environment.json` | Environnement local (`baseUrl = http://localhost:8001`) |
 
 ## Prérequis
@@ -45,7 +45,7 @@ npx --yes newman@6 run postman/Football-QA.postman_collection.json \
 | Dossier | Requêtes | Ce qui est vérifié |
 |---|---|---|
 | `01 - Authentification` | 5 | Inscription, doublon 409, connexion, refus 401 sans énumération de compte, profil courant |
-| `02 - Football` | 9 | Championnats (6), classement ordonné, calendrier, buteurs (enveloppe, positions, tri), passeurs (tri et départage), limite invalide 422, championnat inconnu 404, fiche équipe |
+| `02 - Football` | 11 | Championnats (6), classement ordonné, calendrier, buteurs (enveloppe, positions, tri), passeurs (tri et départage), limite invalide 422, actualités récentes (fenêtre, tri, titre), fenêtre trop large 422, championnat inconnu 404, fiche équipe |
 | `03 - Favoris (scénario chaîné)` | 5 | Ajout, liste, doublon 409, suppression 204, suppression déjà effectuée 404 |
 | `04 - Sécurité` | 3 | Accès sans jeton, jeton malformé, jeton `alg: none` |
 

@@ -232,3 +232,79 @@ def test_scorers_unknown_championship_returns_404(api, api_url):
     )
 
     assert response.status_code == 404
+
+
+@allure.story("Actualités")
+@allure.severity(allure.severity_level.CRITICAL)
+def test_news_match_the_contract(api, api_url, schemas):
+    response = get_football(api, f"{api_url}/api/football/news?days=7&limit=10")
+
+    assert response.status_code == 200
+    payload = response.json()
+    validate(payload, schemas["news"])
+    assert payload["window"]["days"] == 7
+    assert payload["window"]["from"] <= payload["window"]["to"]
+    assert len(payload["items"]) <= 10
+
+
+@allure.story("Actualités")
+@allure.severity(allure.severity_level.NORMAL)
+def test_news_only_contains_supported_competitions(api, api_url):
+    response = get_football(api, f"{api_url}/api/football/news?days=7&limit=20")
+
+    assert response.status_code == 200
+    codes = {item["competition"]["code"] for item in response.json()["items"]}
+    assert codes <= {"PL", "FL1", "PD", "SA", "BL1", "CL"}, codes
+
+
+@allure.story("Actualités")
+@allure.severity(allure.severity_level.NORMAL)
+def test_news_is_sorted_from_newest_to_oldest(api, api_url):
+    response = get_football(api, f"{api_url}/api/football/news?days=7&limit=20")
+
+    assert response.status_code == 200
+    items = response.json()["items"]
+    keys = [(item["utcDate"], item["id"]) for item in items]
+    assert keys == sorted(keys, reverse=True)
+
+
+@allure.story("Actualités")
+@allure.severity(allure.severity_level.NORMAL)
+def test_news_headlines_follow_the_three_branches(api, api_url):
+    """Le titre est reconstruit depuis le score : aucune valeur figée."""
+    response = get_football(api, f"{api_url}/api/football/news?days=7&limit=20")
+
+    assert response.status_code == 200
+    for item in response.json()["items"]:
+        home = item["homeTeam"]["name"]
+        away = item["awayTeam"]["name"]
+        home_goals = item["score"]["home"]
+        away_goals = item["score"]["away"]
+        if home_goals > away_goals:
+            expected = f"{home} s'impose {home_goals}-{away_goals} face à {away}"
+        elif away_goals > home_goals:
+            expected = (
+                f"{away} s'impose {away_goals}-{home_goals} sur le terrain de {home}"
+            )
+        else:
+            expected = f"{home} et {away} se quittent dos à dos ({home_goals}-{away_goals})"
+        assert item["headline"] == expected, item
+
+
+@allure.story("Actualités")
+@allure.severity(allure.severity_level.NORMAL)
+@pytest.mark.parametrize(
+    "query",
+    [
+        "days=0",
+        "days=11",
+        "days=abc",
+        "limit=0",
+        "limit=21",
+    ],
+)
+def test_news_rejects_invalid_parameters(api, api_url, query):
+    """``days=11`` dépasse la plage acceptée par le fournisseur (10 jours)."""
+    response = api.get(f"{api_url}/api/football/news?{query}", timeout=FOOTBALL_TIMEOUT)
+
+    assert response.status_code == 422
