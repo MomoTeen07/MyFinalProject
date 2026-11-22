@@ -6,6 +6,7 @@
 | Base | `main` figé par le tag `v1.0-campagne-v1` (`eabd40f`) |
 | Branche de développement | `app/v2` |
 | Objectif | Enrichir l'application support **sans invalider** la démarche QA déjà produite |
+| Dernière révision | 22/11/2026 — note de favori et rôle admin écartés |
 
 ## 1. Principes
 
@@ -17,8 +18,9 @@
 4. **Les tests ne sont jamais supprimés.** Ils sont adaptés au fil de l'eau, dans
    la même PR que le changement d'API.
 5. **Aucune refonte visuelle.** Le CSS et les composants existants sont réutilisés.
+6. **Aucune migration de base** : la V2 n'ajoute aucune colonne.
 
-## 2. Périmètre proposé (5 fonctionnalités)
+## 2. Périmètre retenu (4 fonctionnalités)
 
 ### F1 — Pagination, tri et filtres des matchs
 
@@ -28,39 +30,46 @@
 - **Contrat** : réponse en enveloppe `{ items, total, page, page_size, total_pages }`.
   **Changement cassant** assumé : le tableau nu disparaît.
 - **Règles** : `page >= 1`, `1 <= page_size <= 100`, `status` dans une liste
-  fermée, `sort` dans `{date, date_desc}`, page au-delà de la dernière → `items: []`.
-  Paramètre invalide → `422`.
+  fermée (celle déjà utilisée par l'interface), `sort` dans `{date, date_desc}`,
+  page au-delà de la dernière → `items: []`. Paramètre invalide → `422`.
+- **Mise en œuvre** : filtrage et pagination **applicatifs**, après récupération
+  et mise en cache de la liste complète. Déterministe, indépendant des
+  capacités de filtrage du fournisseur, donc testable.
 - **UI** : sélecteur de page, filtre de statut, tri. État « aucun résultat »
   distinct de l'erreur.
 - **Valeur QA** : partitions d'équivalence, valeurs limites (`0`, `1`, `101`),
-  combinaisons de filtres, pagination stable entre deux appels.
+  combinaisons de filtres, stabilité de la pagination entre deux appels.
 
-### F2 — Note personnelle sur un favori
+### F2 — Meilleurs buteurs et passeurs
 
-- **Besoin** : un utilisateur veut annoter une équipe suivie.
-- **Données** : `favorites.note` (`VARCHAR(280)`, nullable), `favorites.updated_at`.
-- **API** : `PATCH /api/favorites/{id}` avec `{ "note": "..." }` → `200`.
-  Note vide ou `null` = suppression de la note. `> 280` caractères → `422`.
-- **Règles** : un utilisateur ne peut modifier que **ses** favoris (`404` sinon).
-- **UI** : édition en place depuis `/favorites`, compteur de caractères.
-- **Valeur QA** : CRUD imbriqué, validation de longueur, cloisonnement,
-  injection HTML dans un champ texte libre.
+- **Besoin** : valoriser les performances individuelles d'un championnat, et
+  donner un second classement à tester (ordre, égalités, données manquantes).
+- **Source** : `GET /competitions/{code}/scorers?limit=N` du fournisseur.
+  **Constat du 22/11/2026** : `assists` vaut `null` (et non `0`) quand la donnée
+  manque — ex. Haaland, 9 buts, `assists: null`. Ce cas est normalisé côté
+  service et testé explicitement.
+- **API** : `GET /api/football/leagues/{code}/scorers?limit=10&sort=goals|assists`
+  - `limit` : `1..50`, défaut `10` ; `sort` : `goals` (défaut) ou `assists`.
+  - Réponse : `{ competition, season, items: [{ position, player, team,
+    goals, assists, penalties, playedMatches }] }`.
+- **Règles de classement (déterministes, donc testables)** :
+  1. tri décroissant sur la métrique demandée ;
+  2. égalité → plus de buts marqués ;
+  3. nouvelle égalité → moins de matchs joués ;
+  4. dernière égalité → nom du joueur, ordre alphabétique.
+  `assists` absent du fournisseur est exposé comme `0` (jamais `null`).
+- **Erreurs** : championnat inconnu → `404` avant appel fournisseur ;
+  `limit` hors bornes ou `sort` inconnu → `422` ; aucune donnée → `200` avec
+  `items: []`.
+- **Mode simulé** : jeu `MOCK_SCORERS` déterministe pour les 6 championnats,
+  afin que les tests unitaires restent hors ligne.
+- **UI** : troisième onglet « Buteurs » dans la page championnat, avec bascule
+  « Buts / Passes », tableau `#`, joueur, équipe (lien vers la fiche), matchs,
+  buts, passes. États chargement / erreur / vide réutilisés.
+- **Valeur QA** : tri multi-critères, égalités, `null` vs `0`, bornes de `limit`,
+  énumération de `sort`, état vide, cohérence UI ↔ API, liens joueur → équipe.
 
-### F3 — Rôle administrateur en lecture seule
-
-- **Besoin** : matérialiser une matrice de permissions testable (401/403).
-- **Données** : `users.role` (`VARCHAR(20)`, défaut `user`, valeurs `user|admin`).
-- **API** : `GET /api/admin/users` (liste paginée, sans secret) et
-  `GET /api/admin/stats` (comptes, favoris). Réservé au rôle `admin`.
-- **Règles** : anonyme → `401`, authentifié non-admin → `403`, admin → `200`.
-  Aucune route d'écriture admin (lecture seule assumée).
-- **Provisionnement** : script `scripts/promote_admin.py <email>`, jamais de
-  route publique d'auto-promotion.
-- **UI** : entrée de navigation visible uniquement pour un admin, page de liste.
-- **Valeur QA** : matrice de permissions, cloisonnement, absence de fuite de
-  `password_hash`, test de sécurité transverse.
-
-### F4 — Profil et changement de mot de passe
+### F3 — Profil et changement de mot de passe
 
 - **Besoin** : compléter le parcours authentifié, créer de la régression utile.
 - **API** : `PATCH /api/users/me` (`name`) et
@@ -72,7 +81,7 @@
 - **UI** : page `/profile` avec deux formulaires.
 - **Valeur QA** : régression authentification, valeurs limites, cas négatifs.
 
-### F5 — Page détail d'un match
+### F4 — Page détail d'un match
 
 - **Besoin** : nouveau parcours de bout en bout, et gestion du `404` fournisseur.
 - **API** : `GET /api/football/matches/{id}` (relais du fournisseur).
@@ -86,6 +95,10 @@
 ## 3. Hors périmètre (explicite)
 
 - Correction d'ANO-001 à ANO-005.
+- **Note personnelle sur un favori** — écartée le 22/11/2026.
+- **Rôle administrateur et matrice de permissions** — écarté le 22/11/2026.
+  Conséquence assumée : on perd le test transverse 401/403 par rôle. La sécurité
+  reste couverte par ANO-001 à ANO-004 et par les tests d'authentification.
 - Paiement, messagerie, notifications, temps réel.
 - Upload de fichiers, avatars, i18n, thème sombre, refonte graphique.
 - Modification de l'e-mail ou suppression de compte.
@@ -94,42 +107,42 @@
 
 ## 4. Modèle de données et migrations
 
-| Table | Colonne | Type | Défaut | Migration |
-|---|---|---|---|---|
-| `users` | `role` | `VARCHAR(20)` | `user` | révision 1 |
-| `favorites` | `note` | `VARCHAR(280)` | `NULL` | révision 1 |
-| `favorites` | `updated_at` | `TIMESTAMP` | `created_at` | révision 1 |
+**Aucune migration Alembic.** Les quatre fonctionnalités réutilisent le schéma
+existant :
 
-Deux révisions Alembic maximum, réversibles, sans perte de données.
-Le rôle admin est attribué par script, jamais par l'API publique.
+- `users` : `name` existe déjà (F3) ;
+- `favorites` : inchangé ;
+- matchs, buteurs, compétitions : données du fournisseur, mises en cache en
+  mémoire, non persistées.
+
+C'est un choix délibéré : moins de risque de régression, et la base reste
+strictement identique à celle de la campagne V1.
 
 ## 5. Contrats d'API (récapitulatif)
 
 | Méthode | Route | Accès | Statuts |
 |---|---|---|---|
 | GET | `/api/football/leagues/{code}/matches` | public | 200, 404, 422 |
+| GET | `/api/football/leagues/{code}/scorers` | public | 200, 404, 422 |
 | GET | `/api/football/matches/{id}` | public | 200, 404, 502 |
-| PATCH | `/api/favorites/{id}` | authentifié | 200, 404, 422 |
-| GET | `/api/admin/users` | admin | 200, 401, 403 |
-| GET | `/api/admin/stats` | admin | 200, 401, 403 |
 | PATCH | `/api/users/me` | authentifié | 200, 401, 422 |
 | POST | `/api/users/me/password` | authentifié | 204, 401, 422 |
 
-On passe de 11 à **18 endpoints**.
+On passe de 11 à **15 endpoints**.
 
 ## 6. Impact QA (à prévoir dès la première PR)
 
 | Élément | Impact |
 |---|---|
-| `tests/pytest/tests/test_football.py` | contrat `matches` en enveloppe, nouveaux cas de pagination |
-| `tests/pytest/tests/test_favorites.py` | `PATCH` note, cloisonnement, validation |
+| `tests/pytest/tests/test_football.py` | contrat `matches` en enveloppe, pagination, filtres, buteurs (tri, égalités, `null` → `0`, bornes) |
+| `tests/pytest/tests/test_favorites.py` | **aucun changement** (schéma et routes inchangés) |
 | `tests/pytest/tests/test_auth.py` | profil, changement de mot de passe |
-| `tests/pytest/tests/test_security.py` | matrice 401/403, fuite de `password_hash` |
-| Schémas JSON | `matches` (enveloppe), `admin_user`, `stats` |
-| Postman | nouveaux dossiers + assertions (objectif ≈ 60) |
-| Playwright | pagination/filtres, note de favori, page admin, profil, détail match |
-| `docs/TEST_CASES.md` | +15 à +20 cas manuels |
-| `docs/TRACEABILITY.md` | nouvelles exigences R-17 à R-21 |
+| `tests/pytest/tests/test_security.py` | `401` sur les routes profil, non-fuite de `password_hash` |
+| Schémas JSON | `matches` (enveloppe), nouveau `scorers` |
+| Postman | 2 dossiers + assertions (objectif ≈ 55) |
+| Playwright | pagination/filtres, onglet buteurs, profil, détail match |
+| `docs/TEST_CASES.md` | +12 à +15 cas manuels |
+| `docs/TRACEABILITY.md` | nouvelles exigences R-17 à R-20 |
 | Squash TM | nouvelles exigences et cas, campagne V2 |
 | `docs/CAMPAIGN_REPORT.md` | métriques V2, anomalies nouvelles |
 | `README.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md` | mis à jour à chaque PR |
@@ -137,18 +150,18 @@ On passe de 11 à **18 endpoints**.
 ## 7. Séquencement
 
 1. **PR V2-0** : cette spécification (documentation seule).
-2. **PR V2-1** : F1 pagination — la plus structurante, elle touche le contrat.
-3. **PR V2-2** : F2 note de favori.
-4. **PR V2-3** : F4 profil et mot de passe.
-5. **PR V2-4** : F3 rôle admin.
-6. **PR V2-5** : F5 détail de match.
-7. **PR V2-6** : campagne V2 (traçabilité, Squash, rapport, démo).
+2. **PR V2-1** : F2 buteurs/passeurs — la moins risquée, aucune migration,
+   immédiatement démontrable.
+3. **PR V2-2** : F3 profil et mot de passe.
+4. **PR V2-3** : F1 pagination — structurante, elle touche le contrat des matchs.
+5. **PR V2-4** : F4 détail de match.
+6. **PR V2-5** : campagne V2 (traçabilité, Squash, rapport, démo).
 
 Chaque PR : code + tests adaptés + docs + CI verte. Aucune PR ne casse `main`.
 
 ## 8. Definition of Done (par fonctionnalité)
 
-- [ ] Implémentation backend + migration si nécessaire
+- [ ] Implémentation backend (sans migration si possible)
 - [ ] Tests backend, API et UI adaptés ou ajoutés, verts en local **et** en CI
 - [ ] Collection Postman mise à jour
 - [ ] `README.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md` à jour
@@ -157,9 +170,9 @@ Chaque PR : code + tests adaptés + docs + CI verte. Aucune PR ne casse `main`.
 
 ## 9. Décisions à valider avant tout code
 
-1. **Périmètre** : les 5 fonctionnalités, ou réduire à 3 (F1, F2, F4) ?
+1. **Périmètre** : les 4 fonctionnalités, ou seulement 2 (F1 + F2) ?
 2. **Pagination** : accepter le changement cassant de contrat (enveloppe) ?
-3. **Rôle admin** : utile pour le jury, ou complexité inutile ?
-4. **Note de favori** : texte libre seul, ou texte + note de 1 à 5 ?
-5. **Ordre** : garder F1 en premier, ou commencer par les fonctionnalités les
-   moins risquées (F2, F4) pour sécuriser une V2 utilisable rapidement ?
+3. **Buteurs** : bascule « Buts / Passes » dans un seul onglet, ou deux onglets
+   distincts ? Et `limit` par défaut à 10 ou 20 ?
+4. **Ordre** : commencer par F2 (sûr, démontrable vite) comme proposé, ou
+   attaquer F1 tout de suite ?
