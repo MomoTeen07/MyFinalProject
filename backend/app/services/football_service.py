@@ -373,7 +373,8 @@ def _match_summary(match: dict, code: str | None = None) -> dict:
 
 def get_fixtures(days: int = 3, limit: int = 4, team_id: int | None = None):
     """Prochains matchs des 6 compétitions supportées, sur une fenêtre courte."""
-    today = datetime.now(timezone.utc).date()
+    now = datetime.now(timezone.utc)
+    today = now.date()
     to_date = today + timedelta(days=days - 1)
 
     if settings.mock_football_api:
@@ -400,8 +401,12 @@ def get_fixtures(days: int = 3, limit: int = 4, team_id: int | None = None):
             (match.get("awayTeam") or {}).get("id"),
         ):
             continue
-        match_date = _parse_match_date(match.get("utcDate"))
-        if match_date is None or not today <= match_date <= to_date:
+        match_datetime = _parse_match_datetime(match.get("utcDate"))
+        if (
+            match_datetime is None
+            or match_datetime < now
+            or match_datetime.date() > to_date
+        ):
             continue
         items.append(_match_summary(match, code))
 
@@ -436,8 +441,9 @@ def get_head_to_head(match_id: int, limit: int = 5):
     }
 
 
-def _recent_and_next(matches: list[dict], now_iso: str):
+def _recent_and_next(matches: list[dict]):
     """Sépare les derniers résultats et le prochain match d'une liste normalisée."""
+    now = datetime.now(timezone.utc)
     recent = sorted(
         (
             match
@@ -454,7 +460,7 @@ def _recent_and_next(matches: list[dict], now_iso: str):
             match
             for match in matches
             if match["status"] in {"SCHEDULED", "TIMED"}
-            and (match.get("utcDate") or "") >= now_iso
+            and (_parse_match_datetime(match.get("utcDate")) or now) >= now
         ),
         key=lambda match: (match.get("utcDate") or "", match.get("id") or 0),
     )
@@ -506,7 +512,6 @@ def get_favorites_overview(favorites: list[dict]):
             if team_id is not None:
                 matches_by_team.setdefault(team_id, []).append(summary)
 
-    now_iso = datetime.now(timezone.utc).isoformat()
     standings_by_league: dict[str, list[dict]] = {}
     fallback_matches: dict[str, list[dict]] = {}
     items = []
@@ -514,7 +519,7 @@ def get_favorites_overview(favorites: list[dict]):
         code = favorite.get("league_code")
         team_id = favorite.get("team_id")
         matches = matches_by_team.get(team_id, [])
-        recent, next_match = _recent_and_next(matches, now_iso)
+        recent, next_match = _recent_and_next(matches)
 
         # La fenêtre courte peut manquer de résultats ou de matchs lointains :
         # le calendrier complet du championnat complète alors l'information.
@@ -542,7 +547,7 @@ def get_favorites_overview(favorites: list[dict]):
                 ]
                 if match["id"] is not None
             }
-            recent, next_match = _recent_and_next(list(merged.values()), now_iso)
+            recent, next_match = _recent_and_next(list(merged.values()))
 
         rank = None
         if code in LEAGUES:
@@ -667,6 +672,19 @@ def _parse_match_date(value):
         return datetime.fromisoformat(value.replace("Z", "+00:00")).date()
     except ValueError:
         return None
+
+
+def _parse_match_datetime(value):
+    """Horodatage UTC d'un match, heure comprise."""
+    if not isinstance(value, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 
 def _mock_news_matches(from_date, to_date):
