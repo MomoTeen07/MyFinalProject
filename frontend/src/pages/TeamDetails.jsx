@@ -72,10 +72,26 @@ export default function TeamDetails() {
       load(`/api/football/leagues/${code}/standings`),
       load(`/api/football/leagues/${code}/matches?team_id=${team.id}&status=FINISHED&page_size=3&sort=date_desc`),
       load(`/api/football/fixtures?days=10&limit=1&team_id=${team.id}`),
-    ]).then(([standings, recent, upcoming]) => {
+      // Repli sur le calendrier complet du championnat : un prochain match
+      // peut tomber au-delà de la fenêtre de 10 jours du fournisseur.
+      load(`/api/football/leagues/${code}/matches?team_id=${team.id}&page_size=100&sort=date`),
+    ]).then(([standings, recent, upcoming, schedule]) => {
       if (controller.signal.aborted) return;
       const row = Array.isArray(standings)
         ? standings.find((entry) => entry.team?.id === team.id)
+        : null;
+      const now = Date.now();
+      const nextInLeague = Array.isArray(schedule?.items)
+        ? schedule.items
+          .filter((match) => ['SCHEDULED', 'TIMED'].includes(match.status))
+          .filter((match) => {
+            const timestamp = Date.parse(match.utcDate);
+            return Number.isFinite(timestamp) && timestamp >= now;
+          })
+          .sort((a, b) => (a.utcDate || '').localeCompare(b.utcDate || ''))[0]
+        : null;
+      const nextFixture = Array.isArray(upcoming?.items) && upcoming.items.length > 0
+        ? upcoming.items[0]
         : null;
       setOverview({
         rank: row
@@ -89,7 +105,7 @@ export default function TeamDetails() {
         recent: Array.isArray(recent?.items)
           ? [...recent.items].sort((a, b) => (b.utcDate || '').localeCompare(a.utcDate || ''))
           : [],
-        next: Array.isArray(upcoming?.items) && upcoming.items.length > 0 ? upcoming.items[0] : null,
+        next: nextFixture || nextInLeague || null,
       });
       setOverviewStatus('success');
     });

@@ -81,6 +81,7 @@ export default function Championship() {
   const [matchesMeta, setMatchesMeta] = useState(null);
   const [matchesStatus, setMatchesStatus] = useState('idle');
   const [matchesError, setMatchesError] = useState('');
+  const [matchesAttempt, setMatchesAttempt] = useState(0);
   const [matchStatusFilter, setMatchStatusFilter] = useState('');
   const [matchSort, setMatchSort] = useState('date');
   const matchQueryKey = `${code}|${matchStatusFilter}|${matchSort}`;
@@ -94,6 +95,7 @@ export default function Championship() {
   const [scorerSort, setScorerSort] = useState('goals');
   const [scorerStatus, setScorerStatus] = useState('idle');
   const [scorerError, setScorerError] = useState('');
+  const [scorerAttempt, setScorerAttempt] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -140,7 +142,7 @@ export default function Championship() {
       });
 
     return () => controller.abort();
-  }, [code, tab, scorerSort]);
+  }, [code, tab, scorerSort, scorerAttempt]);
 
   useEffect(() => {
     if (tab !== 'matches') return undefined;
@@ -171,7 +173,7 @@ export default function Championship() {
       });
 
     return () => controller.abort();
-  }, [code, tab, matchPage, matchStatusFilter, matchSort]);
+  }, [code, tab, matchPage, matchStatusFilter, matchSort, matchesAttempt]);
 
   const scorerItems = scorers?.items || [];
   const matchTotalPages = matchesMeta?.total_pages || 0;
@@ -191,9 +193,12 @@ export default function Championship() {
       {status === 'error' && <button className="primary" onClick={() => setAttempt((value) => value + 1)}>Réessayer</button>}
       {status === 'success' && tab === 'standings' && standings.length === 0 && <p className="empty">Aucun classement disponible.</p>}
       {status === 'success' && tab === 'standings' && standings.length > 0 && (
-        <div className="table-wrap"><table><thead><tr><th>#</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>Pts</th></tr></thead>
-          <tbody>{standings.map((row) => <tr key={row.team.id}><td>{row.position}</td><td><Link className="team" to={`/teams/${code}/${row.team.id}`}>{row.team.name}</Link></td><td>{row.playedGames}</td><td>{row.won}</td><td>{row.draw}</td><td>{row.lost}</td><td><b>{row.points}</b></td></tr>)}</tbody>
-        </table></div>
+        <>
+          <p className="table-hint">Glisse horizontalement dans le tableau pour voir toutes les colonnes.</p>
+          <div className="table-wrap"><table><thead><tr><th>#</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>Pts</th></tr></thead>
+            <tbody>{standings.map((row) => <tr key={row.team.id}><td>{row.position}</td><td><Link className="team" to={`/teams/${code}/${row.team.id}`}>{row.team.name}</Link></td><td>{row.playedGames}</td><td>{row.won}</td><td>{row.draw}</td><td>{row.lost}</td><td><b>{row.points}</b></td></tr>)}</tbody>
+          </table></div>
+        </>
       )}
       {status === 'success' && tab === 'matches' && (
         <>
@@ -220,7 +225,12 @@ export default function Championship() {
           </div>
           {matchesStatus === 'loading' && <p className="notice" role="status">Chargement des matchs…</p>}
           {matchesStatus === 'error' && (
-            <div className="error" role="alert">Impossible de charger les matchs : {matchesError}</div>
+            <>
+              <div className="error" role="alert">Impossible de charger les matchs : {matchesError}</div>
+              <button className="primary small" onClick={() => setMatchesAttempt((value) => value + 1)}>
+                Réessayer
+              </button>
+            </>
           )}
           {matchesStatus === 'success' && matches.length === 0 && (
             <p className="empty">
@@ -273,7 +283,12 @@ export default function Championship() {
           </div>
           {scorerStatus === 'loading' && <p className="notice" role="status">Chargement des statistiques…</p>}
           {scorerStatus === 'error' && (
-            <div className="error" role="alert">Impossible de charger les statistiques : {scorerError}</div>
+            <>
+              <div className="error" role="alert">Impossible de charger les statistiques : {scorerError}</div>
+              <button className="primary small" onClick={() => setScorerAttempt((value) => value + 1)}>
+                Réessayer
+              </button>
+            </>
           )}
           {scorerStatus === 'success' && seasonLabel(scorers?.season) && (
             <p className="muted">{seasonLabel(scorers?.season)}</p>
@@ -282,8 +297,10 @@ export default function Championship() {
             <p className="empty">Aucun buteur disponible.</p>
           )}
           {scorerStatus === 'success' && scorerItems.length > 0 && (
-            <div className="table-wrap">
-              <table>
+            <>
+              <p className="table-hint">Glisse horizontalement dans le tableau pour voir toutes les colonnes.</p>
+              <div className="table-wrap">
+                <table>
                 <thead>
                   <tr>
                     <th>#</th>
@@ -310,8 +327,9 @@ export default function Championship() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
+                </table>
+              </div>
+            </>
           )}
         </>
       )}

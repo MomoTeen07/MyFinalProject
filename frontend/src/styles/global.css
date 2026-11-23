@@ -98,7 +98,8 @@ h1 { color: #f4e6c9; text-shadow: 0 2px 16px #000; }
 .pager button { color: #f1dfba; background: #33251d; border-color: #705433; }
 .pager button:disabled { opacity: .45; cursor: not-allowed; }
 
-.table-wrap { overflow: auto; border-radius: 5px; }
+.table-wrap { overflow: auto; border-radius: 5px; -webkit-overflow-scrolling: touch; }
+.table-hint { display: none; margin: 0 0 8px; color: #baa98c; font-size: 12px; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 14px 16px; border-bottom: 1px solid rgba(185, 148, 81, .2); text-align: left; font-size: 14px; }
 th { color: #d9b96e; font-family: Inter, sans-serif; font-size: 11px; letter-spacing: .8px; text-transform: uppercase; background: rgba(0, 0, 0, .22); }
@@ -233,6 +234,9 @@ details summary { margin-top: 10px; color: #e2bd69; cursor: pointer; }
   .favorite { width: 100%; margin-left: 0; }
   .match-meta { flex-wrap: wrap; }
   .matchup { gap: 8px; font-size: 14px; }
+  .table-hint { display: block; }
+  th, td { padding: 10px 9px; font-size: 13px; }
+  th:nth-child(n + 4), td:nth-child(n + 4) { white-space: nowrap; }
 }
 
 @media (prefers-reduced-motion: reduce) {

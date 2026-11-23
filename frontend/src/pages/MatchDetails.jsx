@@ -74,6 +74,18 @@ function sortRecent(matches) {
   });
 }
 
+/** Derniers résultats réellement antérieurs au match consulté. */
+function recentBeforeMatch(matches, matchDate) {
+  const limit = Date.parse(matchDate);
+  const filtered = Array.isArray(matches)
+    ? matches.filter((match) => {
+      const matchTimestamp = Date.parse(match.utcDate);
+      return Number.isFinite(matchTimestamp) && (!Number.isFinite(limit) || matchTimestamp < limit);
+    })
+    : [];
+  return sortRecent(filtered).slice(0, 3);
+}
+
 function headToHeadBalance(items, homeTeam, awayTeam) {
   const balance = { matches: items.length, goals: 0, homeWins: 0, draws: 0, awayWins: 0 };
   if (!homeTeam?.id || !awayTeam?.id) return balance;
@@ -107,6 +119,7 @@ export default function MatchDetails() {
   const [h2h, setH2h] = useState([]);
   const [h2hStatus, setH2hStatus] = useState('idle');
   const [h2hRequested, setH2hRequested] = useState(false);
+  const [h2hAttempt, setH2hAttempt] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -146,20 +159,20 @@ export default function MatchDetails() {
       load(code ? `/api/football/leagues/${code}/standings` : null),
       load(
         code && match.homeTeam?.id
-          ? `/api/football/leagues/${code}/matches?team_id=${match.homeTeam.id}&status=FINISHED&page_size=3&sort=date_desc`
+          ? `/api/football/leagues/${code}/matches?team_id=${match.homeTeam.id}&status=FINISHED&page_size=100&sort=date_desc`
           : null,
       ),
       load(
         code && match.awayTeam?.id
-          ? `/api/football/leagues/${code}/matches?team_id=${match.awayTeam.id}&status=FINISHED&page_size=3&sort=date_desc`
+          ? `/api/football/leagues/${code}/matches?team_id=${match.awayTeam.id}&status=FINISHED&page_size=100&sort=date_desc`
           : null,
       ),
     ]).then(([standings, homeMatches, awayMatches]) => {
       if (controller.signal.aborted) return;
       setContext({
         standings: Array.isArray(standings) ? standings : [],
-        homeRecent: Array.isArray(homeMatches?.items) ? sortRecent(homeMatches.items) : [],
-        awayRecent: Array.isArray(awayMatches?.items) ? sortRecent(awayMatches.items) : [],
+        homeRecent: recentBeforeMatch(homeMatches?.items, match.utcDate),
+        awayRecent: recentBeforeMatch(awayMatches?.items, match.utcDate),
       });
       setContextStatus('success');
     });
@@ -186,7 +199,7 @@ export default function MatchDetails() {
       });
 
     return () => controller.abort();
-  }, [match, h2hRequested]);
+  }, [match, h2hRequested, h2hAttempt]);
 
   const code = match?.competition?.code;
   const teamLink = (team) => {
@@ -408,7 +421,14 @@ export default function MatchDetails() {
                 </>
               )}
               {h2hStatus === 'loading' && <p className="muted">Chargement des confrontations…</p>}
-              {h2hStatus === 'error' && <p className="muted">Confrontations indisponibles pour le moment.</p>}
+              {h2hStatus === 'error' && (
+                <>
+                  <p className="muted">Confrontations indisponibles pour le moment.</p>
+                  <button className="primary small" onClick={() => setH2hAttempt((value) => value + 1)}>
+                    Réessayer
+                  </button>
+                </>
+              )}
               {h2hStatus === 'success' && h2h.length === 0 && (
                 <p className="muted">Aucune confrontation récente disponible.</p>
               )}

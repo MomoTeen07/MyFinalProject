@@ -23,6 +23,7 @@ export default function Home() {
   const [press, setPress] = useState(null);
   const [fixtures, setFixtures] = useState([]);
   const [fixturesStatus, setFixturesStatus] = useState('loading');
+  const [fixturesAttempt, setFixturesAttempt] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -69,7 +70,7 @@ export default function Home() {
       });
 
     return () => controller.abort();
-  }, []);
+  }, [fixturesAttempt]);
 
   const items = news?.items || [];
   const pressItems = press?.available ? press.items : [];
@@ -89,7 +90,14 @@ export default function Home() {
             <h2 id="fixtures-title">Prochains matchs</h2>
           </div>
           {fixturesStatus === 'loading' && <p className="muted">Chargement des prochains matchs…</p>}
-          {fixturesStatus === 'error' && <p className="muted">Prochains matchs indisponibles.</p>}
+          {fixturesStatus === 'error' && (
+            <>
+              <p className="muted">Prochains matchs indisponibles.</p>
+              <button className="primary small" onClick={() => setFixturesAttempt((value) => value + 1)}>
+                Réessayer
+              </button>
+            </>
+          )}
           {fixturesStatus === 'success' && fixtures.length === 0 && (
             <p className="muted">Aucun match programmé dans les 10 prochains jours.</p>
           )}
