@@ -6,6 +6,34 @@ versionnage sémantique.
 
 ## [Non publié]
 
+### Amélioré — robustesse et parcours V3 (22/11/2026)
+
+- **Réessai** : boutons « Réessayer » ajoutés aux prochains matchs de l'accueil,
+  aux onglets Matchs et Statistiques et aux confrontations directes.
+- **Fiche équipe** : le prochain match est complété par le calendrier du
+  championnat quand aucun match ne tombe dans la fenêtre de 10 jours du
+  fournisseur.
+- **Détail de match** : les « Derniers matchs » sont filtrés pour ne conserver
+  que les rencontres antérieures à la date du match consulté.
+- **Mobile** : les tableaux larges sont défilables avec une indication visible ;
+  padding et taille de police réduits, colonnes numériques non coupées.
+- **Documentation** : `docs/V3_SPEC.md` créé ; README et `PROJECT_CONTEXT.md`
+  mis à jour avec les fonctionnalités et les chiffres V3 (backend 19, API 100
+  passés + 4 `xfail`, Postman 76 assertions, Playwright 27).
+- **Vérification** : parcours résiduels 7/7, suite Playwright 27/27, Postman
+  76/76, 0 erreur JavaScript.
+
+### Corrigé — document HTML complet et affichage mobile réel (22/11/2026)
+
+- **Frontend** : `frontend/index.html` est désormais un document HTML complet
+  (`doctype`, `lang="fr"`, `meta charset="utf-8"`, `meta viewport`, titre,
+  description, favicon). Sans `meta viewport`, un téléphone réel rendait la
+  page en 980 px et n'activait pas les media queries : l'interface n'était pas
+  responsive sur mobile, malgré les règles CSS existantes.
+- **Vérification** : suite Playwright 27/27, parcours fonctionnels 31/31,
+  six championnats, émulation iPhone 13 (390 px) et Galaxy S9+ (320 px) sans
+  débordement horizontal, 0 erreur JavaScript.
+
 ### Ajouté — V2, F4 : détail d'un match (22/11/2026)
 
 - **API** : `GET /api/football/matches/{id}`. Réponse

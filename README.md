@@ -15,8 +15,8 @@ garantir un niveau de difficulté comparable entre stagiaires.
 
 | Critère de l’énoncé | Réponse de Football QA | Preuve dans le dépôt |
 |---|---|---|
-| Application web avec interface utilisateur | Frontend React/Vite servi par Nginx : connexion, inscription, actualités et presse, championnats, classement, calendrier, détail de match, buteurs, fiche équipe, favoris | `frontend/src/pages/`, `tests/playwright/` |
-| API testable avec authentification | API REST FastAPI, 15 endpoints, jeton JWT `Bearer` sur les routes personnelles | `backend/app/api/`, `postman/` |
+| Application web avec interface utilisateur | Frontend React/Vite servi par Nginx : connexion, inscription, actualités et presse, prochains matchs, championnats, classement, calendrier paginé, détail de match, buteurs, fiche équipe enrichie, tableau de bord des favoris | `frontend/src/pages/`, `tests/playwright/` |
+| API testable avec authentification | API REST FastAPI, 18 endpoints, jeton JWT `Bearer` sur les routes personnelles | `backend/app/api/`, `postman/` |
 | Persistance et règles métier | PostgreSQL 16 avec migrations Alembic : comptes, favoris uniques par utilisateur, cloisonnement des données | `backend/app/db/`, `docs/CONCEPTION.md` |
 | Exécutable localement | Docker Compose (3 conteneurs), mode de données simulé sans clé ni service payant | `docker-compose.yml`, section « Démarrage local » |
 | Complexité suffisante | Parcours visiteur et authentifié, états de chargement et d’erreur, données d’une API externe, pages dédiées (accueil, championnats, championnat, équipe, favoris, authentification) | `docs/TEST_PLAN.md` § 4 |
@@ -100,7 +100,7 @@ npx --yes newman@6 run postman/Football-QA.postman_collection.json \
   -e postman/Football-QA.postman_environment.json
 ```
 
-La collection est également importable dans Postman : dossier `postman/`, variable `baseUrl` à adapter. Elle couvre l’inscription, la connexion, la session, les contrats football (buteurs et passeurs, actualités récentes, presse, détail de match), le parcours favori complet et quatre contrôles de sécurité (69 assertions). Le détail est documenté dans `postman/README.md`.
+La collection est également importable dans Postman : dossier `postman/`, variable `baseUrl` à adapter. Elle couvre l’inscription, la connexion, la session, les contrats football (buteurs et passeurs, actualités récentes, presse, prochains matchs, détail de match, confrontations directes, tableau de bord des favoris), le parcours favori complet et quatre contrôles de sécurité (31 requêtes, 76 assertions). Le détail est documenté dans `postman/README.md`.
 
 Tests de contrat API, avec l'application démarrée par Docker :
 
@@ -128,17 +128,18 @@ La suite UI suit le patron **Page Object Model** :
 
 ```
 tests/playwright/
-├── pages/        AuthPage, Navbar, ChampionshipsPage, ChampionshipPage, TeamPage, FavoritesPage
+├── pages/        AuthPage, LoginPage, Navbar, ChampionshipsPage, ChampionshipPage, TeamPage, FavoritesPage
 ├── fixtures/     comptes uniques par l'API et session injectée
-└── tests/        auth.spec.js, championships.spec.js, favorites.spec.js, news.spec.js, smoke.spec.js
+└── tests/        auth.spec.js, championships.spec.js, favorites.spec.js, match.spec.js, news.spec.js, smoke.spec.js
 ```
 
 Chaque test crée son propre compte : aucun état partagé entre exécutions, donc
 la suite est rejouable sans nettoyage de base. Les scénarios couvrent
-l’authentification, les actualités et la presse de l’accueil, les six
-championnats, le classement, le calendrier, le détail d'un match, le classement
-des buteurs et des passeurs, la fiche équipe, le parcours critique des favoris
-(ajout → consultation → suppression) et le cloisonnement entre deux comptes.
+l’authentification, les actualités et la presse de l’accueil, les prochains
+matchs, les six championnats, le classement, le calendrier paginé, le détail
+d'un match et ses confrontations, le classement des buteurs et des passeurs,
+la fiche équipe enrichie, le parcours critique des favoris (ajout →
+consultation → suppression) et le cloisonnement entre deux comptes.
 
 ### Rapports Allure
 
@@ -168,7 +169,8 @@ Le workflow `.github/workflows/ci.yml` s’exécute sur chaque **pull request**,
 |---|---|
 | [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md) | Périmètre, hypothèses, analyse de risques (P × I), critères d’entrée et de sortie, organisation |
 | [`docs/TEST_CASES.md`](docs/TEST_CASES.md) | 50 cas manuels (36 pour la campagne V1, 14 pour la V2) avec technique de conception, étapes, attendu, obtenu et statut |
-| [`docs/ANOMALIES.md`](docs/ANOMALIES.md) | Rapports ANO-001 à ANO-004 : contexte, reproduction, preuve, gravité, priorité, correction proposée |
+| [`docs/V3_SPEC.md`](docs/V3_SPEC.md) | Spécification V3 : prochains matchs, fiche équipe, favoris, détail de match, robustesse |
+| [`docs/ANOMALIES.md`](docs/ANOMALIES.md) | Rapports ANO-001 à ANO-005 : contexte, reproduction, preuve, gravité, priorité, correction proposée |
 | [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md) | Matrice exigence → cas → exécution → anomalie et couverture des endpoints |
 | [`docs/CAMPAIGN_REPORT.md`](docs/CAMPAIGN_REPORT.md) | Métriques, bilan des anomalies, risques résiduels, recommandations |
 | [`docs/DEFENSE.md`](docs/DEFENSE.md) | Trame de soutenance, script de démonstration, questions probables |
@@ -181,7 +183,7 @@ manuels**, **5 anomalies** reproductibles, **11/11 endpoints** couverts,
 pipeline vert. Les suites automatisées ont été rejouées en **données réelles**
 le 21/11/2026 : 114 vérifications passent, 0 échec, 4 `xfail`.
 
-### V2 (en cours)
+### V2 (terminée sur la branche `app/v2`)
 
 La V2 ajoute des fonctionnalités sans corriger les anomalies de la V1
 (voir [`docs/V2_SPEC.md`](docs/V2_SPEC.md)). État au 22/11/2026 :
@@ -196,7 +198,31 @@ La V2 ajoute des fonctionnalités sans corriger les anomalies de la V1
 | Cas manuels | 36 | 50 |
 
 Vérifications rejouées le 22/11/2026 en **données réelles** : backend 10/10,
-API 78 passés + 4 `xfail`, Postman 69/69, Playwright 25/25.
+API 78 passés + 4 `xfail`, Postman 69/69, Playwright 25/25. Ces chiffres
+correspondent à la campagne V2 documentée **avant** la livraison F1
+(pagination) ; la section V3 donne l'état courant de la branche.
+
+### V3 (branche `app/v3`, vérifiée fonctionnellement)
+
+La V3 s'appuie sur la pagination des matchs livrée en V2 et enrichit les
+parcours sans corriger les anomalies volontairement conservées : prochains
+matchs sur l'accueil, contexte de la fiche équipe, tableau de bord des favoris,
+contexte du détail de match et confrontations directes.
+
+| Élément | V2 | V3 |
+|---|---|---|
+| Endpoints | 15 | 18 (prochains matchs, confrontations, tableau de bord favoris) |
+| Tests backend | 10 | 19 |
+| Tests de contrat API | 78 passés + 4 `xfail` | 100 passés + 4 `xfail` |
+| Assertions Postman | 69 (28 requêtes) | 76 (31 requêtes) |
+| Tests UI Playwright | 25 | 27 |
+| Cas manuels | 50 | 50 (campagne V3 non démarrée) |
+
+Vérifications du 22/11/2026 en **données réelles** : backend 19/19, API
+100 passés + 4 `xfail`, Postman 76/76, Playwright 27/27. La vérification
+fonctionnelle complémentaire couvre les six championnats, les états vides et
+d'erreur, le mobile iPhone 13 (390 px) et Galaxy S9+ (320 px), sans débordement
+horizontal ni erreur JavaScript. La **phase Testing n'est pas démarrée**.
 
 ## Gestion de campagne (Squash TM)
 

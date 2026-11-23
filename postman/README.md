@@ -7,7 +7,7 @@ ligne de commande avec Newman.
 
 | Fichier | Rôle |
 |---|---|
-| `Football-QA.postman_collection.json` | 28 requêtes, 4 dossiers, 69 assertions |
+| `Football-QA.postman_collection.json` | 31 requêtes, 4 dossiers, 76 assertions |
 | `Football-QA.postman_environment.json` | Environnement local (`baseUrl = http://localhost:8001`) |
 
 ## Prérequis
@@ -45,8 +45,8 @@ npx --yes newman@6 run postman/Football-QA.postman_collection.json \
 | Dossier | Requêtes | Ce qui est vérifié |
 |---|---|---|
 | `01 - Authentification` | 5 | Inscription, doublon 409, connexion, refus 401 sans énumération de compte, profil courant |
-| `02 - Football` | 15 | Championnats (6), classement ordonné, calendrier (identifiant de match mémorisé), buteurs (enveloppe, positions, tri), passeurs (tri et départage), limite invalide 422, actualités récentes (fenêtre, tri, titre), fenêtre trop large 422, presse (contrat, disponibilité, attribution), limite presse 422, détail du match, match inconnu 404, championnat inconnu 404, fiche équipe |
-| `03 - Favoris (scénario chaîné)` | 5 | Ajout, liste, doublon 409, suppression 204, suppression déjà effectuée 404 |
+| `02 - Football` | 17 | Championnats (6), classement ordonné, calendrier (identifiant de match mémorisé), prochains matchs triés, buteurs (enveloppe, positions, tri), passeurs (tri et départage), limite invalide 422, actualités récentes (fenêtre, tri, titre), fenêtre trop large 422, presse (contrat, disponibilité, attribution), limite presse 422, détail du match, confrontations directes, match inconnu 404, championnat inconnu 404, fiche équipe |
+| `03 - Favoris (scénario chaîné)` | 6 | Ajout, liste, tableau de bord, doublon 409, suppression 204, suppression déjà effectuée 404 |
 | `04 - Sécurité` | 3 | Accès sans jeton, jeton malformé, jeton `alg: none` |
 
 Le scénario chaîné correspond à l'exigence de l'énoncé : **connexion → ajout
@@ -69,8 +69,10 @@ nettoyage préalable et n'utilise que des données de test.
 
 ## Limites connues
 
-- Pas de collection de non-régression sur les données réelles
-  (`FOOTBALL_API_TOKEN` absent en local).
+- La collection tourne en **données réelles** comme en mode simulé : ses
+  assertions sont des invariants, jamais des noms de clubs ou des scores figés.
+- Le fournisseur gratuit limite à 10 requêtes/minute ; le cache backend évite
+  les appels répétés. Une erreur 502/503 transitoire reste possible.
 - Les assertions sur les buteurs portent sur des **invariants** (tri, bornes,
   absence de `null`), pas sur des noms de joueurs : elles restent valables
   quand la saison change.
