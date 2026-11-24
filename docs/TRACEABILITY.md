@@ -71,8 +71,15 @@ identifiants de cas renvoient à `docs/TEST_CASES.md`, ceux des anomalies à
 | `/api/favorites` | GET | TC-FAV-03, 06 | PyTest + Playwright + Postman |
 | `/api/favorites` | POST | TC-FAV-01, 02, 08 ; TC-SEC-06 à 09 | PyTest + Playwright + Postman |
 | `/api/favorites/{id}` | DELETE | TC-FAV-04, 05, 06 | PyTest + Playwright + Postman |
+| `/api/football/fixtures` | GET | Campagne V3 à mener | PyTest + Playwright + Postman |
+| `/api/football/matches/{id}/head2head` | GET | Campagne V3 à mener | PyTest + Playwright + Postman |
+| `/api/favorites/overview` | GET | Campagne V3 à mener | PyTest + Playwright + Postman |
 
-**Couverture des endpoints : 15 / 15 (100 %).**
+**Couverture des endpoints : 15 / 15 (100 %) pour les campagnes V1 et V2.**
+Les trois endpoints livrés par la V3 (prochains matchs, confrontations directes,
+tableau de bord des favoris) sont couverts par les suites automatisées
+(PyTest, Playwright, Postman) mais **pas encore par la campagne manuelle V3** :
+leurs cas seront ajoutés en phase Testing V3.
 
 ## 5. Couverture par niveau de test
 

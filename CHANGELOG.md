@@ -6,6 +6,20 @@ versionnage sémantique.
 
 ## [Non publié]
 
+### Modifié — intégration de `app/v3` dans `main` (24/11/2026)
+
+- **Périmètre de campagne explicité** : `README.md` rappelle que les chiffres de
+  la campagne V1 portent sur `a0ea6e6` (tag `v1.0-campagne-v1`) et que la
+  campagne manuelle V3 reste à mener. `docs/TRACEABILITY.md` § 4 distingue la
+  couverture V1/V2 (15/15 endpoints) des trois endpoints V3 (prochains matchs,
+  confrontations, tableau de bord des favoris), couverts par les suites
+  automatisées mais pas encore par des cas manuels.
+- **Fusion** : `app/v3` est intégrée à `main` par un merge commit (18 commits
+  V2/V3 conservés : fonctionnement, pagination, actualités, presse, détail de
+  match, prochains matchs, fiche équipe, favoris, confrontations).
+  Vérifications rejouées le 24/11/2026 en données réelles : backend 19/19,
+  API 100 passés + 4 `xfail`, Postman 76/76, Playwright 27/27.
+
 ### Amélioré — robustesse et parcours V3 (22/11/2026)
 
 - **Réessai** : boutons « Réessayer » ajoutés aux prochains matchs de l'accueil,

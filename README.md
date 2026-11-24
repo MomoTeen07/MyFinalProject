@@ -183,6 +183,11 @@ manuels**, **5 anomalies** reproductibles, **11/11 endpoints** couverts,
 pipeline vert. Les suites automatisées ont été rejouées en **données réelles**
 le 21/11/2026 : 114 vérifications passent, 0 échec, 4 `xfail`.
 
+> **Périmètre** : ces chiffres décrivent la **campagne V1**, exécutée sur le
+> commit `a0ea6e6` (tag `v1.0-campagne-v1`). Les V2 et V3 ajoutent des
+> fonctionnalités et leurs vérifications automatisées (voir les sections
+> suivantes) ; la **campagne manuelle V3 reste à mener**.
+
 ### V2 (terminée sur la branche `app/v2`)
 
 La V2 ajoute des fonctionnalités sans corriger les anomalies de la V1
