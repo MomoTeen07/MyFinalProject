@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Classement des buteurs d'un championnat",
+  "type": "object",
+  "required": ["competition", "season", "sort", "items"],
+  "properties": {
+    "competition": {
+      "type": "object",
+      "required": ["code", "name", "country"],
+      "properties": {
+        "code": { "type": "string", "minLength": 2 },
+        "name": { "type": "string", "minLength": 1 },
+        "country": { "type": "string", "minLength": 1 }
+      }
+    },
+    "season": {
+      "type": "object",
+      "required": ["startDate", "endDate", "currentMatchday"],
+      "properties": {
+        "startDate": { "type": ["string", "null"] },
+        "endDate": { "type": ["string", "null"] },
+        "currentMatchday": { "type": ["integer", "null"] }
+      }
+    },
+    "sort": { "type": "string", "enum": ["goals", "assists"] },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "position",
+          "player",
+          "team",
+          "goals",
+          "assists",
+          "penalties",
+          "playedMatches"
+        ],
+        "properties": {
+          "position": { "type": "integer", "minimum": 1 },
+          "player": {
+            "type": "object",
+            "required": ["id", "name"],
+            "properties": {
+              "id": { "type": ["integer", "null"] },
+              "name": { "type": "string", "minLength": 1 }
+            }
+          },
+          "team": {
+            "type": "object",
+            "required": ["id", "name", "crest"],
+            "properties": {
+              "id": { "type": ["integer", "null"] },
+              "name": { "type": "string", "minLength": 1 },
+              "crest": { "type": "string" }
+            }
+          },
+          "goals": { "type": "integer", "minimum": 0 },
+          "assists": { "type": "integer", "minimum": 0 },
+          "penalties": { "type": "integer", "minimum": 0 },
+          "playedMatches": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

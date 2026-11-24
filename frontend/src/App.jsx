@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Championships from './pages/Championships';
 import Championship from './pages/Championship';
 import TeamDetails from './pages/TeamDetails';
+import MatchDetails from './pages/MatchDetails';
 import Favorites from './pages/Favorites';
 import Auth from './pages/Auth';
 
@@ -24,6 +25,7 @@ function AppRoutes() {
         <Route path="/championships" element={<Championships />} />
         <Route path="/championships/:code" element={<Championship />} />
         <Route path="/teams/:code/:id" element={<TeamDetails />} />
+        <Route path="/matches/:id" element={<MatchDetails />} />
         <Route path="/favorites" element={<RequireAuth><Favorites /></RequireAuth>} />
         <Route path="/login" element={<Auth />} />
         <Route path="/register" element={<Auth register />} />

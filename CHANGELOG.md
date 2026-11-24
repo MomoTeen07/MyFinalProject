@@ -6,6 +6,150 @@ versionnage sémantique.
 
 ## [Non publié]
 
+### Modifié — intégration de `app/v3` dans `main` (24/11/2026)
+
+- **Périmètre de campagne explicité** : `README.md` rappelle que les chiffres de
+  la campagne V1 portent sur `a0ea6e6` (tag `v1.0-campagne-v1`) et que la
+  campagne manuelle V3 reste à mener. `docs/TRACEABILITY.md` § 4 distingue la
+  couverture V1/V2 (15/15 endpoints) des trois endpoints V3 (prochains matchs,
+  confrontations, tableau de bord des favoris), couverts par les suites
+  automatisées mais pas encore par des cas manuels.
+- **Fusion** : `app/v3` est intégrée à `main` par un merge commit (18 commits
+  V2/V3 conservés : fonctionnement, pagination, actualités, presse, détail de
+  match, prochains matchs, fiche équipe, favoris, confrontations).
+  Vérifications rejouées le 24/11/2026 en données réelles : backend 19/19,
+  API 100 passés + 4 `xfail`, Postman 76/76, Playwright 27/27.
+
+### Amélioré — robustesse et parcours V3 (22/11/2026)
+
+- **Réessai** : boutons « Réessayer » ajoutés aux prochains matchs de l'accueil,
+  aux onglets Matchs et Statistiques et aux confrontations directes.
+- **Fiche équipe** : le prochain match est complété par le calendrier du
+  championnat quand aucun match ne tombe dans la fenêtre de 10 jours du
+  fournisseur.
+- **Détail de match** : les « Derniers matchs » sont filtrés pour ne conserver
+  que les rencontres antérieures à la date du match consulté.
+- **Mobile** : les tableaux larges sont défilables avec une indication visible ;
+  padding et taille de police réduits, colonnes numériques non coupées.
+- **Documentation** : `docs/V3_SPEC.md` créé ; README et `PROJECT_CONTEXT.md`
+  mis à jour avec les fonctionnalités et les chiffres V3 (backend 19, API 100
+  passés + 4 `xfail`, Postman 76 assertions, Playwright 27).
+- **Vérification** : parcours résiduels 7/7, suite Playwright 27/27, Postman
+  76/76, 0 erreur JavaScript.
+
+### Corrigé — document HTML complet et affichage mobile réel (22/11/2026)
+
+- **Frontend** : `frontend/index.html` est désormais un document HTML complet
+  (`doctype`, `lang="fr"`, `meta charset="utf-8"`, `meta viewport`, titre,
+  description, favicon). Sans `meta viewport`, un téléphone réel rendait la
+  page en 980 px et n'activait pas les media queries : l'interface n'était pas
+  responsive sur mobile, malgré les règles CSS existantes.
+- **Vérification** : suite Playwright 27/27, parcours fonctionnels 31/31,
+  six championnats, émulation iPhone 13 (390 px) et Galaxy S9+ (320 px) sans
+  débordement horizontal, 0 erreur JavaScript.
+
+### Ajouté — V2, F4 : détail d'un match (22/11/2026)
+
+- **API** : `GET /api/football/matches/{id}`. Réponse
+  `{ id, competition, utcDate, status, matchday, homeTeam, awayTeam, score }`.
+  Identifiant inconnu → `404` (le fournisseur répond `400`), identifiant non
+  numérique → `422`. **ANO-005 reste ouverte** : la correction est locale à
+  cette nouvelle route, la route `/teams` conserve son comportement documenté.
+- **Interface** : page `/matches/:id` (compétition, date complète, statut, score,
+  équipes cliquables, journée), liens « Détails » depuis la liste des matchs et
+  « Voir le match » depuis les actualités, états chargement / erreur / retry.
+- **Tests** : 3 tests PyTest (contrat JSON Schema, 404, 422), 2 tests Playwright,
+  2 requêtes Postman (identifiant chaîné depuis le calendrier). Nouveau schéma
+  `tests/pytest/schemas/match_schema.json`.
+  Validation du 22/11/2026 en réel : Arsenal FC 3-0 Coventry City FC,
+  backend **10 passed**, API **78 passed + 4 xfailed**, Postman **69 assertions
+  / 0 échec**, Playwright **25 passed**.
+- **Documentation** : `docs/V2_SPEC.md`, `docs/TEST_CASES.md` (TC-MATCH-01 à 03),
+  `docs/TRACEABILITY.md` (R-20), `README.md`.
+
+### Ajouté — V2, F3b : bloc presse RMC Sport (22/11/2026)
+
+- **API** : `GET /api/football/press?limit=5` (`limit` de 1 à 10). Réponse
+  `{ available, source, fetchedAt, items: [{ title, link, publishedAt }] }`.
+- **Règle d'or** : la route renvoie **toujours `200`**. Timeout, statut non-200,
+  XML invalide ou flux vide → `available: false` et `items: []`. Aucun `5xx` :
+  une source externe non contractuelle ne peut pas casser l'accueil.
+- **Traitement** : `xml.etree.ElementTree` (bibliothèque standard, aucune
+  dépendance ajoutée), suppression des balises HTML, normalisation des espaces,
+  titre tronqué à 140 caractères, seuls titre / lien / date conservés, liens non
+  HTTP écartés, date RFC 822 convertie en ISO 8601 UTC, tri du plus récent.
+- **Cache et configuration** : `PRESS_CACHE_TTL_SECONDS` (600 s),
+  `PRESS_FEED_URL`, `PRESS_TIMEOUT_SECONDS` (5 s), transmis par Compose et
+  documentés dans `.env.example`.
+- **Interface** : section « À la une » sous les résultats, attribution
+  « Source : RMC Sport », liens `target="_blank"` +
+  `rel="noopener noreferrer"`, masquée si le flux est indisponible.
+- **Tests** : 6 tests unitaires hors ligne (`backend/tests/test_press.py` :
+  parsing, timeout, XML invalide, HTTP 503, troncature, limite), 3 tests API,
+  1 test UI tolérant (bloc visible *ou* masqué), 2 requêtes Postman. Nouveau
+  schéma `tests/pytest/schemas/press_schema.json`.
+  Validation du 22/11/2026 en réel : flux disponible (30 titres, 5 exposés),
+  backend **10 passed**, API **75 passed + 4 xfailed**, Postman **64 assertions
+  / 0 échec**, Playwright **23 passed**.
+- **Documentation** : `docs/V2_SPEC.md`, `docs/TEST_CASES.md` (TC-PRESS-01 à 03),
+  `docs/TRACEABILITY.md` (R-19), `README.md`, `.env.example`.
+
+### Ajouté — V2, F3a : actualités récentes (22/11/2026)
+
+- **API** : `GET /api/football/news?days=7&limit=10`. Réponse
+  `{ window: { from, to, days }, items }`. Ne conserve que les matchs
+  **terminés** des 6 championnats supportés (le fournisseur renvoie aussi BSA,
+  DED et ELC), exige un score complet, trie par date décroissante puis par
+  identifiant décroissant.
+- **Contrainte fournisseur découverte** : le plan gratuit refuse une plage
+  `dateFrom`/`dateTo` de plus de 10 jours d'écart (HTTP 400 : 11 jours passent,
+  12 échouent). `days` est donc borné à `1..10` côté API, ce qui renvoie un
+  `422` explicite au lieu d'un `502` opaque (`NEWS_MAX_DAYS`).
+- **Titre généré** côté service, en français, trois branches testables :
+  victoire domicile, victoire extérieur, match nul. Vérifié en réel :
+  « Real Madrid CF s'impose 2-1 face à RC Celta de Vigo ».
+- **Interface** : section « Résultats récents » sur la page d'accueil,
+  5 éléments, compétition, titre, score et temps relatif en français
+  (`Intl.RelativeTimeFormat`), états chargement / erreur / vide.
+- **Mode simulé** : `MOCK_NEWS` déterministe couvrant les trois branches.
+- **Tests** : 6 tests PyTest (contrat JSON Schema, compétitions supportées, tri,
+  trois branches de titre, 5 paramètres invalides), 2 tests Playwright,
+  2 requêtes Postman. Nouveau schéma `tests/pytest/schemas/news_schema.json`,
+  nouvelle fixture Playwright `news`.
+  Validation locale du 22/11/2026 en données réelles : PyTest **70 passed +
+  4 xfailed**, Postman **59 assertions / 0 échec**, Playwright **22 passed**,
+  backend **4 passed**.
+- **Documentation** : `docs/V2_SPEC.md` (borne `days` corrigée), `docs/TEST_CASES.md`
+  (TC-NEWS-01 à 04), `docs/TRACEABILITY.md` (R-18), `README.md`.
+
+### Ajouté — V2, F2 : buteurs et passeurs (22/11/2026)
+
+- **API** : `GET /api/football/leagues/{code}/scorers?limit=10&sort=goals|assists`.
+  Réponse en enveloppe `{ competition, season, sort, items }`. `limit` borné à
+  `1..50` (défaut 10), `sort` limité à `goals`/`assists`, championnat inconnu →
+  `404`, paramètre invalide → `422`. Le classement applique quatre critères
+  déterministes : métrique décroissante, puis buts, puis matchs joués croissants,
+  puis nom du joueur. Le fournisseur ne sachant trier que par buts, un vivier de
+  100 joueurs est récupéré puis trié côté application.
+- **Normalisation** : `assists: null` renvoyé par le fournisseur (cas réel
+  Haaland, 9 buts) est exposé comme `0`, jamais `null`. Compteurs non entiers
+  ramenés à `0`.
+- **Interface** : troisième onglet « Buteurs » dans la page championnat, avec
+  bascule « Buts / Passes » (`aria-pressed`), tableau `#`, joueur, équipe (lien
+  vers la fiche), matchs, buts, passes, colonne active mise en évidence, états
+  chargement / erreur / vide et libellé de saison.
+- **Mode simulé** : jeu `MOCK_SCORERS` déterministe pour les 6 championnats,
+  couvrant égalités de buts, départage par matchs puis par nom, et `assists`
+  absent.
+- **Tests** : 9 tests PyTest (contrat JSON Schema, ordre déterministe,
+  `null` → 0, tri par passes, 4 paramètres invalides, 404), 3 tests Playwright,
+  4 requêtes Postman. Nouveau schéma `tests/pytest/schemas/scorers_schema.json`.
+  Validation locale du 22/11/2026 en données réelles : PyTest **61 passed +
+  4 xfailed**, Postman **52 assertions / 0 échec**, Playwright **20 passed**,
+  backend **4 passed**.
+- **Documentation** : `docs/V2_SPEC.md` (périmètre V2), `docs/TEST_CASES.md`
+  (TC-SCOR-01 à 04), `docs/TRACEABILITY.md` (R-17), `README.md`.
+
 ### Modifié
 
 - **Suites QA rejouées sur les données réelles** (21/11/2026) : la CI force
@@ -29,6 +173,15 @@ versionnage sémantique.
   simulé (développement hors ligne et tests unitaires uniquement).
 
 ### Corrigé
+
+- **Double exécution de la CI sur les branches de travail** (22/11/2026) : la
+  clé `push` sans filtre déclenchait un pipeline en plus de celui de la pull
+  request. Deux backends interrogeaient alors le fournisseur en parallèle et
+  épuisaient le quota de 10 requêtes/minute (un `503` transitoire a fait échouer
+  une fiche équipe). Le workflow ne s'exécute plus sur les push de branches
+  (`branches: [main]`). Le test du lien « buteur → équipe » vérifie désormais la
+  cible du lien sans navigation, ce qui supprime un appel fournisseur inutile
+  et rend le test déterministe.
 
 - **`FOOTBALL_CACHE_TTL_SECONDS` ignoré par Compose** : la variable était
   documentée (README, `.env.example`) mais n'était pas transmise au conteneur

@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client';
+import FormBadges, { formResults } from '../components/FormBadges';
+import MatchRow from '../components/MatchRow';
 import TeamCrest from '../components/TeamCrest';
 import { useAuth } from '../context/AuthContext';
 
@@ -12,6 +14,10 @@ export default function TeamDetails() {
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const favoriteMutation = useRef(0);
+  const [overview, setOverview] = useState({ rank: null, recent: [], next: null });
+  const [overviewStatus, setOverviewStatus] = useState('idle');
+  const [overviewRequested, setOverviewRequested] = useState(false);
 
   const loadTeam = useCallback(async (signal) => {
     setStatus('loading');
@@ -31,6 +37,9 @@ export default function TeamDetails() {
     const controller = new AbortController();
     setTeam(null);
     setFavorite(null);
+    setOverviewRequested(false);
+    setOverviewStatus('idle');
+    setOverview({ rank: null, recent: [], next: null });
     loadTeam(controller.signal);
     return () => controller.abort();
   }, [loadTeam]);
@@ -38,13 +47,74 @@ export default function TeamDetails() {
   useEffect(() => {
     if (!user) { setFavorite(null); return; }
     let active = true;
+    const version = favoriteMutation.current;
     api('/api/favorites')
-      .then((items) => { if (active) setFavorite(items.find((item) => item.team_id === Number(id)) || null); })
+      .then((items) => {
+        // Une réponse de lecture partie avant une mutation ne doit pas écraser
+        // l'état optimiste du bouton favori.
+        if (active && version === favoriteMutation.current) {
+          setFavorite(items.find((item) => item.team_id === Number(id)) || null);
+        }
+      })
       .catch((requestError) => { if (active) setError(requestError.message); });
     return () => { active = false; };
   }, [user, id]);
 
+  useEffect(() => {
+    if (!team || !overviewRequested) return undefined;
+
+    const controller = new AbortController();
+    const signal = controller.signal;
+    const load = (path) => api(path, { signal }).catch(() => null);
+
+    setOverviewStatus('loading');
+    Promise.all([
+      load(`/api/football/leagues/${code}/standings`),
+      load(`/api/football/leagues/${code}/matches?team_id=${team.id}&status=FINISHED&page_size=3&sort=date_desc`),
+      load(`/api/football/fixtures?days=10&limit=1&team_id=${team.id}`),
+      // Repli sur le calendrier complet du championnat : un prochain match
+      // peut tomber au-delà de la fenêtre de 10 jours du fournisseur.
+      load(`/api/football/leagues/${code}/matches?team_id=${team.id}&page_size=100&sort=date`),
+    ]).then(([standings, recent, upcoming, schedule]) => {
+      if (controller.signal.aborted) return;
+      const row = Array.isArray(standings)
+        ? standings.find((entry) => entry.team?.id === team.id)
+        : null;
+      const now = Date.now();
+      const nextInLeague = Array.isArray(schedule?.items)
+        ? schedule.items
+          .filter((match) => ['SCHEDULED', 'TIMED'].includes(match.status))
+          .filter((match) => {
+            const timestamp = Date.parse(match.utcDate);
+            return Number.isFinite(timestamp) && timestamp >= now;
+          })
+          .sort((a, b) => (a.utcDate || '').localeCompare(b.utcDate || ''))[0]
+        : null;
+      const nextFixture = Array.isArray(upcoming?.items) && upcoming.items.length > 0
+        ? upcoming.items[0]
+        : null;
+      setOverview({
+        rank: row
+          ? {
+            position: row.position,
+            points: row.points,
+            playedGames: row.playedGames,
+            form: row.form,
+          }
+          : null,
+        recent: Array.isArray(recent?.items)
+          ? [...recent.items].sort((a, b) => (b.utcDate || '').localeCompare(a.utcDate || ''))
+          : [],
+        next: nextFixture || nextInLeague || null,
+      });
+      setOverviewStatus('success');
+    });
+
+    return () => controller.abort();
+  }, [team, code, overviewRequested]);
+
   const toggleFavorite = async () => {
+    favoriteMutation.current += 1;
     setSaving(true);
     setError('');
     try {
@@ -80,6 +150,51 @@ export default function TeamDetails() {
       </div>
       {!user && <div className="notice">Connecte-toi pour gérer tes favoris. <Link to="/login">Connexion</Link></div>}
       {error && <div className="error" role="alert">{error}</div>}
+
+      {!overviewRequested && (
+        <button className="primary small overview-toggle" onClick={() => setOverviewRequested(true)}>
+          Afficher les matchs et le classement
+        </button>
+      )}
+      {overviewStatus === 'loading' && <p className="notice" role="status">Chargement des matchs de l’équipe…</p>}
+      {overviewStatus === 'success' && (
+        <div className="context-grid">
+          <section className="card panel">
+            <h2>Classement</h2>
+            {overview.rank ? (
+              <div className="standing-row">
+                <span className="standing-rank">#{overview.rank.position}</span>
+                <span>{overview.rank.points} pts</span>
+                <span>{overview.rank.playedGames} J</span>
+                <FormBadges
+                  results={formResults(overview.recent, team.id)}
+                  fallback={overview.rank.form}
+                />
+              </div>
+            ) : (
+              <p className="muted">Aucun classement disponible.</p>
+            )}
+          </section>
+          <section className="card panel">
+            <h2>Prochain match</h2>
+            {overview.next ? (
+              <ul className="match-list"><MatchRow match={overview.next} showCompetition /></ul>
+            ) : (
+              <p className="muted">Aucun match programmé pour le moment.</p>
+            )}
+          </section>
+          <section className="card panel">
+            <h2>Derniers résultats</h2>
+            {overview.recent.length > 0 ? (
+              <ul className="match-list">
+                {overview.recent.map((item) => <MatchRow key={item.id} match={item} showCompetition />)}
+              </ul>
+            ) : (
+              <p className="muted">Aucun match récent disponible.</p>
+            )}
+          </section>
+        </div>
+      )}
     </section>
   );
 }

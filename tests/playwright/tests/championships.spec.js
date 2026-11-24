@@ -61,6 +61,50 @@ test.describe('Championnats', () => {
     await expect(team.venue).not.toBeEmpty();
   });
 
+  test('l’onglet statistiques affiche le classement des buteurs', async ({ page, football }) => {
+    const championship = new ChampionshipPage(page);
+    await championship.goto('PL');
+
+    await championship.openScorers();
+
+    const expectedCount = Math.min(10, football.scorers.items.length);
+    await expect(championship.tableRows).toHaveCount(expectedCount);
+    const top = football.scorers.items[0];
+    await expect(championship.tableRows.first()).toContainText(top.player.name);
+    await expect(championship.tableRows.first()).toContainText(top.team.name);
+    await expect(championship.scorerColumn(4).first()).toHaveText(String(top.goals));
+    await expect(championship.scorerColumn(5).first()).toHaveText(String(top.assists));
+  });
+
+  test('la bascule Buts/Passes reclasse le tableau', async ({ page, football }) => {
+    const championship = new ChampionshipPage(page);
+    await championship.goto('PL');
+    await championship.openScorers();
+    await expect(championship.goalsToggle).toHaveAttribute('aria-pressed', 'true');
+
+    await championship.assistsToggle.click();
+
+    await expect(championship.assistsToggle).toHaveAttribute('aria-pressed', 'true');
+    const top = football.scorersByAssists.items[0];
+    await expect(championship.tableRows.first()).toContainText(top.player.name);
+    await expect(championship.scorerColumn(5).first()).toHaveText(String(top.assists));
+  });
+
+  test('le lien d’un buteur pointe vers la fiche de son équipe', async ({ page, football }) => {
+    const championship = new ChampionshipPage(page);
+    const expected = football.scorers.items[0].team;
+    await championship.goto('PL');
+    await championship.openScorers();
+
+    // On vérifie la cible du lien sans naviguer : la page équipe est déjà
+    // couverte par le test du classement, et chaque navigation supplémentaire
+    // consomme un appel au fournisseur (quota 10 req/min partagé en CI).
+    await expect(championship.teamLink(expected.name).first()).toHaveAttribute(
+      'href',
+      `/teams/PL/${expected.id}`,
+    );
+  });
+
   test('un championnat inconnu affiche une erreur récupérable', async ({ page }) => {
     const championship = new ChampionshipPage(page);
     await championship.goto('XX');

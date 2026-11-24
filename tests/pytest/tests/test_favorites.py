@@ -96,6 +96,31 @@ def test_accented_team_names_are_preserved(api, api_url, user):
     assert created.json()["team_name"] == "Atlético de Madrid"
 
 
+@allure.story("Tableau de bord")
+@allure.severity(allure.severity_level.CRITICAL)
+def test_favorites_overview_contains_context(api, api_url, user, favorite):
+    response = api.get(
+        f"{api_url}/api/favorites/overview", headers=user["headers"], timeout=30
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    item = payload["items"][0]
+    assert item["id"] == favorite["id"]
+    assert item["team_id"] == 57
+    assert "rank" in item
+    assert isinstance(item["recent"], list)
+    assert "next" in item
+
+
+@allure.story("Sécurité")
+@allure.severity(allure.severity_level.BLOCKER)
+def test_favorites_overview_requires_authentication(api, api_url):
+    response = api.get(f"{api_url}/api/favorites/overview", timeout=10)
+
+    assert response.status_code == 401
+
+
 @allure.story("Validation")
 @allure.severity(allure.severity_level.NORMAL)
 @pytest.mark.parametrize(

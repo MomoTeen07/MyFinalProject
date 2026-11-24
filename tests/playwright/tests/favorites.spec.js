@@ -27,6 +27,8 @@ test.describe('Parcours critique des favoris', () => {
     await navbar.openFavorites();
     await expect(page).toHaveURL(/\/favorites$/);
     await expect(favorites.card(target.name)).toBeVisible();
+    await expect(favorites.card(target.name).getByRole('heading', { name: 'Derniers résultats' })).toBeVisible();
+    await expect(favorites.card(target.name).getByRole('heading', { name: 'Prochain match' })).toBeVisible();
 
     await favorites.remove(target.name);
     await expect(favorites.emptyState).toBeVisible();
@@ -50,7 +52,7 @@ test.describe('Parcours critique des favoris', () => {
 
   test("l'état du bouton reflète un favori déjà enregistré", async ({ page, loginAs, football }) => {
     const team = new TeamPage(page);
-    const target = football.teams[2];
+    const target = football.teams[0];
 
     await team.goto('PL', target.id);
     await team.toggleFavorite();

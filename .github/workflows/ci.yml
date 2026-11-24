@@ -1,7 +1,10 @@
 name: QA CI
 
 on:
+  # Un push de branche déclenche déjà la pull request : on évite le doublon
+  # (push + PR) qui consommerait deux fois le quota du fournisseur (10 req/min).
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 

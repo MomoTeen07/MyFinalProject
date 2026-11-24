@@ -9,6 +9,7 @@
     { "key": "baseUrl", "value": "http://localhost:8001" },
     { "key": "token", "value": "" },
     { "key": "favoriteId", "value": "" },
+    { "key": "matchId", "value": "" },
     { "key": "uniqueEmail", "value": "" },
     { "key": "password", "value": "Password123!" }
   ],
@@ -234,10 +235,17 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('200 OK', () => pm.response.to.have.status(200));",
-                  "const matches = pm.response.json();",
-                  "pm.test('Matchs présents', () => pm.expect(matches).to.be.an('array').and.not.empty);",
+                  "const payload = pm.response.json();",
+                  "pm.test('Enveloppe de pagination', () => {",
+                  "  pm.expect(payload.items).to.be.an('array').and.not.empty;",
+                  "  pm.expect(payload.total).to.be.a('number').and.at.least(payload.items.length);",
+                  "  pm.expect(payload.page).to.eql(1);",
+                  "  pm.expect(payload.page_size).to.be.a('number');",
+                  "  pm.expect(payload.total_pages).to.be.a('number');",
+                  "});",
+                  "pm.collectionVariables.set('matchId', payload.items[0].id);",
                   "pm.test('Structure d’un match', () => {",
-                  "  matches.forEach((match) => {",
+                  "  payload.items.forEach((match) => {",
                   "    pm.expect(match.id).to.be.a('number');",
                   "    pm.expect(match.utcDate).to.be.a('string');",
                   "    pm.expect(match.homeTeam.name).to.be.a('string');",
@@ -252,6 +260,351 @@
             "method": "GET",
             "header": [],
             "url": { "raw": "{{baseUrl}}/api/football/leagues/PL/matches", "host": ["{{baseUrl}}"], "path": ["api", "football", "leagues", "PL", "matches"] }
+          }
+        },
+        {
+          "name": "Prochains matchs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const payload = pm.response.json();",
+                  "pm.test('Fenêtre et enveloppe', () => {",
+                  "  pm.expect(payload.window.days).to.eql(10);",
+                  "  pm.expect(payload.items).to.be.an('array');",
+                  "});",
+                  "pm.test('Matchs à venir triés', () => {",
+                  "  const dates = payload.items.map((match) => match.utcDate);",
+                  "  pm.expect(dates).to.eql([...dates].sort());",
+                  "  payload.items.forEach((match) => pm.expect(['SCHEDULED', 'TIMED']).to.include(match.status));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/fixtures?days=10&limit=4", "host": ["{{baseUrl}}"], "path": ["api", "football", "fixtures"], "query": [{ "key": "days", "value": "10" }, { "key": "limit", "value": "4" }] }
+          }
+        },
+        {
+          "name": "Buteurs Premier League",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Enveloppe complète', () => {",
+                  "  pm.expect(body.competition.code).to.eql('PL');",
+                  "  pm.expect(body.sort).to.eql('goals');",
+                  "  pm.expect(body.items).to.be.an('array').with.length.above(0);",
+                  "  pm.expect(body.items.length).to.be.at.most(10);",
+                  "});",
+                  "pm.test('Positions contiguës', () => {",
+                  "  const positions = body.items.map((item) => item.position);",
+                  "  pm.expect(positions).to.eql(body.items.map((_, index) => index + 1));",
+                  "});",
+                  "pm.test('Tri par buts décroissants', () => {",
+                  "  const goals = body.items.map((item) => item.goals);",
+                  "  pm.expect(goals).to.eql([...goals].sort((a, b) => b - a));",
+                  "});",
+                  "pm.test('Passes jamais nulles', () => {",
+                  "  body.items.forEach((item) => {",
+                  "    pm.expect(item.assists).to.be.a('number');",
+                  "    pm.expect(item.assists).to.be.at.least(0);",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/leagues/PL/scorers?limit=10", "host": ["{{baseUrl}}"], "path": ["api", "football", "leagues", "PL", "scorers"], "query": [{ "key": "limit", "value": "10" }] }
+          }
+        },
+        {
+          "name": "Passeurs Premier League",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Critère appliqué', () => pm.expect(body.sort).to.eql('assists'));",
+                  "pm.test('Tri par passes décroissantes', () => {",
+                  "  const assists = body.items.map((item) => item.assists);",
+                  "  pm.expect(assists).to.eql([...assists].sort((a, b) => b - a));",
+                  "});",
+                  "pm.test('Départage par buts puis par matchs', () => {",
+                  "  body.items.forEach((item, index) => {",
+                  "    if (index === 0) return;",
+                  "    const previous = body.items[index - 1];",
+                  "    if (previous.assists === item.assists && previous.goals === item.goals) {",
+                  "      pm.expect(previous.playedMatches).to.be.at.most(item.playedMatches);",
+                  "    }",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/leagues/PL/scorers?limit=10&sort=assists", "host": ["{{baseUrl}}"], "path": ["api", "football", "leagues", "PL", "scorers"], "query": [{ "key": "limit", "value": "10" }, { "key": "sort", "value": "assists" }] }
+          }
+        },
+        {
+          "name": "Buteurs - limite invalide (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/leagues/PL/scorers?limit=0", "host": ["{{baseUrl}}"], "path": ["api", "football", "leagues", "PL", "scorers"], "query": [{ "key": "limit", "value": "0" }] }
+          }
+        },
+        {
+          "name": "Buteurs - championnat inconnu (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/leagues/XX/scorers", "host": ["{{baseUrl}}"], "path": ["api", "football", "leagues", "XX", "scorers"] }
+          }
+        },
+        {
+          "name": "Actualités récentes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Fenêtre cohérente', () => {",
+                  "  pm.expect(body.window.days).to.eql(7);",
+                  "  pm.expect(body.window.from <= body.window.to).to.eql(true);",
+                  "  pm.expect(body.items).to.be.an('array');",
+                  "});",
+                  "pm.test('Résultats terminés de compétitions supportées', () => {",
+                  "  const codes = ['PL', 'FL1', 'PD', 'SA', 'BL1', 'CL'];",
+                  "  body.items.forEach((item) => {",
+                  "    pm.expect(item.status).to.eql('FINISHED');",
+                  "    pm.expect(codes).to.include(item.competition.code);",
+                  "    pm.expect(item.headline).to.be.a('string').and.not.empty;",
+                  "    pm.expect(item.score.home).to.be.a('number');",
+                  "    pm.expect(item.score.away).to.be.a('number');",
+                  "  });",
+                  "});",
+                  "pm.test('Tri du plus récent au plus ancien', () => {",
+                  "  const dates = body.items.map((item) => item.utcDate);",
+                  "  pm.expect(dates).to.eql([...dates].sort().reverse());",
+                  "});",
+                  "pm.test('Titre cohérent avec le score', () => {",
+                  "  body.items.forEach((item) => {",
+                  "    const home = item.homeTeam.name;",
+                  "    const away = item.awayTeam.name;",
+                  "    const h = item.score.home;",
+                  "    const a = item.score.away;",
+                  "    let expected;",
+                  "    if (h > a) expected = `${home} s'impose ${h}-${a} face à ${away}`;",
+                  "    else if (a > h) expected = `${away} s'impose ${a}-${h} sur le terrain de ${home}`;",
+                  "    else expected = `${home} et ${away} se quittent dos à dos (${h}-${a})`;",
+                  "    pm.expect(item.headline).to.eql(expected);",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/news?days=7&limit=5", "host": ["{{baseUrl}}"], "path": ["api", "football", "news"], "query": [{ "key": "days", "value": "7" }, { "key": "limit", "value": "5" }] }
+          }
+        },
+        {
+          "name": "Actualités - fenêtre trop large (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));",
+                  "pm.test('Borne métier, pas une erreur fournisseur', () => pm.expect(pm.response.code).to.not.eql(502));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/news?days=11", "host": ["{{baseUrl}}"], "path": ["api", "football", "news"], "query": [{ "key": "days", "value": "11" }] }
+          }
+        },
+        {
+          "name": "Presse - titres RMC Sport",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK (source non bloquante)', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Contrat de la section presse', () => {",
+                  "  pm.expect(body.available).to.be.a('boolean');",
+                  "  pm.expect(body.source.name).to.eql('RMC Sport');",
+                  "  pm.expect(body.source.url).to.be.a('string').and.not.empty;",
+                  "  pm.expect(body.fetchedAt).to.be.a('string');",
+                  "  pm.expect(body.items).to.be.an('array');",
+                  "  pm.expect(body.items.length).to.be.at.most(5);",
+                  "});",
+                  "pm.test('Titres exploitables et attribuables', () => {",
+                  "  body.items.forEach((item) => {",
+                  "    pm.expect(item.title).to.be.a('string').and.not.empty;",
+                  "    pm.expect(item.title.length).to.be.at.most(140);",
+                  "    pm.expect(item.title).to.not.include('<');",
+                  "    pm.expect(item.link).to.match(/^https?:\\/\\//);",
+                  "  });",
+                  "});",
+                  "pm.test('Disponibilité cohérente', () => {",
+                  "  if (body.available) pm.expect(body.items.length).to.be.above(0);",
+                  "  else pm.expect(body.items.length).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/press?limit=5", "host": ["{{baseUrl}}"], "path": ["api", "football", "press"], "query": [{ "key": "limit", "value": "5" }] }
+          }
+        },
+        {
+          "name": "Presse - limite invalide (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/press?limit=11", "host": ["{{baseUrl}}"], "path": ["api", "football", "press"], "query": [{ "key": "limit", "value": "11" }] }
+          }
+        },
+        {
+          "name": "Détail du match",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Identifiant du match demandé', () => {",
+                  "  pm.expect(String(body.id)).to.eql(String(pm.collectionVariables.get('matchId')));",
+                  "});",
+                  "pm.test('Contrat du détail', () => {",
+                  "  pm.expect(body.competition.code).to.be.a('string');",
+                  "  pm.expect(body.homeTeam.name).to.be.a('string').and.not.empty;",
+                  "  pm.expect(body.awayTeam.name).to.be.a('string').and.not.empty;",
+                  "  pm.expect(body).to.have.property('score');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/matches/{{matchId}}", "host": ["{{baseUrl}}"], "path": ["api", "football", "matches", "{{matchId}}"] }
+          }
+        },
+        {
+          "name": "Confrontations directes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const payload = pm.response.json();",
+                  "pm.test('Contrat des confrontations', () => {",
+                  "  pm.expect(String(payload.match_id)).to.eql(String(pm.collectionVariables.get('matchId')));",
+                  "  pm.expect(payload.items).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/matches/{{matchId}}/head2head?limit=3", "host": ["{{baseUrl}}"], "path": ["api", "football", "matches", "{{matchId}}", "head2head"], "query": [{ "key": "limit", "value": "3" }] }
+          }
+        },
+        {
+          "name": "Match inconnu (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404 Not Found', () => pm.response.to.have.status(404));",
+                  "pm.test('Traduction du 400 fournisseur', () => pm.expect(pm.response.code).to.not.eql(502));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/football/matches/999999999", "host": ["{{baseUrl}}"], "path": ["api", "football", "matches", "999999999"] }
           }
         },
         {
@@ -359,6 +712,33 @@
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": { "raw": "{{baseUrl}}/api/favorites", "host": ["{{baseUrl}}"], "path": ["api", "favorites"] }
+          }
+        },
+        {
+          "name": "Tableau de bord des favoris",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const payload = pm.response.json();",
+                  "pm.test('Contexte du favori', () => {",
+                  "  const item = payload.items.find((entry) => String(entry.team_id) === '57');",
+                  "  pm.expect(item).to.be.an('object');",
+                  "  pm.expect(item).to.have.property('rank');",
+                  "  pm.expect(item.recent).to.be.an('array');",
+                  "  pm.expect(item).to.have.property('next');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/favorites/overview", "host": ["{{baseUrl}}"], "path": ["api", "favorites", "overview"] }
           }
         },
         {

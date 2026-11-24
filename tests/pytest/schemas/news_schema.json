@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fil de résultats récents",
+  "type": "object",
+  "required": ["window", "items"],
+  "properties": {
+    "window": {
+      "type": "object",
+      "required": ["from", "to", "days"],
+      "properties": {
+        "from": { "type": "string", "minLength": 10 },
+        "to": { "type": "string", "minLength": 10 },
+        "days": { "type": "integer", "minimum": 1, "maximum": 10 }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "competition",
+          "utcDate",
+          "status",
+          "homeTeam",
+          "awayTeam",
+          "score",
+          "headline"
+        ],
+        "properties": {
+          "id": { "type": "integer" },
+          "competition": {
+            "type": "object",
+            "required": ["code", "name"],
+            "properties": {
+              "code": { "type": "string", "enum": ["PL", "FL1", "PD", "SA", "BL1", "CL"] },
+              "name": { "type": "string", "minLength": 1 }
+            }
+          },
+          "utcDate": { "type": "string", "minLength": 10 },
+          "status": { "type": "string", "enum": ["FINISHED"] },
+          "homeTeam": {
+            "type": "object",
+            "required": ["id", "name"],
+            "properties": {
+              "id": { "type": ["integer", "null"] },
+              "name": { "type": "string", "minLength": 1 }
+            }
+          },
+          "awayTeam": {
+            "type": "object",
+            "required": ["id", "name"],
+            "properties": {
+              "id": { "type": ["integer", "null"] },
+              "name": { "type": "string", "minLength": 1 }
+            }
+          },
+          "score": {
+            "type": "object",
+            "required": ["home", "away"],
+            "properties": {
+              "home": { "type": "integer", "minimum": 0 },
+              "away": { "type": "integer", "minimum": 0 }
+            }
+          },
+          "headline": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}
