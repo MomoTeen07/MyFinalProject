@@ -107,7 +107,7 @@ ne sont jamais supprimés, seulement adaptés dans la PR qui change l'API.
 ## 3. Reprise en 5 minutes
 
 ```powershell
-cd C:\Users\MAbdo\Desktop\Football-QA\MyFinalProject
+cd C:\Users\MAbdo\Desktop\Football\MyFinalProject
 git pull --ff-only origin main
 git log --oneline -5
 docker ps --format "{{.Names}} | {{.Status}} | {{.Ports}}"
@@ -171,20 +171,17 @@ python infra/squash/seed_campaign.py
 Identifiants Squash locaux : `admin` / `admin` (instance de démonstration, à
 changer hors projet). Ne jamais versionner `.env` ni les clés.
 
-## 5. Les deux copies du dépôt (à conserver)
+## 5. Une seule copie du dépôt
 
 | Chemin | Rôle |
 |---|---|
-| `C:\Users\MAbdo\Desktop\Football-QA\MyFinalProject` | Copie de travail : c'est ici que les branches et PR sont créées |
-| `C:\Users\MAbdo\Desktop\Football-Agent\football-qa` | Clone de MyFinalProject exigé par `football-qa-agents/infra/docker-compose.test.yml` (`context: ../../football-qa/backend` et `.../frontend`) |
+| `C:\Users\MAbdo\Desktop\Football\MyFinalProject` | Copie unique : branches, PR, tests et application. `main` contient la V3 (tag `v3.0`). |
 
-Après chaque fusion sur `main`, resynchroniser la seconde copie :
-
-```powershell
-git -C C:\Users\MAbdo\Desktop\Football-Agent\football-qa pull --ff-only
-```
-
-Une jonction Windows a déjà été refusée : ne pas supprimer ni déplacer ce clone.
+Depuis le 24/11/2026, les deux dépôts sont regroupés dans
+`C:\Users\MAbdo\Desktop\Football\` : l'application ici, les agents dans
+`football-qa-agents`. La stack de test des agents construit l'application avec
+`context: ../../MyFinalProject/backend` et `.../frontend` : ne pas renommer ni
+déplacer ce dossier.
 
 ## 6. Règles de travail à conserver
 
@@ -272,8 +269,7 @@ git -C C:\Users\stgadmin\Desktop\football-qa-agents pull --ff-only
 git -C <chemin_MyFinalProject> switch main
 git -C <chemin_MyFinalProject> pull --ff-only
 
-# 2. Resynchroniser le clone cible des agents (voir § 5)
-git -C <chemin_...\football-qa> pull --ff-only
+# 2. Aucun second clone à resynchroniser : une seule copie (voir § 5).
 ```
 
 ```powershell
@@ -322,9 +318,9 @@ cd C:\Users\stgadmin\Desktop\football-qa-agents
    de test des agents se réensemence avec `scripts\seed_test_data.py`.
 2. **Ne jamais transmettre `.env`** par chat, mail ou commit : les clés sont
    locales à chaque machine (elles existent déjà sur le PC professionnel).
-3. **Vérifier le chemin du clone cible** : depuis
-   `football-qa-agents/infra`, `..\..\football-qa` doit pointer vers le clone de
-   `MyFinalProject` ; sinon la stack `football-qa-test` ne construit rien.
+3. **Vérifier le chemin du projet cible** : depuis
+   `football-qa-agents/infra`, `..\..\MyFinalProject` doit pointer vers le dépôt
+   de l'application ; sinon la stack `football-qa-test` ne construit rien.
 4. **Ports attendus** : 8001/5174/5433 (application), 8002/5175/5434 (tests des
    agents), 8090 (Squash), 5180 (bureau). Libérer tout conflit avant `up`.
 5. **`gh` (GitHub CLI)** n'est pas garanti sur le PC professionnel : vérifier
