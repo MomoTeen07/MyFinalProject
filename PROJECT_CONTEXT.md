@@ -2,11 +2,11 @@
 
 | Élément | Valeur |
 |---|---|
-| Dernière mise à jour | 22/11/2026 |
-| Commit de référence | branche `app/v3` — **toujours vérifier avec `git log -1`** (`18e6c65` au moment de la vérification) ; la campagne Squash V1 a été exécutée sur `a0ea6e6` |
-| Branches ouvertes | `app/v3` (travail en cours), `app/v2` (terminée), `main` |
-| État | V3 implémentée et vérifiée fonctionnellement ; corrections locales non commitées ; phase Testing non démarrée |
-| Reste à faire | Validation utilisateur, puis phase Testing et campagne V3 ; documentation de campagne et soutenance |
+| Dernière mise à jour | 24/11/2026 |
+| Commit de référence | `main` — **toujours vérifier avec `git log -1`** (`3ba1ec9`, tag `v3.0`) ; la campagne Squash V1 a été exécutée sur `a0ea6e6` |
+| Branches ouvertes | `main` uniquement : `app/v2` et `app/v3` ont été fusionnées le 24/11/2026 (PR #17) |
+| État | V3 intégrée à `main`, CI verte, 222 vérifications automatiques vertes en données réelles ; corrections locales commitées ; phase Testing V3 non démarrée |
+| Reste à faire | Validation utilisateur de la V3, puis phase Testing et campagne V3 ; slides, captures et soutenance |
 
 Ce fichier est le **point d'entrée pour reprendre le travail**. Il décrit l'état
 réel du dépôt et des environnements locaux, pas seulement l'intention.
@@ -39,7 +39,7 @@ réel du dépôt et des environnements locaux, pas seulement l'intention.
 
 ## 2. Historique des PR (toutes fusionnées en squash)
 
-Tableau arrêté à la **#13** ; pour la suite :
+Tableau arrêté à la **#17** ; pour la suite :
 `gh pr list --state merged --limit 20`.
 
 | PR | Commit | Sujet |
@@ -57,6 +57,7 @@ Tableau arrêté à la **#13** ; pour la suite :
 | #11 | `dcb1a7d` | Point de reprise mis à jour (PR #8 à #10, piège « mode réel ») |
 | #12 | `3170350` | `FOOTBALL_CACHE_TTL_SECONDS` transmis au backend par Compose |
 | #13 | `13b27ab` | Point de reprise : mode « données réelles » consigné (§ 11.3) |
+| #17 | `3ba1ec9` | **Intégration de la V3 dans `main`** (merge commit, 18 commits V2/V3 conservés, CI verte) |
 
 Après la PR #12, la campagne Squash et les suites restent en mode simulé ;
 seules la documentation, `.env.example` et une variable d'environnement du
