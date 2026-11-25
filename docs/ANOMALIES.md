@@ -2,11 +2,11 @@
 
 | Élément | Valeur |
 |---|---|
-| Campagne | Campagne V1 |
-| Version | commit `a0ea6e6` |
+| Campagne | Campagne finale V3 (V1 + V2 + V3) |
+| Version | V1 : commit `a0ea6e6` — V2/V3 : `3ba1ec9` (tag `v3.0`) |
 | Environnement | Docker local (`API :8001`, `UI :5174`, PostgreSQL 16) |
 | Date | 13/11/2026 (ANO-001 à 004), 21/11/2026 (ANO-005, données réelles) |
-| Anomalies ouvertes | 5 (0 bloquante, 1 majeure, 3 moyennes, 1 mineure) |
+| Anomalies ouvertes | 5 (0 bloquante, 2 majeures, 3 moyennes, 0 mineure) |
 
 Chaque anomalie est reproductible avec les commandes fournies : aucune ne
 dépend d'un état antérieur de la base. Toutes ont été constatées sur
@@ -20,7 +20,7 @@ l'application réellement démarrée, pas sur un mock.
 | ANO-002 | `team_crest` accepte n'importe quel schéma d'URL | Moyenne | Moyenne | Ouverte | TC-SEC-09, `xfail` `test_crest_url_scheme_is_restricted` |
 | ANO-003 | `/health` renvoie 200 alors que la base est arrêtée | Majeure | Haute | Ouverte | TC-SEC-10 |
 | ANO-004 | Aucune limitation des tentatives de connexion | Moyenne | Haute | Ouverte | TC-SEC-05, `xfail` `test_repeated_failed_logins_are_throttled` |
-| ANO-005 | En données réelles, une équipe inconnue renvoie 502 au lieu de 404 | Moyenne | Moyenne | Ouverte | `xfail` `test_unknown_team_returns_404` |
+| ANO-005 | En données réelles, une équipe inconnue renvoie 502 au lieu de 404 | Moyenne | Moyenne | Ouverte | TC-V3-09, `xfail` `test_unknown_team_returns_404` |
 
 > **Statut « Ouverte »** : les anomalies sont documentées, non corrigées. La
 > correction est hors périmètre du projet final ; elles sont conservées comme

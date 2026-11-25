@@ -2,11 +2,11 @@
 
 | Élément | Valeur |
 |---|---|
-| Campagne | Campagne V1 + V2 (fonctionnalité F2) |
-| Version | V1 : commit `a0ea6e6` — V2 : branche `app/v2` |
-| Date | 13/11/2026 (V1) — 22/11/2026 (V2) |
+| Campagne | Campagne finale V3 : V1 + V2 + V3 |
+| Version | V1 : commit `a0ea6e6` — V2/V3 : `3ba1ec9` (tag `v3.0`) |
+| Date | 13/11/2026 (V1) — 22/11/2026 (V2) — 25/11/2026 (V3) |
 | Chaîne couverte | Exigence → cas de test → exécution → anomalie |
-| Couverture | 20 exigences / 20 couvertes (100 %) |
+| Couverture | 25 exigences / 25 couvertes (100 %) |
 
 Chaque exigence est reliée à au moins un cas manuel, à un test automatisé
 (PyTest, Playwright ou Postman) et, le cas échéant, à une anomalie. Les
@@ -23,24 +23,29 @@ identifiants de cas renvoient à `docs/TEST_CASES.md`, ceux des anomalies à
 | R-04 | La liste des championnats affiche les 6 compétitions du référentiel | TC-FOOT-01, TC-FOOT-05 | `test_football.py`, `championships.spec.js`, Postman « Championnats » | — | Conforme |
 | R-05 | Le classement d'un championnat affiche les équipes triées par position | TC-FOOT-02 | `test_football.py` (6 championnats, JSON Schema), `championships.spec.js`, Postman | — | Conforme |
 | R-06 | Le calendrier d'un championnat affiche les matchs et leur statut | TC-FOOT-03 | `test_football.py`, `championships.spec.js`, Postman | — | Conforme |
-| R-07 | La fiche équipe affiche le nom, le stade et l'écusson | TC-FOOT-04, TC-FOOT-06 | `test_football.py::test_team_details_match_the_contract`, `championships.spec.js`, Postman | — | Conforme |
+| R-07 | La fiche équipe affiche le nom, le stade et l'écusson | TC-FOOT-04, TC-FOOT-06, TC-V3-09 | `test_football.py::test_team_details_match_the_contract`, `championships.spec.js`, Postman | ANO-005 (équipe inconnue en données réelles) | Conforme avec réserve de contrat fournisseur |
 | R-08 | Un utilisateur authentifié peut ajouter une équipe à ses favoris | TC-FAV-01, TC-FAV-08, TC-FAV-09 | `test_favorites.py`, `favorites.spec.js`, Postman « Ajouter Arsenal » | ANO-001 (équipe inexistante), ANO-002 (écusson) | Conforme avec réserves |
 | R-09 | Un utilisateur voit uniquement ses favoris, du plus récent au plus ancien | TC-FAV-03, 06 | `test_favorites.py::test_newest_favorite_is_listed_first`, `test_security.py`, `favorites.spec.js` | — | Conforme |
 | R-10 | Un utilisateur peut supprimer un de ses favoris | TC-FAV-04, TC-FAV-05 | `test_favorites.py::test_chained_scenario_add_list_delete`, `favorites.spec.js`, Postman | — | Conforme |
 | R-11 | Une même équipe ne peut pas être ajoutée deux fois | TC-FAV-02 | `test_favorites.py::test_the_same_team_cannot_be_added_twice`, Postman | — | Conforme |
 | R-12 | Les données d'un compte ne sont ni lisibles ni supprimables par un autre compte | TC-FAV-06 | `test_security.py`, `favorites.spec.js` (deux contextes) | — | Conforme |
 | R-13 | Les données favorites survivent à un rechargement et à un redémarrage | TC-FAV-07 | Vérification manuelle + volume PostgreSQL | — | Conforme |
-| R-17 | Un visiteur peut consulter le classement des buteurs et des passeurs d'un championnat, avec un ordre déterministe et des compteurs jamais nuls | TC-SCOR-01 à 04 | `test_football.py` (7 tests : contrat JSON Schema, tri, `null` → 0, bornes, 404), `championships.spec.js` (3 tests), Postman (4 requêtes) | — | Conforme |
-| R-18 | La page d'accueil affiche les résultats récents des 6 championnats, triés du plus récent au plus ancien, avec un titre cohérent avec le score | TC-NEWS-01 à 04 | `test_football.py` (6 tests : contrat, compétitions, tri, trois branches de titre, 5 bornes), `news.spec.js` (2 tests), Postman (2 requêtes) | — | Conforme |
-| R-19 | La page d'accueil peut afficher des titres de presse attribués à leur source, sans qu'une panne du flux ne dégrade le service | TC-PRESS-01 à 03 | `test_football.py` (3 tests de contrat), `backend/tests/test_press.py` (6 tests : parsing, timeout, XML invalide, HTTP 503, troncature, limite), `news.spec.js` (1 test tolérant), Postman (2 requêtes) | — | Conforme |
-| R-20 | Un visiteur peut ouvrir le détail d'un match depuis la liste ou les actualités ; un identifiant inconnu renvoie 404 | TC-MATCH-01 à 03 | `test_football.py` (3 tests : contrat JSON Schema, 404, 422), `match.spec.js` (2 tests), Postman (2 requêtes) | — | Conforme |
+| R-17 | Un visiteur peut consulter le classement des buteurs et des passeurs d'un championnat, avec un ordre déterministe et des compteurs jamais nuls | TC-SCOR-01, TC-SCOR-02, TC-SCOR-03, TC-SCOR-04 | `test_football.py` (7 tests : contrat JSON Schema, tri, `null` → 0, bornes, 404), `championships.spec.js` (3 tests), Postman (4 requêtes) | — | Conforme |
+| R-18 | La page d'accueil affiche les résultats récents des 6 championnats, triés du plus récent au plus ancien, avec un titre cohérent avec le score | TC-NEWS-01, TC-NEWS-02, TC-NEWS-03, TC-NEWS-04 | `test_football.py` (6 tests : contrat, compétitions, tri, trois branches de titre, 5 bornes), `news.spec.js` (2 tests), Postman (2 requêtes) | — | Conforme |
+| R-19 | La page d'accueil peut afficher des titres de presse attribués à leur source, sans qu'une panne du flux ne dégrade le service | TC-PRESS-01, TC-PRESS-02, TC-PRESS-03 | `test_football.py` (3 tests de contrat), `backend/tests/test_press.py` (6 tests : parsing, timeout, XML invalide, HTTP 503, troncature, limite), `news.spec.js` (1 test tolérant), Postman (2 requêtes) | — | Conforme |
+| R-20 | Un visiteur peut ouvrir le détail d'un match depuis la liste ou les actualités ; un identifiant inconnu renvoie 404 | TC-MATCH-01, TC-MATCH-02, TC-MATCH-03 | `test_football.py` (3 tests : contrat JSON Schema, 404, 422), `match.spec.js` (2 tests), Postman (2 requêtes) | — | Conforme |
+| R-21 | La page d'accueil affiche les prochains matchs des six compétitions, triés, sans matchs déjà commencés, avec états vide et erreur récupérables | TC-V3-01, TC-V3-02 | `test_football.py` (fixtures : contrat, tri, exclusion, bornes), `smoke.spec.js` (2 tests), Postman (1 requête) | — | Conforme |
+| R-22 | La fiche équipe affiche à la demande le classement, la forme, le prochain match et les derniers résultats, et permet de gérer le favori | TC-V3-03, TC-V3-04 | `test_football.py` (fiche, classement, filtres), `championships.spec.js`, `favorites.spec.js`, Postman | — | Conforme |
+| R-23 | Le tableau de bord des favoris affiche classement, forme, derniers résultats et prochain match, avec cloisonnement et persistance | TC-V3-05, TC-V3-06 | `test_favorites.py::test_favorites_overview_contains_context`, `test_favorites.py::test_favorites_are_scoped_to_the_authenticated_user`, `favorites.spec.js`, Postman | — | Conforme |
+| R-24 | Le détail de match expose le contexte sportif et les confrontations directes, avec états vide et erreur | TC-V3-07 | `test_football.py` (détail, head2head, contrat JSON Schema), `match.spec.js`, Postman | — | Conforme |
+| R-25 | L'interface reste utilisable de 320 px à 1920 px et les erreurs secondaires sont récupérables sans erreur JavaScript | TC-V3-08 | Vérification manuelle mobile (iPhone 13, Galaxy S9+), `smoke.spec.js`, `match.spec.js` | — | Conforme |
 
 ## 2. Exigences non fonctionnelles
 
 | ID | Exigence | Cas manuels | Automatisation | Anomalie | Statut |
 |---|---|---|---|---|---|
 | R-14 | Seuls les jetons signés et non expirés donnent accès aux ressources personnelles | TC-SEC-01, TC-SEC-02, TC-SEC-03, TC-SEC-04 | `test_security.py` (5 variantes de jetons invalides), Postman (3 requêtes) | — | Conforme |
-| R-15 | Les entrées invalides sont refusées avec un code 4xx explicite | TC-SEC-06, TC-SEC-07, TC-SEC-08, TC-SEC-09 ; TC-AUTH-03, TC-AUTH-04, TC-AUTH-05, TC-AUTH-06, TC-AUTH-07, TC-AUTH-08 | `test_auth.py`, `test_favorites.py` (16 cas pilotés par données) | ANO-001, ANO-002 | Partiel : 2 champs sans contrôle métier |
+| R-15 | Les entrées invalides sont refusées avec un code 4xx explicite | TC-SEC-06, TC-SEC-07, TC-SEC-08, TC-SEC-09, TC-V3-09 ; TC-AUTH-03, TC-AUTH-04, TC-AUTH-05, TC-AUTH-06, TC-AUTH-07, TC-AUTH-08 | `test_auth.py`, `test_favorites.py` (16 cas pilotés par données), `test_football.py::test_unknown_team_returns_404` | ANO-001, ANO-002, ANO-005 | Partiel : 2 champs sans contrôle métier et erreur fournisseur mal traduite |
 | R-16 | Le service expose un état de santé fiable et une CI qui exécute les suites | TC-SEC-10 | `.github/workflows/ci.yml` (2 jobs), 3 artefacts | ANO-003 | Partiel : `/health` ne teste pas la base |
 
 ## 3. Traçabilité inverse (anomalie → couverture)
@@ -51,6 +56,7 @@ identifiants de cas renvoient à `docs/TEST_CASES.md`, ceux des anomalies à
 | ANO-002 | R-08, R-15 | TC-SEC-09 | `test_crest_url_scheme_is_restricted` (`xfail` strict) | `docs/ANOMALIES.md` § ANO-002 |
 | ANO-003 | R-16 | TC-SEC-10 | Vérification manuelle (base arrêtée) | `docs/ANOMALIES.md` § ANO-003 |
 | ANO-004 | R-02 (robustesse) | TC-SEC-05 | `test_repeated_failed_logins_are_throttled` (`xfail` strict) | `docs/ANOMALIES.md` § ANO-004 |
+| ANO-005 | R-07, R-15 | TC-V3-09 | `test_unknown_team_returns_404` (`xfail` strict en données réelles) | `docs/ANOMALIES.md` § ANO-005 |
 
 ## 4. Couverture des endpoints
 
@@ -71,22 +77,20 @@ identifiants de cas renvoient à `docs/TEST_CASES.md`, ceux des anomalies à
 | `/api/favorites` | GET | TC-FAV-03, 06 | PyTest + Playwright + Postman |
 | `/api/favorites` | POST | TC-FAV-01, 02, 08 ; TC-SEC-06 à 09 | PyTest + Playwright + Postman |
 | `/api/favorites/{id}` | DELETE | TC-FAV-04, 05, 06 | PyTest + Playwright + Postman |
-| `/api/football/fixtures` | GET | Campagne V3 à mener | PyTest + Playwright + Postman |
-| `/api/football/matches/{id}/head2head` | GET | Campagne V3 à mener | PyTest + Playwright + Postman |
-| `/api/favorites/overview` | GET | Campagne V3 à mener | PyTest + Playwright + Postman |
+| `/api/football/fixtures` | GET | TC-V3-01, TC-V3-02 | PyTest + Playwright + Postman |
+| `/api/football/matches/{id}/head2head` | GET | TC-V3-07 | PyTest + Playwright + Postman |
+| `/api/favorites/overview` | GET | TC-V3-05, TC-V3-06 | PyTest + Playwright + Postman |
 
-**Couverture des endpoints : 15 / 15 (100 %) pour les campagnes V1 et V2.**
-Les trois endpoints livrés par la V3 (prochains matchs, confrontations directes,
-tableau de bord des favoris) sont couverts par les suites automatisées
-(PyTest, Playwright, Postman) mais **pas encore par la campagne manuelle V3** :
-leurs cas seront ajoutés en phase Testing V3.
+**Couverture des endpoints : 18 / 18 (100 %) pour la campagne finale V3.**
+Les trois endpoints V3 sont couverts par des cas manuels et par les suites
+automatisées (PyTest, Playwright, Postman).
 
 ## 5. Couverture par niveau de test
 
 | Niveau | Tests | Exigences couvertes |
 |---|---|---|
-| Unitaire backend | 10 | R-02, R-14 (hachage et jetons), R-19 (presse) |
-| API PyTest | 82 (78 passés + 4 `xfail`) | R-01, R-02, R-04 à R-15, R-17 à R-20 |
-| Postman | 28 requêtes / 69 assertions | R-01, R-02, R-04 à R-14, R-17 à R-20 |
-| UI Playwright | 25 | R-03 à R-13, R-17 à R-20 |
-| Manuel | 50 cas | R-01 à R-20 |
+| Unitaire backend | 19 | R-02, R-14 (hachage et jetons), R-19 (presse), R-24 (service football) |
+| API PyTest | 104 (100 passés + 4 `xfail`) | R-01, R-02, R-04 à R-25 |
+| Postman | 31 requêtes / 76 assertions | R-01, R-02, R-04 à R-14, R-17 à R-25 |
+| UI Playwright | 27 | R-03 à R-13, R-17 à R-25 |
+| Manuel | 59 cas | R-01 à R-25 |

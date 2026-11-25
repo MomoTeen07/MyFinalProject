@@ -2,11 +2,11 @@
 
 | Élément | Valeur |
 |---|---|
-| Branche | `app/v3` |
-| Base | `app/v2` |
+| Version | `main`, tag `v3.0` (`3ba1ec9`) |
+| Base | V2 |
 | Principe | **additif** : aucune fonctionnalité existante supprimée, ANO-001 à ANO-005 conservées |
 | Vérification fonctionnelle | 22/11/2026, données réelles |
-| Phase Testing | **non démarrée** |
+| Phase Testing | **terminée le 25/11/2026** : 9 cas manuels, 8 conformes, ANO-005 |
 
 ## 1. Périmètre
 
@@ -119,3 +119,24 @@ matchs triés du plus récent au plus ancien.
 - Le fournisseur peut renvoyer moins de confrontations que le nombre annoncé
   dans `aggregates` ; l'interface s'appuie sur les éléments réellement reçus.
 - Les anomalies ANO-001 à ANO-005 restent ouvertes et documentées.
+
+## 9. Résultats de la campagne V3
+
+Campagne finale du 25/11/2026 : **9 cas manuels**, **8 conformes**, **1 anomalie**
+(ANO-005). Les cas couvrent les prochains matchs, la fiche équipe, le tableau de
+bord des favoris, le détail de match et les confrontations, le responsive et la
+non-régression en données réelles.
+
+| Cas | Résultat |
+|---|---|
+| TC-V3-01 | Prochains matchs triés, sans match commencé, liens conformes |
+| TC-V3-02 | États vide et erreur récupérables |
+| TC-V3-03 | Fiche équipe enrichie cohérente avec l'API |
+| TC-V3-04 | Favori ajouté, conservé et retiré depuis la fiche |
+| TC-V3-05 | Tableau de bord des favoris complet |
+| TC-V3-06 | Cloisonnement et persistance conformes |
+| TC-V3-07 | Détail de match et confrontations conformes |
+| TC-V3-08 | Responsive 320/390/1920 px, aucune erreur JavaScript |
+| TC-V3-09 | **Anomalie ANO-005** : 502 au lieu de 404 pour une équipe inconnue en réel |
+
+Détail des étapes et des preuves : [`TEST_CASES.md`](TEST_CASES.md) § 9.
