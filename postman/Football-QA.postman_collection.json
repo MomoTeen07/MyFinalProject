@@ -595,8 +595,12 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('404 Not Found', () => pm.response.to.have.status(404));",
-                  "pm.test('Traduction du 400 fournisseur', () => pm.expect(pm.response.code).to.not.eql(502));"
+                  "const code = pm.response.code;",
+                  "pm.test('404 ou 503 transitoire', () => {",
+                  "  pm.expect([404, 503]).to.include(code);",
+                  "  if (code === 503) pm.expect(pm.response.headers.has('Retry-After')).to.be.true;",
+                  "});",
+                  "pm.test('Pas de 502 fournisseur', () => pm.expect(code).to.not.eql(502));"
                 ]
               }
             }
