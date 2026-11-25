@@ -1,19 +1,19 @@
-# Reprise V2 — Football QA
+# Reprise V2 — Football QA (document historique)
 
-> **À lire en premier.** Ce fichier est le point de reprise de la V2 de
-> l'application support. Il contient l'état exact du dépôt, les décisions déjà
-> actées (ne pas les re-débattre) et la seule tâche restante : **F1 pagination**.
-> Supprimer ce fichier une fois la V2 terminée.
+> **Document historique, V2 terminée.** Ce fichier décrit l'état de la V2 au
+> 22/11/2026 et n'est plus le point d'entrée. Pour l'état courant, voir
+> [`README.md`](../README.md) et [`PROJECT_CONTEXT.md`](../PROJECT_CONTEXT.md).
+> Il est conservé pour la traçabilité des décisions de la V2.
 
 ## 1. Où en est le projet
 
 | Élément | Valeur |
 |---|---|
-| Dépôt | `C:\Users\MAbdo\Desktop\Football-Agent\football-qa` |
-| Remote | `https://github.com/MomoTeen07/MyFinalProject.git` |
+| Dépôt | `C:\Users\MAbdo\Desktop\Football\MyFinalProject` (chemin actuel) |
+| Remote | `https://github.com/MomoTeen07/football-qa.git` |
 | Branche de travail | `app/v2`, dernier commit `c52dcb4`, arbre propre |
 | `main` | **figée**, tag `v1.0-campagne-v1` (`eabd40f`), CI verte |
-| PR | **#16, en brouillon**, https://github.com/MomoTeen07/MyFinalProject/pull/16 |
+| PR | **#16, historique**, https://github.com/MomoTeen07/football-qa/pull/16 |
 | Fusion | uniquement quand la V2 est complète **et** avec accord explicite de l'utilisateur |
 | CI | verte sur `c52dcb4` (2 jobs). Un seul run par push depuis le correctif de déclenchement |
 

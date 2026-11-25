@@ -2,11 +2,11 @@
 
 | Élément | Valeur |
 |---|---|
-| Dernière mise à jour | 24/11/2026 |
+| Dernière mise à jour | 25/11/2026 |
 | Commit de référence | `main` — **toujours vérifier avec `git log -1`** (`3ba1ec9`, tag `v3.0`) ; la campagne Squash V1 a été exécutée sur `a0ea6e6` |
 | Branches ouvertes | `main` uniquement : `app/v2` et `app/v3` ont été fusionnées le 24/11/2026 (PR #17) |
-| État | V3 intégrée à `main`, CI verte, 222 vérifications automatiques vertes en données réelles ; corrections locales commitées ; phase Testing V3 non démarrée |
-| Reste à faire | Validation utilisateur de la V3, puis phase Testing et campagne V3 ; slides, captures et soutenance |
+| État | V3 intégrée à `main`, campagne finale V3 terminée, CI verte, 222 vérifications automatiques vertes en données réelles + 4 `xfail`, 59 cas manuels, 5 anomalies |
+| Reste à faire | Slides, captures et répétition de la soutenance ; vérifier la date et le format de dépôt |
 
 Ce fichier est le **point d'entrée pour reprendre le travail**. Il décrit l'état
 réel du dépôt et des environnements locaux, pas seulement l'intention.
@@ -16,26 +16,26 @@ réel du dépôt et des environnements locaux, pas seulement l'intention.
 | Domaine | Livrable | État |
 |---|---|---|
 | Cadrage | `docs/TEST_PLAN.md` (périmètre, hypothèses, 10 risques, critères d'entrée/sortie, § 1.1 choix de l'application) | Terminé |
-| Cas manuels | `docs/TEST_CASES.md` (50 cas : 36 V1 + 14 V2, techniques PE/VL/TD/EX, résultats) | V1 : 32 conformes / 4 anomalies ; V2 : 14/14 |
+| Cas manuels | `docs/TEST_CASES.md` (59 cas : 36 V1 + 14 V2 + 9 V3, techniques PE/VL/TD/EX, résultats) | V1 : 32/36 ; V2 : 14/14 ; V3 : 8/9, 5 anomalies au total |
 | Anomalies | `docs/ANOMALIES.md` (ANO-001 à ANO-005, reproduction, preuve, gravité, priorité) | Terminé, non corrigées volontairement |
-| Traçabilité | `docs/TRACEABILITY.md` (20 exigences, 50 cas, 15 endpoints V1/V2) | Terminé, 50/50 cas tracés ; V3 à tracer en phase Testing |
+| Traçabilité | `docs/TRACEABILITY.md` (25 exigences, 59 cas, 18 endpoints V1/V2/V3) | Terminé, 59/59 cas tracés |
 | Rapport | `docs/CAMPAIGN_REPORT.md` (métriques, risques résiduels, recommandations) | Terminé |
 | Soutenance | `docs/DEFENSE.md` (trame 25 min, 5 séquences de démo, questions/réponses) | Terminé, à répéter |
 | API | `tests/pytest/` (100 passed, 4 xfailed) + `postman/` (31 requêtes, 76 assertions) | Vérifié le 22/11/2026 en données réelles |
 | UI | `tests/playwright/` (7 page objects, 27 tests) | Vérifié le 22/11/2026 en données réelles |
 | Backend | 19 tests unitaires (sécurité, presse, service football) | Vérifié le 22/11/2026 |
 | CI | `.github/workflows/ci.yml` (2 jobs, 4 artefacts, Allure agrégé) | Verte sur `main` |
-| Campagne | Squash TM 15.0.3 : `infra/squash/`, 16 exigences, 36 cas, 32 `SUCCESS` / 4 `FAILURE` | Terminé, vérifié par API |
+| Campagne | Squash TM 15.0.3 : `infra/squash/`, 25 exigences, 59 cas, 54 `SUCCESS` / 5 `FAILURE` | Terminé, vérifié par API |
 | **V2 — F2 buteurs/passeurs** | API `/scorers`, onglet « Buteurs », bascule Buts/Passes, 9 tests PyTest, 3 tests UI, 4 requêtes Postman | **Terminé sur `app/v2`** |
 | **V2 — F3a actualités** | API `/news`, section « Résultats récents » à l'accueil, 6 tests PyTest, 2 tests UI, 2 requêtes Postman | **Terminé sur `app/v2`** |
 | **V2 — F3b presse** | API `/press` toujours `200`, section « À la une », 6 tests unitaires, 3 tests API, 1 test UI, 2 requêtes Postman | **Terminé sur `app/v2`** |
 | **V2 — F4 détail de match** | API `/matches/{id}` (404 propre), page `/matches/:id`, liens depuis la liste et les actualités, 3 tests API, 2 tests UI, 2 requêtes Postman | **Terminé sur `app/v2`** |
 | **V2 — F1 pagination matchs** | API `/matches` (`page`, `page_size`, `status`, `team_id`, `sort`), filtres/tri/pagination UI | **Terminé sur `app/v2` (`c37e9d0`)** |
-| **V3 — F1 prochains matchs** | API `/fixtures`, carte « Prochains matchs » de l'accueil, exclusion des matchs commencés | **Implémenté sur `app/v3`** |
-| **V3 — F2 fiche équipe** | Panneaux classement/forme, prochain match avec repli au-delà de 10 jours, derniers résultats | **Implémenté sur `app/v3`** |
-| **V3 — F3 favoris** | API `/favorites/overview`, tableau de bord par équipe, dégradation gracieuse | **Implémenté sur `app/v3`** |
-| **V3 — F4 détail match** | API `/matches/{id}/head2head`, classement/forme, derniers matchs antérieurs, confrontations | **Implémenté sur `app/v3`** |
-| **V3 — robustesse** | Boutons « Réessayer » secondaires, document HTML complet avec `meta viewport`, tableaux mobiles défilables avec indication | **Vérifié le 22/11/2026** |
+| **V3 — F1 prochains matchs** | API `/fixtures`, carte « Prochains matchs » de l'accueil, exclusion des matchs commencés | **Terminé et testé (TC-V3-01, 02)** |
+| **V3 — F2 fiche équipe** | Panneaux classement/forme, prochain match avec repli au-delà de 10 jours, derniers résultats | **Terminé et testé (TC-V3-03, 04)** |
+| **V3 — F3 favoris** | API `/favorites/overview`, tableau de bord par équipe, dégradation gracieuse | **Terminé et testé (TC-V3-05, 06)** |
+| **V3 — F4 détail match** | API `/matches/{id}/head2head`, classement/forme, derniers matchs antérieurs, confrontations | **Terminé et testé (TC-V3-07)** |
+| **V3 — robustesse** | Boutons « Réessayer » secondaires, document HTML complet avec `meta viewport`, tableaux mobiles défilables avec indication | **Terminé et testé (TC-V3-08)** |
 
 ## 2. Historique des PR (toutes fusionnées en squash)
 
@@ -71,9 +71,10 @@ exige désormais le secret `FOOTBALL_API_TOKEN` et force
 telle qu'exécutée en mode simulé (§ 11.3) : ne pas la présenter comme réelle
 sans rejouer les 36 cas.
 
-La campagne Squash cible le commit `a0ea6e6` ; les PR #6 à #12 ne changent que
-de la documentation, sauf la #12 (une ligne de `docker-compose.yml`, sans effet
-sur les tests).
+La campagne Squash finale cible la V3 (`3ba1ec9`, tag `v3.0`) et intègre les
+36 cas V1, les 14 cas V2 et les 9 cas V3 (25 exigences, 59 cas). L'ancienne
+campagne V1 (`a0ea6e6`) reste l'historique documenté dans `TEST_CASES.md` et
+`CAMPAIGN_REPORT.md`.
 
 ### V2 terminée (branche `app/v2`, base = tag `v1.0-campagne-v1`)
 
@@ -98,8 +99,8 @@ sur les tests).
 | F3 favoris | `/favorites/overview` : classement, forme, trois derniers résultats, prochain match, dégradation gracieuse |
 | F4 détail match | `/head2head`, classement/forme, derniers matchs antérieurs au match, confrontations à la demande |
 | Robustesse | Retry secondaires, `meta viewport`, tables mobiles défilables avec indication |
-| Vérification | 22/11/2026 : backend 19/19, API 100 + 4 `xfail`, Postman 76/76, UI 27/27, fonctionnel 31/31 |
-| Reste | Validation utilisateur puis **phase Testing** (campagne V3 : cas manuels, traçabilité, Squash, rapport, démo) |
+| Vérification | 25/11/2026 : backend 19/19, API 100 + 4 `xfail`, Postman 76/76, UI 27/27, fonctionnel 31/31 |
+| Reste | Slides, captures et répétition de la démonstration |
 
 Aucune migration de base n'est prévue pour les fonctionnalités V2/V3. Les tests
 ne sont jamais supprimés, seulement adaptés dans la PR qui change l'API.
@@ -142,7 +143,7 @@ npx playwright test
 Pop-Location
 ```
 
-Campagne Squash (attendu : 32 `SUCCESS`, 4 `FAILURE`) :
+Campagne Squash finale (attendu : 54 `SUCCESS`, 5 `FAILURE`) :
 
 ```powershell
 $auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes('admin:admin'))
@@ -222,15 +223,13 @@ déplacer ce dossier.
 
 ## 9. Reste à faire
 
-1. **Valider la V3 fonctionnelle** avec l'utilisateur (rapport de vérification du 22/11/2026).
-2. **Phase Testing V3** : cas manuels, traçabilité, campagne Squash, rapport,
-   démonstration. Ne pas la démarrer sans validation explicite.
-3. Préparer les **slides** de soutenance à partir de `docs/DEFENSE.md`.
-4. Faire les **captures d'écran** : pipeline vert, rapport Allure, campagne
-   Squash (32/4), anomalie ANO-001, mobile.
-5. Répéter la démonstration complète **en moins de 20 minutes** (checklist dans
+1. Préparer les **slides** de soutenance à partir de `docs/DEFENSE.md`.
+2. Faire les **captures d'écran** : pipeline vert, rapport Allure, campagne
+   Squash finale (54/5), anomalie ANO-001, vues V3 et mobile.
+3. Répéter la démonstration complète **en moins de 20 minutes** (checklist dans
    `docs/DEFENSE.md` § 6).
-6. Vérifier la date et le format de dépôt communiqués par le formateur.
+4. Vérifier la date et le format de dépôt communiqués par le formateur.
+5. Relire `docs/CAMPAIGN_REPORT.md` à voix haute pour la soutenance.
 
 ## 10. Où trouver quoi
 
@@ -238,8 +237,8 @@ déplacer ce dossier.
 |---|---|
 | `README.md` | Installation, exécution de chaque partie, choix de l'application, CI |
 | `docs/TEST_PLAN.md` | Stratégie, risques, critères, planning |
-| `docs/TEST_CASES.md` | 50 cas et résultats |
-| `docs/V3_SPEC.md` | Spécification V3 et critères d'acceptation |
+| `docs/TEST_CASES.md` | 59 cas et résultats (V1 + V2 + V3) |
+| `docs/V3_SPEC.md` | Spécification V3 et résultats de la campagne |
 | `docs/ANOMALIES.md` | 5 rapports d'anomalie |
 | `docs/TRACEABILITY.md` | Exigence → cas → exécution → anomalie |
 | `docs/CAMPAIGN_REPORT.md` | Métriques et bilan de campagne |

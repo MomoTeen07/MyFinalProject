@@ -2,12 +2,12 @@
 
 | Élément | Valeur |
 |---|---|
-| Campagne | Campagne V1 (36 cas) + V2 en cours (4 buteurs + 4 actualités + 3 presse + 3 match) |
-| Date d'exécution | 13/11/2026 (V1) — 22/11/2026 (V2) |
-| Environnement | Docker local, API `:8001`, UI `:5174`. V1 : mode simulé. V2 : données réelles |
-| Commit testé | V1 : `a0ea6e6` (`main`) — V2 : branche `app/v2` |
+| Campagne | Campagne finale V3 : V1 (36 cas) + V2 (14 cas) + V3 (9 cas) |
+| Date d'exécution | 13/11/2026 (V1) — 22/11/2026 (V2) — 25/11/2026 (V3) |
+| Environnement | Docker local, API `:8001`, UI `:5174`. V1 : mode simulé. V2/V3 : données réelles |
+| Commit testé | V1 : `a0ea6e6` — V2/V3 : `3ba1ec9` (tag `v3.0`) |
 | Exécutant | Mohamed Abdo |
-| Nombre de cas | 50 cas formels (36 V1 + 14 V2) + 1 session exploratoire |
+| Nombre de cas | 59 cas formels (36 V1 + 14 V2 + 9 V3) + 1 session exploratoire |
 
 Les cas sont conçus avec des techniques explicites : **partitions
 d'équivalence** (PE), **valeurs limites** (VL), **table de décision** (TD),
@@ -119,13 +119,32 @@ Section ajoutée le 22/11/2026 pour la fonctionnalité F4 de la
 | TC-MATCH-02 | Identifiant inconnu | PE (invalide) | `GET /api/football/matches/999999999` | 404, message affiché avec bouton « Réessayer » | 404, écran récupérable | Passé (automatisé UI + API + Postman) |
 | TC-MATCH-03 | Identifiant non numérique | VL et PE | `GET /api/football/matches/abc` | 422 | 422 | Passé (automatisé API) |
 
-## 9. Session exploratoire
+## 9. V3 — parcours enrichis
+
+Section ajoutée le 25/11/2026 pour la campagne finale V3, sur **données
+réelles** (Premier League et accueil). Les cas sont volontairement peu nombreux
+et choisis par les risques : ils couvrent les quatre fonctionnalités V3 et la
+non-régression de la fiche équipe en données réelles.
+
+| ID | Titre | Technique | Étapes | Résultat attendu | Résultat obtenu | Statut |
+|---|---|---|---|---|---|---|
+| TC-V3-01 | Prochains matchs de l'accueil | CT | Ouvrir `/`, comparer la carte « Prochains matchs » avec `GET /api/football/fixtures?days=10&limit=4` | 4 matchs au maximum, triés par date croissante, uniquement `SCHEDULED` ou `TIMED`, aucun match déjà commencé, chaque carte mène à `/matches/{id}` | 4 matchs triés, aucun commencé, liens conformes | Passé (automatisé UI + API + Postman) |
+| TC-V3-02 | Prochains matchs : états vide et erreur | PE (invalide) et VL | Simuler une fenêtre sans match et une coupure réseau ; observer la carte, puis cliquer « Réessayer » | Message « Aucun match programmé… » ou « Prochains matchs indisponibles. » avec bouton « Réessayer » ; le clic recharge sans erreur JavaScript | Message vide et erreur récupérable, retry opérationnel | Passé (vérification manuelle + UI) |
+| TC-V3-03 | Fiche équipe enrichie | CT | Ouvrir `/championships/PL`, cliquer une équipe, puis « Afficher les matchs et le classement » | Panneaux Classement (position, points, matchs joués, forme), Prochain match et Derniers résultats (3 maximum), cohérents avec les réponses API | Panneaux affichés, données cohérentes avec l'API | Passé (automatisé UI + API) |
+| TC-V3-04 | Favori depuis la fiche équipe | TD | Connecté, ouvrir une fiche équipe, ajouter puis retirer le favori, recharger ; vérifier aussi en visiteur | Bouton « ☆ Ajouter aux favoris » puis « ★ Dans mes favoris », persistance après rechargement, retrait effectif ; visiteur sans bouton et message de connexion | États et persistance conformes | Passé (automatisé UI + API) |
+| TC-V3-05 | Tableau de bord des favoris | CT | Ajouter deux équipes, ouvrir `/favorites`, comparer avec `GET /api/favorites/overview` | Une carte par favori, la plus récente en premier ; classement, points, matchs joués, forme, derniers résultats et prochain match ; aucun compteur `null` | Cartes conformes, ordre et contextes corrects | Passé (automatisé UI + API + Postman) |
+| TC-V3-06 | Tableau de bord : cloisonnement et persistance | TD | Compte A ajoute un favori ; compte B ouvre `/favorites` ; A recharge et redémarre l'application | B ne voit aucun favori de A ; A retrouve son favori après rechargement et redémarrage ; aucune fuite entre comptes | Cloisonnement et persistance conformes | Passé (automatisé UI + API) |
+| TC-V3-07 | Détail de match enrichi et confrontations | CT | Ouvrir un match depuis l'accueil ou le calendrier ; observer le contexte ; cliquer « Afficher les confrontations directes » | Compétition, date, statut, score et équipes cohérents ; classement et forme des deux équipes ; derniers matchs antérieurs à la date du match (3 maximum par équipe) ; résumé des confrontations et matchs triés du plus récent au plus ancien | Contexte et confrontations conformes, aucun match postérieur affiché | Passé (automatisé UI + API + Postman) |
+| TC-V3-08 | Responsive et absence d'erreur JavaScript | EX | Parcourir accueil, championnat, fiche équipe, favoris et détail de match en 320 px, 390 px et 1920 px ; surveiller la console | Aucun débordement horizontal, tableaux larges défilables, boutons accessibles, aucune erreur JavaScript | Conforme sur les trois largeurs | Passé (vérification manuelle du 22/11/2026) |
+| TC-V3-09 | Non-régression V1 en données réelles : équipe inconnue | PE (invalide) et VL | Avec `MOCK_FOOTBALL_API=false`, appeler `GET /api/football/leagues/PL/teams/999999` | `404` avec un message métier | **502** (`Football data API returned HTTP 400`) | **Anomalie ANO-005** |
+
+## 10. Session exploratoire
 
 | ID | Charte | Durée | Zones explorées | Constats |
 |---|---|---|---|---|
 | EX-01 | Explorer les états limites et les erreurs réseau sur les parcours championnat et favoris | 45 min | Navigation arrière après déconnexion, double clic sur « Ajouter aux favoris », coupure réseau simulée, URL directe `/teams/PL/abc`, collage d'un e-mail avec espaces, écusson invalide | Aucun crash ; les écrans d'erreur sont récupérables ; `team_name` trop long refusé ; **ANO-001**, **ANO-002**, **ANO-003** confirmées ; aucun défaut d'accessibilité bloquant (libellés et rôles présents) |
 
-## 10. Synthèse d'exécution
+## 11. Synthèse d'exécution
 
 ### Campagne V1 (13/11/2026, mode simulé)
 
@@ -148,8 +167,29 @@ Section ajoutée le 22/11/2026 pour la fonctionnalité F4 de la
 | Détail d'un match | 3 | 3 | 0 |
 | **Total V2 (F2 + F3 + F4)** | **14** | **14 (100 %)** | **0** |
 
+### V3 — parcours enrichis (25/11/2026, données réelles)
+
+| Domaine | Cas | Passés | Anomalies |
+|---|---|---|---|
+| Prochains matchs | 2 | 2 | 0 |
+| Fiche équipe et favori | 2 | 2 | 0 |
+| Tableau de bord des favoris | 2 | 2 | 0 |
+| Détail de match et confrontations | 1 | 1 | 0 |
+| Responsive et robustesse | 1 | 1 | 0 |
+| Non-régression en données réelles | 1 | 0 | 1 (ANO-005) |
+| **Total V3** | **9** | **8 (88,9 %)** | **1 anomalie** |
+
+### Consolidation finale
+
+| Campagne | Cas | Passés | Anomalies |
+|---|---|---|---|
+| V1 | 36 | 32 | 4 (ANO-001 à ANO-004) |
+| V2 | 14 | 14 | 0 |
+| V3 | 9 | 8 | 1 (ANO-005) |
+| **Total** | **59** | **54 (91,5 %)** | **5 anomalies distinctes** |
+
 Les cas marqués « automatisé » sont rejoués à chaque pipeline ; les autres sont
-rejoués manuellement à chaque campagne. Les anomalies ANO-001, ANO-002 et
-ANO-004 sont couvertes par des tests `xfail(strict=True)` : elles restent
+rejoués manuellement à chaque campagne. Les anomalies ANO-001, ANO-002, ANO-004
+et ANO-005 sont couvertes par des tests `xfail(strict=True)` : elles restent
 visibles dans le rapport Allure sans faire échouer la CI, la correction étant
-hors périmètre du projet.
+hors périmètre du projet. ANO-003 est vérifiée manuellement (base arrêtée).

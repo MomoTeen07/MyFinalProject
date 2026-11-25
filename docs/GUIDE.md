@@ -2,6 +2,10 @@
 
 Application web de consultation du football, conçue comme support d’un projet final QA.
 
+> **État : V3 terminée, campagne finale close.** 59 cas manuels, 222 vérifications
+> passantes + 4 `xfail`, 5 anomalies, 18/18 endpoints, Squash 54/5. Détail dans
+> [`CAMPAIGN_REPORT.md`](CAMPAIGN_REPORT.md).
+
 > **Reprise du travail** : l’état d’avancement, les environnements locaux, les
 > commandes de vérification et les pièges connus sont consignés dans
 > [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md). C’est le point d’entrée pour
@@ -19,7 +23,7 @@ garantir un niveau de difficulté comparable entre stagiaires.
 | API testable avec authentification | API REST FastAPI, 18 endpoints, jeton JWT `Bearer` sur les routes personnelles | `backend/app/api/`, `postman/` |
 | Persistance et règles métier | PostgreSQL 16 avec migrations Alembic : comptes, favoris uniques par utilisateur, cloisonnement des données | `backend/app/db/`, `docs/CONCEPTION.md` |
 | Exécutable localement | Docker Compose (3 conteneurs), mode de données simulé sans clé ni service payant | `docker-compose.yml`, section « Démarrage local » |
-| Complexité suffisante | Parcours visiteur et authentifié, états de chargement et d’erreur, données d’une API externe, pages dédiées (accueil, championnats, championnat, équipe, favoris, authentification) | `docs/TEST_PLAN.md` § 4 |
+| Complexité suffisante | Parcours visiteur et authentifié, états de chargement et d’erreur, données d’une API externe, pages dédiées (accueil, championnats, championnat, équipe, favoris, détail de match, authentification) et parcours V3 (prochains matchs, fiche équipe enrichie, tableau de bord, confrontations) | `docs/TEST_PLAN.md` § 4 |
 | Accès licite | Dépôt applicatif du projet, code source accessible, aucune restriction de test | ce dépôt |
 
 La validation est antérieure à la campagne V1 (13/11/2026). Les anomalies
@@ -161,37 +165,37 @@ En cas d’échec Playwright, `tests/playwright/test-results/` conserve la trace
 
 ## Intégration continue
 
-Le workflow `.github/workflows/ci.yml` s’exécute sur chaque **pull request**, sur les push vers `main` et sur lancement manuel. Les push de branches de travail ne déclenchent volontairement **qu’une seule** exécution (celle de la PR) : deux pipelines simultanés épuiseraient le quota de 10 requêtes/minute du fournisseur. Il prépare une base PostgreSQL éphémère, lance les tests unitaires backend puis les suites API, Postman et UI, agrège les résultats Allure et publie quatre artefacts : `allure-report`, `playwright-report`, `postman-report` et, en cas d’échec, `playwright-test-results` (traces, captures, vidéos). Les identifiants configurés dans ce workflow sont réservés à cette base temporaire.
+Le workflow `.github/workflows/ci.yml` s’exécute sur chaque **pull request**, sur les push vers `main` et sur lancement manuel. Les push de branches de travail ne déclenchent volontairement **qu’une seule** exécution (celle de la PR) : deux pipelines simultanés épuiseraient le quota de 10 requêtes/minute du fournisseur. Il prépare une base PostgreSQL éphémère, lance les tests unitaires backend puis les suites API, Postman et UI, agrège les résultats Allure (API + UI) et publie les artefacts `allure-report`, `allure-results-backend`, `playwright-report`, `postman-report` et, en cas d’échec, `playwright-test-results` (traces, captures, vidéos). Les identifiants configurés dans ce workflow sont réservés à cette base temporaire.
 
 ## Documentation QA
 
 | Document | Contenu |
 |---|---|
-| [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md) | Périmètre, hypothèses, analyse de risques (P × I), critères d’entrée et de sortie, organisation |
-| [`docs/TEST_CASES.md`](docs/TEST_CASES.md) | 50 cas manuels (36 pour la campagne V1, 14 pour la V2) avec technique de conception, étapes, attendu, obtenu et statut |
-| [`docs/V3_SPEC.md`](docs/V3_SPEC.md) | Spécification V3 : prochains matchs, fiche équipe, favoris, détail de match, robustesse |
-| [`docs/ANOMALIES.md`](docs/ANOMALIES.md) | Rapports ANO-001 à ANO-005 : contexte, reproduction, preuve, gravité, priorité, correction proposée |
-| [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md) | Matrice exigence → cas → exécution → anomalie et couverture des endpoints |
-| [`docs/CAMPAIGN_REPORT.md`](docs/CAMPAIGN_REPORT.md) | Métriques, bilan des anomalies, risques résiduels, recommandations |
-| [`docs/DEFENSE.md`](docs/DEFENSE.md) | Trame de soutenance, script de démonstration, questions probables |
-| [`docs/SQUASH.md`](docs/SQUASH.md) | Campagne Squash TM : démarrage, création par script REST, vérification, limites |
-| [`docs/CONCEPTION.md`](docs/CONCEPTION.md) | Conception technique de l’application |
+| [`docs/TEST_PLAN.md`](TEST_PLAN.md) | Périmètre, hypothèses, analyse de risques (P × I), critères d’entrée et de sortie, organisation |
+| [`docs/TEST_CASES.md`](TEST_CASES.md) | 59 cas manuels (36 V1, 14 V2, 9 V3) avec technique de conception, étapes, attendu, obtenu et statut |
+| [`docs/V3_SPEC.md`](V3_SPEC.md) | Spécification V3 et résultats de la campagne V3 |
+| [`docs/ANOMALIES.md`](ANOMALIES.md) | Rapports ANO-001 à ANO-005 : contexte, reproduction, preuve, gravité, priorité, correction proposée |
+| [`docs/TRACEABILITY.md`](TRACEABILITY.md) | Matrice 25 exigences → 59 cas → exécution → anomalie, et couverture des 18 endpoints |
+| [`docs/CAMPAIGN_REPORT.md`](CAMPAIGN_REPORT.md) | Métriques finales V3, bilan des anomalies, risques résiduels, recommandations |
+| [`docs/DEFENSE.md`](DEFENSE.md) | Trame de soutenance, script de démonstration, questions probables |
+| [`docs/SQUASH.md`](SQUASH.md) | Campagne finale Squash TM : démarrage, création par script REST, vérification, limites |
+| [`docs/CONCEPTION.md`](CONCEPTION.md) | Conception technique de l’application |
 
-Synthèse de la campagne V1 : **118 vérifications automatisées** (4 backend,
-56 API, 17 UI, 41 assertions Postman) et 4 `xfail` documentés, **36 cas
-manuels**, **5 anomalies** reproductibles, **11/11 endpoints** couverts,
-pipeline vert. Les suites automatisées ont été rejouées en **données réelles**
-le 21/11/2026 : 114 vérifications passent, 0 échec, 4 `xfail`.
+Synthèse de la **campagne finale V3** : **222 vérifications automatisées
+passantes + 4 `xfail`** (19 backend, 100 API, 27 UI, 76 assertions Postman),
+**59 cas manuels** (54 conformes, 5 anomalies), **18/18 endpoints** couverts,
+**25/25 exigences** tracées, **6/6 risques critiques** couverts, pipeline vert.
+Cinq anomalies sont documentées : ANO-001 à ANO-005.
 
-> **Périmètre** : ces chiffres décrivent la **campagne V1**, exécutée sur le
-> commit `a0ea6e6` (tag `v1.0-campagne-v1`). Les V2 et V3 ajoutent des
-> fonctionnalités et leurs vérifications automatisées (voir les sections
-> suivantes) ; la **campagne manuelle V3 reste à mener**.
+> **Périmètre** : les résultats V1 (36 cas) ont été obtenus en mode simulé le
+> 13/11/2026 ; les campagnes V2 (14 cas) et V3 (9 cas) ont été exécutées en
+> données réelles. La campagne manuelle V3 est **terminée** : elle couvre les
+> parcours enrichis et la non-régression en données réelles.
 
-### V2 (terminée sur la branche `app/v2`)
+### V2 (terminée)
 
-La V2 ajoute des fonctionnalités sans corriger les anomalies de la V1
-(voir [`docs/V2_SPEC.md`](docs/V2_SPEC.md)). État au 22/11/2026 :
+La V2 a ajouté des fonctionnalités sans corriger les anomalies de la V1
+(voir [`docs/V2_SPEC.md`](V2_SPEC.md)). État au 22/11/2026 :
 
 | Élément | V1 | V2 |
 |---|---|---|
@@ -202,12 +206,10 @@ La V2 ajoute des fonctionnalités sans corriger les anomalies de la V1
 | Tests UI Playwright | 17 | 25 |
 | Cas manuels | 36 | 50 |
 
-Vérifications rejouées le 22/11/2026 en **données réelles** : backend 10/10,
-API 78 passés + 4 `xfail`, Postman 69/69, Playwright 25/25. Ces chiffres
-correspondent à la campagne V2 documentée **avant** la livraison F1
-(pagination) ; la section V3 donne l'état courant de la branche.
+Vérifications du 22/11/2026 en **données réelles** : backend 10/10, API
+78 passés + 4 `xfail`, Postman 69/69, Playwright 25/25.
 
-### V3 (branche `app/v3`, vérifiée fonctionnellement)
+### V3 (version livrée, campagne terminée)
 
 La V3 s'appuie sur la pagination des matchs livrée en V2 et enrichit les
 parcours sans corriger les anomalies volontairement conservées : prochains
@@ -221,30 +223,43 @@ contexte du détail de match et confrontations directes.
 | Tests de contrat API | 78 passés + 4 `xfail` | 100 passés + 4 `xfail` |
 | Assertions Postman | 69 (28 requêtes) | 76 (31 requêtes) |
 | Tests UI Playwright | 25 | 27 |
-| Cas manuels | 50 | 50 (campagne V3 non démarrée) |
+| Cas manuels | 50 | 59 (36 V1 + 14 V2 + 9 V3) |
+| Exigences tracées | 20 | 25 |
 
-Vérifications du 22/11/2026 en **données réelles** : backend 19/19, API
-100 passés + 4 `xfail`, Postman 76/76, Playwright 27/27. La vérification
-fonctionnelle complémentaire couvre les six championnats, les états vides et
+Vérifications du 25/11/2026 en **données réelles** : backend 19/19, API
+100 passés + 4 `xfail`, Postman 76/76, Playwright 27/27. La campagne manuelle
+V3 du 25/11/2026 ajoute **9 cas** : 8 conformes, 1 anomalie (ANO-005). La
+vérification fonctionnelle couvre les six championnats, les états vides et
 d'erreur, le mobile iPhone 13 (390 px) et Galaxy S9+ (320 px), sans débordement
-horizontal ni erreur JavaScript. La **phase Testing n'est pas démarrée**.
+horizontal ni erreur JavaScript.
+
+### Versions et tags
+
+| Repère | Commit | Usage |
+|---|---|---|
+| `v1.0-campagne-v1` | `eabd40f` | État consolidé après la campagne V1 et le passage des suites en données réelles |
+| Application V1 testée | `a0ea6e6` | Commit de l'application au moment de la campagne V1 |
+| `v3.0` | `3ba1ec9` | Version de code V3 |
+| Campagne finale | à créer après fusion | Tag de clôture de la campagne V3 |
 
 ## Gestion de campagne (Squash TM)
 
-La campagne V1 est également portée par **Squash TM 15.0.3**
+La **campagne finale V3** est portée par **Squash TM 15.0.3**
 (`infra/squash/docker-compose.yml`, `http://localhost:8090/squash`).
 
 ```bash
 docker compose -f infra/squash/docker-compose.yml up -d
+python infra/squash/build_campaign_data.py
 python infra/squash/seed_campaign.py
 ```
 
-Le script crée le projet *Football QA*, ses 16 exigences, ses 4 dossiers,
-ses 36 cas de test avec pas et couvertures, la campagne `CAMP-V1`, son
-itération, la suite complète et les 36 exécutions (**32 `SUCCESS`**, **4
-`FAILURE`** pour ANO-001 à ANO-004). Squash TM est un outil de gestion, pas une
-dépendance des tests : il n’est pas démarré en CI. Procédure complète et limites
-dans [`docs/SQUASH.md`](docs/SQUASH.md).
+Le script crée le projet *Football QA*, ses **25 exigences**, ses **5 dossiers**,
+ses **59 cas de test** avec pas et couvertures, la campagne `CAMP-V3`, son
+itération, la suite complète et les **59 exécutions** (**54 `SUCCESS`**, **5
+`FAILURE`** pour ANO-001 à ANO-005). La campagne V1 (16 exigences / 36 cas) reste
+l'historique documenté. Squash TM est un outil de gestion, pas une dépendance
+des tests : il n’est pas démarré en CI. Procédure complète et limites dans
+[`docs/SQUASH.md`](SQUASH.md).
 
 
 ## Configuration
@@ -260,8 +275,9 @@ Le port et les identifiants PostgreSQL par défaut sont réservés au développe
 Le **mode simulé** reste disponible (`MOCK_FOOTBALL_API=true`) : 6 championnats,
 4 équipes par classement, 3 matchs et un jeu de buteurs déterministe, sans clé
 ni quota. C’est le mode utilisé pour le développement hors ligne et pour les
-tests unitaires du backend. La campagne V1 a été exécutée dans ce mode ; depuis
-le 21/11/2026, la CI et les suites automatisées tournent en **données réelles**.
+tests unitaires du backend. La campagne V1 a été exécutée dans ce mode ; les
+campagnes V2/V3, la CI et les suites automatisées tournent en **données réelles**
+depuis le 21/11/2026.
 
 Pour afficher les classements réels (20 équipes en Premier League, calendrier
 complet) :

@@ -2,21 +2,22 @@
   "project": {
     "name": "Football QA",
     "label": "Projet final QA — BStorm 2026",
-    "description": "<p>Campagne de test de l'application Football QA : plan de test, 36 cas manuels, traçabilité exigence → cas → exécution → anomalie.</p>"
+    "description": "<p>Campagne finale de test de l'application Football QA : plan de test, 59 cas manuels, traçabilité exigence → cas → exécution → anomalie.</p>"
   },
   "campaign": {
-    "name": "Campagne V1 — Football QA",
-    "reference": "CAMP-V1",
+    "name": "Campagne finale V3 — Football QA",
+    "reference": "CAMP-V3",
     "status": "PLANNED",
-    "description": "<p>Campagne V1 du 13/11/2026 sur le commit a0ea6e6. 32 cas conformes, 4 cas en anomalie (ANO-001 à ANO-004).</p>"
+    "description": "<p>Campagne finale du 25/11/2026 sur la V3 (commit 3ba1ec9, tag v3.0). 25 exigences, 59 cas : 54 conformes, 5 en anomalie (ANO-001 à ANO-005). Les campagnes V1 (36 cas) et V2 (14 cas) sont intégrées à ce périmètre final.</p>"
   },
   "iteration": {
-    "name": "Itération 1 — exécution manuelle et automatisée",
-    "reference": "IT-V1",
+    "name": "Itération 1 — campagne finale V3",
+    "reference": "IT-V3",
     "status": "PLANNED",
-    "description": "<p>Exécution des 36 cas de la campagne V1.</p>"
+    "description": "<p>Exécution des 59 cas de la campagne finale V3.</p>"
   },
-  "test_suite_name": "Suite complète — 36 cas",
+  "execution_date": "25/11/2026",
+  "test_suite_name": "Suite complète — 59 cas",
   "requirements": [
     {
       "id": "R-01",
@@ -123,6 +124,78 @@
       "status": "APPROVED"
     },
     {
+      "id": "R-17",
+      "name": "R-17 — Un visiteur peut consulter le classement des buteurs et des passeurs d'un championnat, avec un ordre déterministe et des compteurs jamais nuls",
+      "description": "<p>Un visiteur peut consulter le classement des buteurs et des passeurs d&#x27;un championnat, avec un ordre déterministe et des compteurs jamais nuls</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-18",
+      "name": "R-18 — La page d'accueil affiche les résultats récents des 6 championnats, triés du plus récent au plus ancien, avec un titre cohérent avec le score",
+      "description": "<p>La page d&#x27;accueil affiche les résultats récents des 6 championnats, triés du plus récent au plus ancien, avec un titre cohérent avec le score</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-19",
+      "name": "R-19 — La page d'accueil peut afficher des titres de presse attribués à leur source, sans qu'une panne du flux ne dégrade le service",
+      "description": "<p>La page d&#x27;accueil peut afficher des titres de presse attribués à leur source, sans qu&#x27;une panne du flux ne dégrade le service</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-20",
+      "name": "R-20 — Un visiteur peut ouvrir le détail d'un match depuis la liste ou les actualités ; un identifiant inconnu renvoie 404",
+      "description": "<p>Un visiteur peut ouvrir le détail d&#x27;un match depuis la liste ou les actualités ; un identifiant inconnu renvoie 404</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-21",
+      "name": "R-21 — La page d'accueil affiche les prochains matchs des six compétitions, triés, sans matchs déjà commencés, avec états vide et erreur récupérables",
+      "description": "<p>La page d&#x27;accueil affiche les prochains matchs des six compétitions, triés, sans matchs déjà commencés, avec états vide et erreur récupérables</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-22",
+      "name": "R-22 — La fiche équipe affiche à la demande le classement, la forme, le prochain match et les derniers résultats, et permet de gérer le favori",
+      "description": "<p>La fiche équipe affiche à la demande le classement, la forme, le prochain match et les derniers résultats, et permet de gérer le favori</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-23",
+      "name": "R-23 — Le tableau de bord des favoris affiche classement, forme, derniers résultats et prochain match, avec cloisonnement et persistance",
+      "description": "<p>Le tableau de bord des favoris affiche classement, forme, derniers résultats et prochain match, avec cloisonnement et persistance</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-24",
+      "name": "R-24 — Le détail de match expose le contexte sportif et les confrontations directes, avec états vide et erreur",
+      "description": "<p>Le détail de match expose le contexte sportif et les confrontations directes, avec états vide et erreur</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
+      "id": "R-25",
+      "name": "R-25 — L'interface reste utilisable de 320 px à 1920 px et les erreurs secondaires sont récupérables sans erreur JavaScript",
+      "description": "<p>L&#x27;interface reste utilisable de 320 px à 1920 px et les erreurs secondaires sont récupérables sans erreur JavaScript</p>",
+      "criticality": "MAJOR",
+      "category": "CAT_FUNCTIONAL",
+      "status": "APPROVED"
+    },
+    {
       "id": "R-14",
       "name": "R-14 — Seuls les jetons signés et non expirés donnent accès aux ressources personnelles",
       "description": "<p>Seuls les jetons signés et non expirés donnent accès aux ressources personnelles</p>",
@@ -164,7 +237,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-01"
       ],
@@ -186,7 +259,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-01"
       ],
@@ -208,7 +281,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-01",
         "R-15"
@@ -231,7 +304,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-01",
         "R-15"
@@ -254,7 +327,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-01",
         "R-15"
@@ -277,7 +350,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-01",
         "R-15"
@@ -300,7 +373,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-01",
         "R-15"
@@ -323,7 +396,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-01",
         "R-15"
@@ -346,7 +419,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-02"
       ],
@@ -368,7 +441,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-02"
       ],
@@ -390,7 +463,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-03"
       ],
@@ -412,7 +485,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-04"
       ],
@@ -434,7 +507,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-05"
       ],
@@ -456,7 +529,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-06"
       ],
@@ -478,7 +551,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-07"
       ],
@@ -500,7 +573,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-04"
       ],
@@ -522,7 +595,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-07"
       ],
@@ -544,7 +617,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-08"
       ],
@@ -566,7 +639,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-11"
       ],
@@ -588,7 +661,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-09"
       ],
@@ -610,7 +683,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-10"
       ],
@@ -632,7 +705,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-10"
       ],
@@ -654,7 +727,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-12"
       ],
@@ -676,7 +749,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-13"
       ],
@@ -698,7 +771,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-08"
       ],
@@ -720,7 +793,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-08"
       ],
@@ -742,7 +815,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-14"
       ],
@@ -764,7 +837,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-14"
       ],
@@ -786,7 +859,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-14"
       ],
@@ -808,7 +881,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-14"
       ],
@@ -832,7 +905,7 @@
         "ANO-004"
       ],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-02"
       ],
@@ -854,7 +927,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-15"
       ],
@@ -876,7 +949,7 @@
       "status": "SUCCESS",
       "anomalies": [],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-15"
       ],
@@ -900,7 +973,7 @@
         "ANO-001"
       ],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-15"
       ],
@@ -924,7 +997,7 @@
         "ANO-002"
       ],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-15"
       ],
@@ -948,11 +1021,520 @@
         "ANO-003"
       ],
       "importance": "VERY_HIGH",
-      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données simulées disponibles, compte de test créé si nécessaire.",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
       "requirement_ids": [
         "R-16"
       ],
       "description": "<p><strong>Technique :</strong> —</p><p><strong>Résultat obtenu :</strong> `/health` → 200 `{&quot;status&quot;:&quot;ok&quot;}` ; inscription → 500</p><p><strong>Exigences :</strong> R-16</p>"
+    },
+    {
+      "id": "TC-SCOR-01",
+      "name": "TC-SCOR-01 — Classement des buteurs",
+      "reference": "TC-SCOR-01",
+      "folder": "Football",
+      "technique": "CT",
+      "steps": [
+        {
+          "action": "Ouvrir `/championships/PL`, cliquer l'onglet « Buteurs »",
+          "expected": "10 lignes, positions 1 à 10, buts strictement décroissants (à égalité : moins de matchs, puis nom)"
+        }
+      ],
+      "obtained": "10 lignes ; Haaland 9 buts en tête ; égalités à 6 buts départagées par les matchs puis le nom",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-17"
+      ],
+      "description": "<p><strong>Technique :</strong> CT</p><p><strong>Résultat obtenu :</strong> 10 lignes ; Haaland 9 buts en tête ; égalités à 6 buts départagées par les matchs puis le nom</p><p><strong>Exigences :</strong> R-17</p>"
+    },
+    {
+      "id": "TC-SCOR-02",
+      "name": "TC-SCOR-02 — Bascule « Buts / Passes »",
+      "reference": "TC-SCOR-02",
+      "folder": "Football",
+      "technique": "TD",
+      "steps": [
+        {
+          "action": "Dans l'onglet « Buteurs », cliquer « Passes »",
+          "expected": "Le tableau est réordonné par passes décroissantes, la colonne active est signalée"
+        }
+      ],
+      "obtained": "Réordonné : Evanilson 4 passes, puis Groβ, Wirtz, McGinn (départage buts puis nom)",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-17"
+      ],
+      "description": "<p><strong>Technique :</strong> TD</p><p><strong>Résultat obtenu :</strong> Réordonné : Evanilson 4 passes, puis Groβ, Wirtz, McGinn (départage buts puis nom)</p><p><strong>Exigences :</strong> R-17</p>"
+    },
+    {
+      "id": "TC-SCOR-03",
+      "name": "TC-SCOR-03 — Bornes des paramètres",
+      "reference": "TC-SCOR-03",
+      "folder": "Football",
+      "technique": "VL (0, 51) et PE (invalide)",
+      "steps": [
+        {
+          "action": "`GET /api/football/leagues/PL/scorers` avec `limit=0`, `limit=51`, `limit=abc`, `sort=penalties`",
+          "expected": "422 pour chacun"
+        }
+      ],
+      "obtained": "422 pour les quatre",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-17"
+      ],
+      "description": "<p><strong>Technique :</strong> VL (0, 51) et PE (invalide)</p><p><strong>Résultat obtenu :</strong> 422 pour les quatre</p><p><strong>Exigences :</strong> R-17</p>"
+    },
+    {
+      "id": "TC-SCOR-04",
+      "name": "TC-SCOR-04 — Donnée absente et championnat inconnu",
+      "reference": "TC-SCOR-04",
+      "folder": "Football",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "Observer un joueur sans passe fournie ; appeler `/leagues/XX/scorers`",
+          "expected": "`assists` exposé à `0` (jamais `null`) ; 404 pour `XX`"
+        }
+      ],
+      "obtained": "Haaland (9 buts, `assists: null` côté fournisseur) exposé à `0` ; 404 pour `XX`",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-17"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> Haaland (9 buts, `assists: null` côté fournisseur) exposé à `0` ; 404 pour `XX`</p><p><strong>Exigences :</strong> R-17</p>"
+    },
+    {
+      "id": "TC-NEWS-01",
+      "name": "TC-NEWS-01 — Fil de résultats à l'accueil",
+      "reference": "TC-NEWS-01",
+      "folder": "Football",
+      "technique": "CT",
+      "steps": [
+        {
+          "action": "Ouvrir `/`",
+          "expected": "Section « Résultats récents », 5 éléments au maximum, compétition, titre et score affichés, tri du plus récent au plus ancien"
+        }
+      ],
+      "obtained": "5 éléments, tri conforme (Real Madrid 2-1 Celta en tête)",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-18"
+      ],
+      "description": "<p><strong>Technique :</strong> CT</p><p><strong>Résultat obtenu :</strong> 5 éléments, tri conforme (Real Madrid 2-1 Celta en tête)</p><p><strong>Exigences :</strong> R-18</p>"
+    },
+    {
+      "id": "TC-NEWS-02",
+      "name": "TC-NEWS-02 — Trois branches de formulation",
+      "reference": "TC-NEWS-02",
+      "folder": "Football",
+      "technique": "TD",
+      "steps": [
+        {
+          "action": "Observer les titres générés",
+          "expected": "Victoire domicile « X s'impose a-b face à Y », victoire extérieur « Y s'impose b-a sur le terrain de X », nul « X et Y se quittent dos à dos (a-a) »"
+        }
+      ],
+      "obtained": "Les trois branches observées et conformes",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-18"
+      ],
+      "description": "<p><strong>Technique :</strong> TD</p><p><strong>Résultat obtenu :</strong> Les trois branches observées et conformes</p><p><strong>Exigences :</strong> R-18</p>"
+    },
+    {
+      "id": "TC-NEWS-03",
+      "name": "TC-NEWS-03 — Bornes de la fenêtre",
+      "reference": "TC-NEWS-03",
+      "folder": "Football",
+      "technique": "VL (0, 11) et PE (texte)",
+      "steps": [
+        {
+          "action": "`GET /api/football/news` avec `days=0`, `days=11`, `limit=21`, `days=abc`",
+          "expected": "422 pour chacun (le fournisseur refuse plus de 10 jours d'écart)"
+        }
+      ],
+      "obtained": "422 pour les quatre",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-18"
+      ],
+      "description": "<p><strong>Technique :</strong> VL (0, 11) et PE (texte)</p><p><strong>Résultat obtenu :</strong> 422 pour les quatre</p><p><strong>Exigences :</strong> R-18</p>"
+    },
+    {
+      "id": "TC-NEWS-04",
+      "name": "TC-NEWS-04 — Compétitions non supportées",
+      "reference": "TC-NEWS-04",
+      "folder": "Football",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "Comparer la réponse du fournisseur (contient BSA, DED, ELC) et le fil renvoyé",
+          "expected": "Seuls PL, FL1, PD, SA, BL1 et CL sont exposés"
+        }
+      ],
+      "obtained": "Aucune compétition hors périmètre",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-18"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> Aucune compétition hors périmètre</p><p><strong>Exigences :</strong> R-18</p>"
+    },
+    {
+      "id": "TC-PRESS-01",
+      "name": "TC-PRESS-01 — Bloc presse et attribution",
+      "reference": "TC-PRESS-01",
+      "folder": "Football",
+      "technique": "CT",
+      "steps": [
+        {
+          "action": "Ouvrir `/`, observer la section « À la une »",
+          "expected": "Titres en français, chacun lien vers l'article d'origine (`target=\"_blank\"`, `rel=\"noopener noreferrer\"`), mention « Source : RMC Sport »"
+        }
+      ],
+      "obtained": "Section affichée, 5 titres, liens et mention conformes",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-19"
+      ],
+      "description": "<p><strong>Technique :</strong> CT</p><p><strong>Résultat obtenu :</strong> Section affichée, 5 titres, liens et mention conformes</p><p><strong>Exigences :</strong> R-19</p>"
+    },
+    {
+      "id": "TC-PRESS-02",
+      "name": "TC-PRESS-02 — Dégradation gracieuse",
+      "reference": "TC-PRESS-02",
+      "folder": "Football",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "Flux injoignable, XML invalide, flux vide (tests unitaires hors ligne)",
+          "expected": "`200` avec `available: false` et `items: []`, jamais `5xx` ; bloc masqué côté interface"
+        }
+      ],
+      "obtained": "`available: false`, aucun `5xx`, bloc absent",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-19"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> `available: false`, aucun `5xx`, bloc absent</p><p><strong>Exigences :</strong> R-19</p>"
+    },
+    {
+      "id": "TC-PRESS-03",
+      "name": "TC-PRESS-03 — Nettoyage et bornes",
+      "reference": "TC-PRESS-03",
+      "folder": "Football",
+      "technique": "VL et PE",
+      "steps": [
+        {
+          "action": "Titre contenant du HTML, titre de 300 caractères, `limit=0`, `limit=11`",
+          "expected": "Balises retirées, titre tronqué à 140 caractères, 422 hors bornes"
+        }
+      ],
+      "obtained": "Nettoyage et troncature conformes, 422 sur les deux bornes",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-19"
+      ],
+      "description": "<p><strong>Technique :</strong> VL et PE</p><p><strong>Résultat obtenu :</strong> Nettoyage et troncature conformes, 422 sur les deux bornes</p><p><strong>Exigences :</strong> R-19</p>"
+    },
+    {
+      "id": "TC-MATCH-01",
+      "name": "TC-MATCH-01 — Détail d'un match",
+      "reference": "TC-MATCH-01",
+      "folder": "Football",
+      "technique": "CT",
+      "steps": [
+        {
+          "action": "Depuis l'onglet « Matchs », cliquer « Détails » (ou « Voir le match » depuis l'accueil)",
+          "expected": "Compétition, date, statut, équipes et score affichés, cohérents avec la liste"
+        }
+      ],
+      "obtained": "Arsenal FC 3-0 Coventry City FC, statut « Terminé »",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-20"
+      ],
+      "description": "<p><strong>Technique :</strong> CT</p><p><strong>Résultat obtenu :</strong> Arsenal FC 3-0 Coventry City FC, statut « Terminé »</p><p><strong>Exigences :</strong> R-20</p>"
+    },
+    {
+      "id": "TC-MATCH-02",
+      "name": "TC-MATCH-02 — Identifiant inconnu",
+      "reference": "TC-MATCH-02",
+      "folder": "Football",
+      "technique": "PE (invalide)",
+      "steps": [
+        {
+          "action": "`GET /api/football/matches/999999999`",
+          "expected": "404, message affiché avec bouton « Réessayer »"
+        }
+      ],
+      "obtained": "404, écran récupérable",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-20"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide)</p><p><strong>Résultat obtenu :</strong> 404, écran récupérable</p><p><strong>Exigences :</strong> R-20</p>"
+    },
+    {
+      "id": "TC-MATCH-03",
+      "name": "TC-MATCH-03 — Identifiant non numérique",
+      "reference": "TC-MATCH-03",
+      "folder": "Football",
+      "technique": "VL et PE",
+      "steps": [
+        {
+          "action": "`GET /api/football/matches/abc`",
+          "expected": "422"
+        }
+      ],
+      "obtained": "422",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-20"
+      ],
+      "description": "<p><strong>Technique :</strong> VL et PE</p><p><strong>Résultat obtenu :</strong> 422</p><p><strong>Exigences :</strong> R-20</p>"
+    },
+    {
+      "id": "TC-V3-01",
+      "name": "TC-V3-01 — Prochains matchs de l'accueil",
+      "reference": "TC-V3-01",
+      "folder": "V3 — parcours enrichis",
+      "technique": "CT",
+      "steps": [
+        {
+          "action": "Ouvrir `/`, comparer la carte « Prochains matchs » avec `GET /api/football/fixtures?days=10&limit=4`",
+          "expected": "4 matchs au maximum, triés par date croissante, uniquement `SCHEDULED` ou `TIMED`, aucun match déjà commencé, chaque carte mène à `/matches/{id}`"
+        }
+      ],
+      "obtained": "4 matchs triés, aucun commencé, liens conformes",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-21"
+      ],
+      "description": "<p><strong>Technique :</strong> CT</p><p><strong>Résultat obtenu :</strong> 4 matchs triés, aucun commencé, liens conformes</p><p><strong>Exigences :</strong> R-21</p>"
+    },
+    {
+      "id": "TC-V3-02",
+      "name": "TC-V3-02 — Prochains matchs : états vide et erreur",
+      "reference": "TC-V3-02",
+      "folder": "V3 — parcours enrichis",
+      "technique": "PE (invalide) et VL",
+      "steps": [
+        {
+          "action": "Simuler une fenêtre sans match et une coupure réseau ; observer la carte, puis cliquer « Réessayer »",
+          "expected": "Message « Aucun match programmé… » ou « Prochains matchs indisponibles. » avec bouton « Réessayer » ; le clic recharge sans erreur JavaScript"
+        }
+      ],
+      "obtained": "Message vide et erreur récupérable, retry opérationnel",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-21"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide) et VL</p><p><strong>Résultat obtenu :</strong> Message vide et erreur récupérable, retry opérationnel</p><p><strong>Exigences :</strong> R-21</p>"
+    },
+    {
+      "id": "TC-V3-03",
+      "name": "TC-V3-03 — Fiche équipe enrichie",
+      "reference": "TC-V3-03",
+      "folder": "V3 — parcours enrichis",
+      "technique": "CT",
+      "steps": [
+        {
+          "action": "Ouvrir `/championships/PL`, cliquer une équipe, puis « Afficher les matchs et le classement »",
+          "expected": "Panneaux Classement (position, points, matchs joués, forme), Prochain match et Derniers résultats (3 maximum), cohérents avec les réponses API"
+        }
+      ],
+      "obtained": "Panneaux affichés, données cohérentes avec l'API",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-22"
+      ],
+      "description": "<p><strong>Technique :</strong> CT</p><p><strong>Résultat obtenu :</strong> Panneaux affichés, données cohérentes avec l&#x27;API</p><p><strong>Exigences :</strong> R-22</p>"
+    },
+    {
+      "id": "TC-V3-04",
+      "name": "TC-V3-04 — Favori depuis la fiche équipe",
+      "reference": "TC-V3-04",
+      "folder": "V3 — parcours enrichis",
+      "technique": "TD",
+      "steps": [
+        {
+          "action": "Connecté, ouvrir une fiche équipe, ajouter puis retirer le favori, recharger ; vérifier aussi en visiteur",
+          "expected": "Bouton « ☆ Ajouter aux favoris » puis « ★ Dans mes favoris », persistance après rechargement, retrait effectif ; visiteur sans bouton et message de connexion"
+        }
+      ],
+      "obtained": "États et persistance conformes",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-22"
+      ],
+      "description": "<p><strong>Technique :</strong> TD</p><p><strong>Résultat obtenu :</strong> États et persistance conformes</p><p><strong>Exigences :</strong> R-22</p>"
+    },
+    {
+      "id": "TC-V3-05",
+      "name": "TC-V3-05 — Tableau de bord des favoris",
+      "reference": "TC-V3-05",
+      "folder": "V3 — parcours enrichis",
+      "technique": "CT",
+      "steps": [
+        {
+          "action": "Ajouter deux équipes, ouvrir `/favorites`, comparer avec `GET /api/favorites/overview`",
+          "expected": "Une carte par favori, la plus récente en premier ; classement, points, matchs joués, forme, derniers résultats et prochain match ; aucun compteur `null`"
+        }
+      ],
+      "obtained": "Cartes conformes, ordre et contextes corrects",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-23"
+      ],
+      "description": "<p><strong>Technique :</strong> CT</p><p><strong>Résultat obtenu :</strong> Cartes conformes, ordre et contextes corrects</p><p><strong>Exigences :</strong> R-23</p>"
+    },
+    {
+      "id": "TC-V3-06",
+      "name": "TC-V3-06 — Tableau de bord : cloisonnement et persistance",
+      "reference": "TC-V3-06",
+      "folder": "V3 — parcours enrichis",
+      "technique": "TD",
+      "steps": [
+        {
+          "action": "Compte A ajoute un favori ; compte B ouvre `/favorites` ; A recharge et redémarre l'application",
+          "expected": "B ne voit aucun favori de A ; A retrouve son favori après rechargement et redémarrage ; aucune fuite entre comptes"
+        }
+      ],
+      "obtained": "Cloisonnement et persistance conformes",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-23"
+      ],
+      "description": "<p><strong>Technique :</strong> TD</p><p><strong>Résultat obtenu :</strong> Cloisonnement et persistance conformes</p><p><strong>Exigences :</strong> R-23</p>"
+    },
+    {
+      "id": "TC-V3-07",
+      "name": "TC-V3-07 — Détail de match enrichi et confrontations",
+      "reference": "TC-V3-07",
+      "folder": "V3 — parcours enrichis",
+      "technique": "CT",
+      "steps": [
+        {
+          "action": "Ouvrir un match depuis l'accueil ou le calendrier ; observer le contexte ; cliquer « Afficher les confrontations directes »",
+          "expected": "Compétition, date, statut, score et équipes cohérents ; classement et forme des deux équipes ; derniers matchs antérieurs à la date du match (3 maximum par équipe) ; résumé des confrontations et matchs triés du plus récent au plus ancien"
+        }
+      ],
+      "obtained": "Contexte et confrontations conformes, aucun match postérieur affiché",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "VERY_HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-24"
+      ],
+      "description": "<p><strong>Technique :</strong> CT</p><p><strong>Résultat obtenu :</strong> Contexte et confrontations conformes, aucun match postérieur affiché</p><p><strong>Exigences :</strong> R-24</p>"
+    },
+    {
+      "id": "TC-V3-08",
+      "name": "TC-V3-08 — Responsive et absence d'erreur JavaScript",
+      "reference": "TC-V3-08",
+      "folder": "V3 — parcours enrichis",
+      "technique": "EX",
+      "steps": [
+        {
+          "action": "Parcourir accueil, championnat, fiche équipe, favoris et détail de match en 320 px, 390 px et 1920 px ; surveiller la console",
+          "expected": "Aucun débordement horizontal, tableaux larges défilables, boutons accessibles, aucune erreur JavaScript"
+        }
+      ],
+      "obtained": "Conforme sur les trois largeurs",
+      "status": "SUCCESS",
+      "anomalies": [],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-25"
+      ],
+      "description": "<p><strong>Technique :</strong> EX</p><p><strong>Résultat obtenu :</strong> Conforme sur les trois largeurs</p><p><strong>Exigences :</strong> R-25</p>"
+    },
+    {
+      "id": "TC-V3-09",
+      "name": "TC-V3-09 — Non-régression V1 en données réelles : équipe inconnue",
+      "reference": "TC-V3-09",
+      "folder": "V3 — parcours enrichis",
+      "technique": "PE (invalide) et VL",
+      "steps": [
+        {
+          "action": "Avec `MOCK_FOOTBALL_API=false`, appeler `GET /api/football/leagues/PL/teams/999999`",
+          "expected": "`404` avec un message métier"
+        }
+      ],
+      "obtained": "**502** (`Football data API returned HTTP 400`)",
+      "status": "FAILURE",
+      "anomalies": [
+        "ANO-005"
+      ],
+      "importance": "HIGH",
+      "prerequisite": "Application démarrée (docker compose up --build --detach --wait), données réelles ou simulées selon le mode de la campagne, compte de test créé si nécessaire.",
+      "requirement_ids": [
+        "R-07",
+        "R-15"
+      ],
+      "description": "<p><strong>Technique :</strong> PE (invalide) et VL</p><p><strong>Résultat obtenu :</strong> **502** (`Football data API returned HTTP 400`)</p><p><strong>Exigences :</strong> R-07, R-15</p>"
     }
   ]
 }
