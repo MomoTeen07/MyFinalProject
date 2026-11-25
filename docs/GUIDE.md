@@ -240,7 +240,8 @@ horizontal ni erreur JavaScript.
 | `v1.0-campagne-v1` | `eabd40f` | État consolidé après la campagne V1 et le passage des suites en données réelles |
 | Application V1 testée | `a0ea6e6` | Commit de l'application au moment de la campagne V1 |
 | `v3.0` | `3ba1ec9` | Version de code V3 |
-| Campagne finale | à créer après fusion | Tag de clôture de la campagne V3 |
+| `v3.1-campagne-finale` | `db1923a` | Campagne finale V3 (contenu et rapports) |
+| `v3.1.1-campagne-finale` | `main` après fusion | Clôture finale, CI verte et correctif Postman |
 
 ## Gestion de campagne (Squash TM)
 
