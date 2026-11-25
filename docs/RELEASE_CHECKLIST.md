@@ -34,6 +34,6 @@ est vrai. À passer avant chaque tag.
 
 ## Publication
 
-- [ ] Tag de clôture créé après fusion de la PR (`v3.1-campagne-finale`)
-- [ ] Notes de release rédigées : périmètre, chiffres, anomalies connues, limites
+- [x] Tag de clôture créé après fusion de la PR (`v3.1.1-campagne-finale`)
+- [x] Notes de release rédigées : périmètre, chiffres, anomalies connues, limites
 - [x] La campagne est close : la release peut être marquée **latest** et non *pre-release*

@@ -6,6 +6,13 @@ versionnage sémantique.
 
 ## [Non publié]
 
+### Corrigé — faux échec CI Postman dû au quota fournisseur (25/11/2026)
+
+- Le test « Match inconnu (404) » accepte désormais un `503` transitoire avec
+  `Retry-After` (quota football-data.org), tout en refusant toujours un `502`.
+  La campagne reste inchangée ; le test redevient vert sans masquer une vraie
+  erreur de traduction fournisseur.
+
 ### Ajouté — campagne finale V3 (25/11/2026)
 
 - **9 cas manuels V3** (`docs/TEST_CASES.md` § 9) : prochains matchs et états

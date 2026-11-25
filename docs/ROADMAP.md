@@ -19,11 +19,12 @@ Les fonctionnalités V3 sont fusionnées dans `main` et la campagne finale est c
 - [x] Mettre à jour `docs/CAMPAIGN_REPORT.md` avec les métriques V3
 - [x] Vérifier la traçabilité V3 dans `docs/TRACEABILITY.md` (25 exigences, 18 endpoints)
 - [x] Passer la checklist [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md)
-- [ ] Créer le tag de clôture après fusion de la PR de campagne
+- [x] Créer le tag de clôture après fusion de la PR de campagne
 
 > Le tag `v3.0` marque la version de code ; il a été créé **avant** la campagne.
-> Le tag de clôture doit être créé après fusion de la PR finale, par exemple
-> `v3.1-campagne-finale`.
+> Le tag de clôture final est `v3.1.1-campagne-finale`, créé après la fusion du
+> correctif CI Postman. Le tag `v3.1-campagne-finale` conserve le contenu de la
+> campagne.
 
 ## Points ouverts (indépendants de V3)
 
