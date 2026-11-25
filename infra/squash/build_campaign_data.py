@@ -24,12 +24,19 @@ CASES_FILE = ROOT / "docs" / "TEST_CASES.md"
 TRACE_FILE = ROOT / "docs" / "TRACEABILITY.md"
 OUTPUT_FILE = ROOT / "infra" / "squash" / "campaign_data.json"
 
-TC_PATTERN = re.compile(r"TC-[A-Z]+-\d+")
+TC_PATTERN = re.compile(r"TC-[A-Z0-9]+-\d+")
 FOLDER_BY_PREFIX = {
     "AUTH": "Authentification",
     "FOOT": "Football",
     "FAV": "Favoris",
     "SEC": "Sécurité et robustesse",
+    # V2 : buteurs, actualités, presse et détail de match.
+    "SCOR": "Football",
+    "NEWS": "Football",
+    "PRESS": "Football",
+    "MATCH": "Football",
+    # V3 : parcours enrichis (prochains matchs, fiche équipe, favoris, match).
+    "V3": "V3 — parcours enrichis",
 }
 CRITICAL_REQUIREMENTS = {"R-14", "R-15"}
 MAJOR_NON_FUNCTIONAL = {"R-16"}
@@ -41,10 +48,15 @@ HIGH_IMPORTANCE_CASES = {
     "TC-FAV-04",
     "TC-FAV-06",
     "TC-FAV-07",
+    "TC-V3-01",
+    "TC-V3-03",
+    "TC-V3-05",
+    "TC-V3-07",
 }
 PREREQUISITE = (
     "Application démarrée (docker compose up --build --detach --wait), "
-    "données simulées disponibles, compte de test créé si nécessaire."
+    "données réelles ou simulées selon le mode de la campagne, compte de test "
+    "créé si nécessaire."
 )
 
 
@@ -73,7 +85,7 @@ def read_test_cases() -> list[dict]:
                 "steps": [{"action": steps, "expected": expected}],
                 "obtained": obtained,
                 "status": "SUCCESS" if clean_status.lower().startswith("pass") else "FAILURE",
-                "anomalies": sorted(set(re.findall(r"ANO-00\d", clean_status))),
+                "anomalies": sorted(set(re.findall(r"ANO-\d{3}", clean_status))),
                 "importance": (
                     "VERY_HIGH"
                     if prefix == "SEC" or tc_id in HIGH_IMPORTANCE_CASES
@@ -145,27 +157,30 @@ def main() -> int:
             "name": "Football QA",
             "label": "Projet final QA — BStorm 2026",
             "description": (
-                "<p>Campagne de test de l'application Football QA : plan de test, "
-                f"{len(test_cases)} cas manuels, traçabilité exigence → cas → "
-                "exécution → anomalie.</p>"
+                "<p>Campagne finale de test de l'application Football QA : plan "
+                f"de test, {len(test_cases)} cas manuels, traçabilité exigence → "
+                "cas → exécution → anomalie.</p>"
             ),
         },
         "campaign": {
-            "name": "Campagne V1 — Football QA",
-            "reference": "CAMP-V1",
+            "name": "Campagne finale V3 — Football QA",
+            "reference": "CAMP-V3",
             "status": "PLANNED",
             "description": (
-                "<p>Campagne V1 du 13/11/2026 sur le commit a0ea6e6. "
-                f"{success} cas conformes, {failure} cas en anomalie "
-                "(ANO-001 à ANO-004).</p>"
+                "<p>Campagne finale du 25/11/2026 sur la V3 (commit 3ba1ec9, tag "
+                f"v3.0). {len(requirements)} exigences, {len(test_cases)} cas : "
+                f"{success} conformes, {failure} en anomalie (ANO-001 à ANO-005). "
+                "Les campagnes V1 (36 cas) et V2 (14 cas) sont intégrées à ce "
+                "périmètre final.</p>"
             ),
         },
         "iteration": {
-            "name": "Itération 1 — exécution manuelle et automatisée",
-            "reference": "IT-V1",
+            "name": "Itération 1 — campagne finale V3",
+            "reference": "IT-V3",
             "status": "PLANNED",
-            "description": f"<p>Exécution des {len(test_cases)} cas de la campagne V1.</p>",
+            "description": f"<p>Exécution des {len(test_cases)} cas de la campagne finale V3.</p>",
         },
+        "execution_date": "25/11/2026",
         "test_suite_name": f"Suite complète — {len(test_cases)} cas",
         "requirements": requirements,
         "test_cases": test_cases,

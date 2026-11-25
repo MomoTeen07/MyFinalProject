@@ -33,9 +33,6 @@ API = f"{BASE_URL}/squash/api/rest/latest"
 USER = os.getenv("SQUASH_USER", "admin")
 PASSWORD = os.getenv("SQUASH_PASSWORD", "admin")
 AUTH = "Basic " + base64.b64encode(f"{USER}:{PASSWORD}".encode()).decode()
-EXECUTION_DATE = "13/11/2026"
-
-FOLDERS = ["Authentification", "Football", "Favoris", "Sécurité et robustesse"]
 
 
 def call(method: str, path: str, body: dict | None = None) -> tuple[int, dict | str]:
@@ -64,6 +61,7 @@ def expect(method: str, path: str, body: dict | None = None) -> dict:
 
 def main() -> int:
     data = json.loads(DATA_FILE.read_text(encoding="utf-8"))
+    execution_date = data.get("execution_date", "25/11/2026")
 
     status, listing = call("GET", "/projects?size=100")
     if status >= 400:
@@ -83,7 +81,7 @@ def main() -> int:
     print(f"Projet « {project['name']} » créé (id {project_id})")
 
     folders: dict[str, int] = {}
-    for name in FOLDERS:
+    for name in dict.fromkeys(case["folder"] for case in data["test_cases"]):
         folder = expect(
             "POST",
             "/test-case-folders",
@@ -182,7 +180,10 @@ def main() -> int:
         {
             "_type": "test-suite",
             "name": data["test_suite_name"],
-            "description": "<p>Exécution de la campagne V1 : 36 cas manuels.</p>",
+            "description": (
+                f"<p>{data['iteration']['name']} : "
+                f"{len(plan_items)} cas manuels.</p>"
+            ),
             "parent": {"_type": "iteration", "id": iteration["id"]},
             "test_plan": [{"_type": "test-plan-item", "id": item_id} for item_id in plan_items],
         },
@@ -197,12 +198,12 @@ def main() -> int:
             call("PATCH", f"/execution-steps/{step['id']}/execution-status/{step_status}")
 
         if case["status"] == "SUCCESS":
-            comment = f"Exécuté le {EXECUTION_DATE} — conforme : {case['obtained']}"
+            comment = f"Exécuté le {execution_date} — conforme : {case['obtained']}"
             success += 1
         else:
             anomalies = ", ".join(case["anomalies"]) or "anomalie documentée"
             comment = (
-                f"Exécuté le {EXECUTION_DATE} — non conforme : {case['obtained']} "
+                f"Exécuté le {execution_date} — non conforme : {case['obtained']} "
                 f"({anomalies}, voir docs/ANOMALIES.md)"
             )
             failure += 1
