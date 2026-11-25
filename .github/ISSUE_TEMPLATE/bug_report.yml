@@ -1,0 +1,78 @@
+name: Rapport d'anomalie
+description: Signaler une anomalie reproductible sur l'application
+title: "[ANO] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Vérifiez d'abord qu'une anomalie identique n'est pas déjà ouverte, puis renseignez
+        chaque champ : une anomalie sans reproduction n'est pas une anomalie, c'est une impression.
+
+  - type: input
+    id: environnement
+    attributes:
+      label: Environnement
+      description: Commit ou branche, mode de données, navigateur et version.
+      placeholder: "main @ 59ce997 — données simulées — Chromium 141"
+    validations:
+      required: true
+
+  - type: textarea
+    id: etapes
+    attributes:
+      label: Étapes de reproduction
+      description: Numérotées, depuis un état vierge (compte créé par le test si nécessaire).
+      placeholder: |
+        1. Se connecter avec un compte QA.
+        2. Ouvrir un championnat.
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: attendu
+    attributes:
+      label: Résultat attendu
+    validations:
+      required: true
+
+  - type: textarea
+    id: obtenu
+    attributes:
+      label: Résultat obtenu
+      description: Statut HTTP, message affiché, valeur observée.
+    validations:
+      required: true
+
+  - type: input
+    id: frequence
+    attributes:
+      label: Fréquence
+      description: Nombre d'occurrences sur nombre d'essais.
+      placeholder: "3/3"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: gravite
+    attributes:
+      label: Gravité
+      options:
+        - Bloquante (parcours impossible)
+        - Élevée (donnée fausse ou cloisonnement rompu)
+        - Moyenne (contournement possible)
+        - Faible (cosmétique)
+    validations:
+      required: true
+
+  - type: textarea
+    id: preuves
+    attributes:
+      label: Preuves
+      description: Trace, capture, requête SQL, test en échec, ligne de code suspecte.
+      placeholder: |
+        - Test en échec : `tests/pytest/tests/test_favorites.py::...`
+        - Trace : `GET /api/... -> 200`
+    validations:
+      required: true
