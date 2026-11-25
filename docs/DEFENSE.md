@@ -5,7 +5,7 @@
 | Durée | 20 à 30 minutes + questions |
 | Format | Présentation, démonstration en direct, défense des choix |
 | Public | Jury de la formation Testeur QA 2026 (BStorm) |
-| Application | Football QA — dépôt `MomoTeen07/MyFinalProject` |
+| Application | Football QA — dépôt `MomoTeen07/football-qa` |
 | Date | Session de soutenance (à confirmer par le formateur) |
 
 ## 1. Trame proposée (25 minutes)
@@ -13,11 +13,11 @@
 | Temps | Séquence | Message clé |
 |---|---|---|
 | 0–2 min | Contexte et application | Application web réelle, choix validé par le formateur, API REST, base PostgreSQL, règles métier |
-| 2–7 min | Stratégie et analyse de risques | Approche risk-based : 10 risques notés, 6 risques critiques couverts à 100 % |
+| 2–7 min | Stratégie et analyse de risques | Approche risk-based : 13 risques notés, 6 risques critiques couverts à 100 % |
 | 7–12 min | Démonstration : tests automatisés | Exécution d'une suite ciblée, rapport Allure, artefacts d'échec |
 | 12–16 min | Démonstration : anomalie rejouée | ANO-001 en direct, comparaison attendu/obtenu, preuve |
 | 16–20 min | Pipeline CI | Historique des exécutions vertes, jobs, artefacts publiés |
-| 20–24 min | Métriques, limites, recommandations | 118 vérifications, 100 % de réussite hors xfail, 4 anomalies, risques résiduels |
+| 20–24 min | Métriques, limites, recommandations | 222 vérifications passantes + 4 xfail, 59 cas manuels, 5 anomalies, 18 endpoints, risques résiduels |
 | 24–25 min | Prise de recul | Ce que je ferais différemment, améliorations priorisées |
 | 25–30 min | Questions | Fondamentaux ISTQB appliqués au projet |
 
@@ -45,16 +45,17 @@ Plan B si le réseau ou Docker est indisponible : diffuser les captures et les
 artefacts Allure déjà générés (`allure-report/`, `playwright-report/`), et
 rejouer l'anomalie avec la commande `curl` documentée.
 
-### 2.2 Séquence 1 — un test UI qui passe (2 min)
+### 2.2 Séquence 1 — des tests UI V3 qui passent (2 min)
 
 ```bash
 cd tests/playwright
 npx playwright test tests/favorites.spec.js -g "ajout, consultation" --reporter=line
+npx playwright test tests/smoke.spec.js tests/match.spec.js --reporter=line
 ```
 
 Points à commenter :
 
-- structure **Page Object Model** (6 pages, sélecteurs centralisés) ;
+- structure **Page Object Model** (7 pages, sélecteurs centralisés) ;
 - fixture `loginAs` : compte unique créé par l'API, session injectée une seule
   fois (pas de `addInitScript`, pour pouvoir tester la déconnexion) ;
 - attentes robustes : assertions auto-retentées de Playwright, pas de
@@ -64,8 +65,8 @@ Points à commenter :
 
 Ouvrir **GitHub → Actions → QA CI** :
 
-- job `Backend unit checks` : 4 tests ;
-- job `API and UI checks` : Docker Compose, 53 tests API, 17 tests UI, Newman ;
+- job `Backend unit checks` : 19 tests ;
+- job `API and UI checks` : Docker Compose, 100 tests API + 4 `xfail`, 27 tests UI, 76 assertions Newman ;
 - artefacts : `allure-report`, `playwright-report`, `postman-report`,
   `playwright-test-results` en cas d'échec.
 
@@ -103,10 +104,10 @@ npx --yes newman@6 run postman/Football-QA.postman_collection.json \
 Ouvrir `http://localhost:8090/squash/project/1/campaign-workspace`
 (`admin` / `admin`) et commenter :
 
-- arborescence campagne → itération → suite → 36 cas ;
-- une exécution `FAILURE` (TC-SEC-08) : statut, pas de test, commentaire
-  daté renvoyant à `docs/ANOMALIES.md` ;
-- rapport d'avancement : 32 `SUCCESS`, 4 `FAILURE`, 88,9 % de réussite.
+- arborescence campagne → itération → suite → 59 cas ;
+- une exécution `FAILURE` (TC-SEC-08 ou TC-V3-09) : statut, pas de test,
+  commentaire daté renvoyant à `docs/ANOMALIES.md` ;
+- rapport d'avancement : 54 `SUCCESS`, 5 `FAILURE`, 91,5 % de réussite.
 
 Démarrage si besoin : `docker compose -f infra/squash/docker-compose.yml up -d`
 puis `python infra/squash/seed_campaign.py` (procédure complète :
@@ -132,7 +133,7 @@ puis `python infra/squash/seed_campaign.py` (procédure complète :
 
 **Qu'est-ce qu'un test basé sur les risques ?**
 On classe les risques par probabilité × impact, puis on alloue l'effort de test
-en priorité aux risques les plus critiques. Ici, 10 risques notés de 1 à 9 ;
+en priorité aux risques les plus critiques. Ici, 13 risques notés de 1 à 9 ;
 les 6 risques ≥ 6 sont couverts par des tests automatisés et manuels.
 
 **Différence entre erreur, défaut et défaillance ?**
@@ -186,8 +187,8 @@ corriger masquerait la preuve et sortirait du périmètre validé par le formate
 
 **Comment savez-vous que la couverture est suffisante ?**
 Chaque exigence est tracée vers au moins un cas et un test automatisé
-(`TRACEABILITY.md`), les 11 endpoints sont couverts et les 6 risques critiques
-ont une couverture automatisée et manuelle.
+(`TRACEABILITY.md`), les 18 endpoints sont couverts, les 25 exigences sont
+tracées et les 6 risques critiques ont une couverture automatisée et manuelle.
 
 **Comment l'API est-elle isolée entre comptes ?**
 Le jeton porte l'identifiant utilisateur ; toutes les requêtes favorites
@@ -205,15 +206,15 @@ fournisseur est imparfait (**ANO-005**).
 
 ### 4.3 Questions pièges
 
-**« Votre CI est verte alors que 3 tests échouent : n'est-ce pas de la triche ? »**
+**« Votre CI est verte alors que 4 tests échouent : n'est-ce pas de la triche ? »**
 Non : `xfail(strict=True)` déclare un défaut connu et attendu. Le test reste
 exécuté, son échec est visible dans Allure avec la référence ANO-xxx, et si le
 défaut est corrigé le test devient rouge (`XPASS` strict) pour forcer la mise à
 jour. La CI mesure la non-régression, pas l'absence de défauts.
 
-**« Pourquoi 4 anomalies seulement ? »**
+**« Pourquoi 5 anomalies seulement ? »**
 Le périmètre est volontairement ciblé sur les risques critiques. La densité
-(0,11 anomalie par cas) est cohérente avec une application simple ; l'énoncé
+(0,085 anomalie par cas) est cohérente avec une application simple ; l'énoncé
 précise que la qualité de la démarche prime sur le volume.
 
 **« Quelle est votre plus grande faiblesse ? »**
@@ -226,7 +227,8 @@ documentées avec un plan d'action chiffré.
 |---|---|---|
 | Chromium uniquement | Régressions spécifiques Firefox/Safari non détectées | Ajouter 2 projets Playwright en CI |
 | Pas de tests de charge | Capacité inconnue | k6 ou Locust sur environnement dédié |
-| API football simulée | Contrat externe non vérifié | Test de contrat consommateur |
+| Campagne V3 limitée à 9 cas | Couverture manuelle partielle des parcours V3 | Compléter par des sessions exploratoires V3 et des cas sur les erreurs fournisseur |
+| Dépendance au fournisseur réel | Quota 10 req/min et 5xx transitoires | Cache, reprise bornée, test de contrat consommateur |
 | Pas d'accessibilité normée | Conformité WCAG non prouvée | axe-core + audit manuel |
 | Session exploratoire unique | Couverture des cas imprévus limitée | Sessions exploratoires par itération |
 | Historique Git initial | Traçabilité des premiers commits faible | Convention Conventional Commits depuis le début de la campagne |
@@ -239,7 +241,7 @@ documentées avec un plan d'action chiffré.
 - [ ] Onglet navigateur sur l'application et sur `/docs`
 - [ ] Onglet GitHub Actions sur le dernier run vert
 - [ ] `docs/CAMPAIGN_REPORT.md` ouvert sur les métriques
-- [ ] Squash TM ouvert sur la campagne (32/4) ou prêt à démarrer
+- [ ] Squash TM ouvert sur la campagne finale (54/5) ou prêt à démarrer
 - [ ] Commande ANO-001 copiée dans le presse-papiers
 - [ ] Rapport Allure généré en local (secours hors ligne)
 - [ ] Chronomètre : répétition complète en moins de 20 minutes
