@@ -6,6 +6,23 @@ versionnage sémantique.
 
 ## [Non publié]
 
+### Ajouté — campagne finale V3 (25/11/2026)
+
+- **9 cas manuels V3** (`docs/TEST_CASES.md` § 9) : prochains matchs et états
+  d'erreur, fiche équipe enrichie, favori, tableau de bord des favoris,
+  cloisonnement et persistance, détail de match et confrontations, responsive,
+  non-régression en données réelles (ANO-005).
+- **Traçabilité** : 5 exigences V3 (R-21 à R-25), 25 exigences / 59 cas /
+  18 endpoints (`docs/TRACEABILITY.md`), matrice inverse complétée avec ANO-005.
+- **Squash TM** : campagne finale `CAMP-V3`, 25 exigences, 59 cas,
+  54 `SUCCESS` / 5 `FAILURE`. `build_campaign_data.py` gère les préfixes V2/V3
+  et `seed_campaign.py` dérive les dossiers et la date d'exécution des données.
+- **Rapport, plan et soutenance** alignés sur la V3 : 222 vérifications
+  passantes + 4 `xfail`, 59 cas, 5 anomalies (2 majeures / 3 moyennes),
+  18 endpoints, 6 risques critiques.
+- **README / PROJECT_CONTEXT** : campagne V3 terminée, métriques finales,
+  versions et tags, dépôt de rendu unique, crédits.
+
 ### Modifié — intégration de `app/v3` dans `main` (24/11/2026)
 
 - **Périmètre de campagne explicité** : `README.md` rappelle que les chiffres de

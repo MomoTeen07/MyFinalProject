@@ -7,22 +7,23 @@ de « terminé » ne se termine jamais.
 
 | Version | Fonctionnalités | Campagne de test |
 | --- | --- | --- |
-| **V1** | Parcours visiteur et authentifié, favoris, 11 endpoints | **Terminée** — 36 cas, 118 vérifications, 5 anomalies (tag `v1.0-campagne-v1`) |
-| **V2** | Buteurs/passeurs, actualités, presse, détail de match, pagination — 15 endpoints | Vérifications automatisées rejouées en données réelles |
-| **V3** | Prochains matchs, fiche équipe enrichie, tableau de bord favoris, confrontations — 18 endpoints | **Non démarrée** (campagne manuelle) |
+| **V1** | Parcours visiteur et authentifié, favoris, 11 endpoints | **Terminée** — 36 cas, 118 vérifications, 4 anomalies (tag `v1.0-campagne-v1`) |
+| **V2** | Buteurs/passeurs, actualités, presse, détail de match, pagination — 15 endpoints | **Terminée** — 14 cas, vérifications automatisées en données réelles |
+| **V3** | Prochains matchs, fiche équipe enrichie, tableau de bord favoris, confrontations — 18 endpoints | **Terminée** — 9 cas, 222 vérifications passantes + 4 `xfail`, 5 anomalies |
 
-Les fonctionnalités V3 sont fusionnées dans `main`. Ce qui manque n'est pas du code : c'est
-**la validation**.
+Les fonctionnalités V3 sont fusionnées dans `main` et la campagne finale est close.
 
-## Prochain jalon — clôturer V3
+## Jalon V3 — clôturé
 
-- [ ] Exécuter la campagne manuelle V3 (50 cas) et consigner attendu / obtenu / statut dans `docs/TEST_CASES.md`
-- [ ] Mettre à jour `docs/CAMPAIGN_REPORT.md` avec les métriques V3
-- [ ] Vérifier la traçabilité V3 dans `docs/TRACEABILITY.md`
-- [ ] Passer la checklist [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md)
-- [ ] Créer le tag de fin de V3
+- [x] Exécuter la campagne manuelle V3 (9 cas) et consigner attendu / obtenu / statut dans `docs/TEST_CASES.md`
+- [x] Mettre à jour `docs/CAMPAIGN_REPORT.md` avec les métriques V3
+- [x] Vérifier la traçabilité V3 dans `docs/TRACEABILITY.md` (25 exigences, 18 endpoints)
+- [x] Passer la checklist [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md)
+- [ ] Créer le tag de clôture après fusion de la PR de campagne
 
-> Le tag `v3.0` a été créé **avant** la campagne : ne pas publier de release dessus avant la clôture.
+> Le tag `v3.0` marque la version de code ; il a été créé **avant** la campagne.
+> Le tag de clôture doit être créé après fusion de la PR finale, par exemple
+> `v3.1-campagne-finale`.
 
 ## Points ouverts (indépendants de V3)
 
