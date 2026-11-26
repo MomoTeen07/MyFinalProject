@@ -3,7 +3,7 @@
 | Élément | Valeur |
 |---|---|
 | Campagne | **Campagne finale V3** (V1 + V2 + V3) |
-| Version testée | V3 — commit `3ba1ec9` (tag `v3.0`) ; HEAD de clôture `c5549c9` (tag `v3.1.1-campagne-finale`) |
+| Version testée | V3 — commit `3ba1ec9` (tag `v3.0`) ; clôture livrée : tag `v3.1.1-campagne-finale` (`c5549c9`) |
 | Période | 13/11/2026 (V1), 22/11/2026 (V2), 25/11/2026 (V3) |
 | Testeur | Mohamed Abdo |
 | Environnement | Docker local : API `:8001`, UI `:5174`, PostgreSQL 16. V1 en mode simulé ; V2/V3 en **données réelles** |
