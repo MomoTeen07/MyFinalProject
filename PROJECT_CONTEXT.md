@@ -2,8 +2,8 @@
 
 | Élément | Valeur |
 |---|---|
-| Dernière mise à jour | 25/11/2026 |
-| Commit de référence | `main` — **toujours vérifier avec `git log -1`** (`3ba1ec9`, tag `v3.0`) ; la campagne Squash V1 a été exécutée sur `a0ea6e6` |
+| Dernière mise à jour | 26/11/2026 |
+| Commit de référence | `main` — **toujours vérifier avec `git log -1`** (`c5549c9`, tag `v3.1.1-campagne-finale`) ; version de code V3 : `3ba1ec9` (tag `v3.0`) ; campagne Squash V1 exécutée sur `a0ea6e6` |
 | Branches ouvertes | `main` uniquement : `app/v2` et `app/v3` ont été fusionnées le 24/11/2026 (PR #17) |
 | État | V3 intégrée à `main`, campagne finale V3 terminée, CI verte, 222 vérifications automatiques vertes en données réelles + 4 `xfail`, 59 cas manuels, 5 anomalies |
 | Reste à faire | Slides, captures et répétition de la soutenance ; vérifier la date et le format de dépôt |
@@ -176,7 +176,7 @@ changer hors projet). Ne jamais versionner `.env` ni les clés.
 
 | Chemin | Rôle |
 |---|---|
-| `C:\Users\MAbdo\Desktop\Football\MyFinalProject` | Copie unique : branches, PR, tests et application. `main` contient la V3 (tag `v3.0`). |
+| `C:\Users\MAbdo\Desktop\Football\MyFinalProject` | Copie unique : branches, PR, tests et application. `main` contient la V3 (tags `v3.0` puis `v3.1.1-campagne-finale`). |
 
 Depuis le 24/11/2026, les deux dépôts sont regroupés dans
 `C:\Users\MAbdo\Desktop\Football\` : l'application ici, les agents dans
